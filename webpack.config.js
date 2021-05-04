@@ -13,7 +13,7 @@ module.exports = {
 	entry: './src/index.ts',
 	output: {
 		clean: true,
-		filename: 'main.js',
+		filename: '[name].js',
 		path: path.resolve(__dirname, ouputDirName),
 	},
 
@@ -53,6 +53,7 @@ module.exports = {
 					test: /[\\/]node_modules[\\/]/,
 					name: 'vendor',
 					chunks: 'initial',
+					enforce: true
 				},
 			},
 		},
@@ -61,6 +62,5 @@ module.exports = {
 	devServer: {
 		contentBase: path.join(__dirname, ouputDirName),
 		compress: true,
-		// port: 9000,
 	},
 };
