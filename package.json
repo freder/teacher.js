@@ -4,7 +4,10 @@
   "description": "",
   "scripts": {
     "check-types": "tsc",
+    "dev": "webpack serve --mode=development",
     "build": "webpack --config webpack.config.js",
+    "build:dev": "npm run build -- --mode=development",
+    "build:prod": "npm run build -- --mode=production",
     "test": "jest"
   },
   "devDependencies": {
@@ -17,10 +20,12 @@
     "@typescript-eslint/parser": "^4.22.0",
     "babel-loader": "^8.2.2",
     "eslint": "^7.25.0",
+    "html-webpack-plugin": "^5.3.1",
     "jest": "^26.6.3",
     "typescript": "^4.2.4",
     "webpack": "^5.36.2",
-    "webpack-cli": "^4.6.0"
+    "webpack-cli": "^4.6.0",
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
     "eslint-plugin-jest": "^24.3.6"

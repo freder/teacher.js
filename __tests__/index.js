@@ -1,10 +1,10 @@
-import * as index from '../src/index';
+import * as utils from '../src/utils';
 
 
 describe('add', () => {
 	it('should work', () => {
 		expect(
-			index.add(1, 1)
+			utils.add(1, 1)
 		).toEqual(2);
 	});
 });
