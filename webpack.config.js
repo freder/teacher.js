@@ -3,10 +3,13 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const ouputDirName = 'dist';
 
 
 module.exports = {
+	mode: NODE_ENV,
+
 	entry: './src/index.ts',
 	output: {
 		clean: true,
@@ -27,7 +30,9 @@ module.exports = {
 		}),
 	],
 
-	devtool: 'inline-source-map',
+	devtool: (NODE_ENV === 'development')
+		? 'inline-source-map'
+		: 'source-map',
 
 	module: {
 		rules: [
@@ -37,6 +42,20 @@ module.exports = {
 				use: ['babel-loader']
 			}
 		]
+	},
+
+	optimization: {
+		minimize: NODE_ENV === 'production',
+
+		splitChunks: {
+			cacheGroups: {
+				commons: {
+					test: /[\\/]node_modules[\\/]/,
+					name: 'vendor',
+					chunks: 'initial',
+				},
+			},
+		},
 	},
 
 	devServer: {

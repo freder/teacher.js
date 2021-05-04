@@ -4,10 +4,10 @@
   "description": "",
   "scripts": {
     "check-types": "tsc",
-    "dev": "webpack serve --mode=development",
+    "dev": "NODE_ENV=development webpack serve",
     "build": "webpack --config webpack.config.js",
-    "build:dev": "npm run build -- --mode=development",
-    "build:prod": "npm run build -- --mode=production",
+    "build:dev": "NODE_ENV=development npm run build",
+    "build:prod": "NODE_ENV=production npm run build",
     "test": "jest"
   },
   "devDependencies": {
