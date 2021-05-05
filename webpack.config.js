@@ -5,12 +5,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const ouputDirName = 'dist';
+const clientPath = './src/client';
 
 
 module.exports = {
 	mode: NODE_ENV,
 
-	entry: './src/index.ts',
+	entry: `${clientPath}/index.ts`,
 	output: {
 		clean: true,
 		filename: '[name].js',
@@ -24,7 +25,7 @@ module.exports = {
 	plugins: [
 		new HtmlWebpackPlugin({
 			title: 'teacher.solar',
-			template: './src/index.html',
+			template: `${clientPath}/index.html`,
 			minify: false,
 			inject: 'body',
 		}),
