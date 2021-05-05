@@ -30,6 +30,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "dotenv": "^8.5.1",
     "nanohtml": "^1.9.1",
     "socket.io": "^4.0.1",
     "socket.io-client": "^4.0.1"

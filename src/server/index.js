@@ -1,3 +1,10 @@
+const path = require('path');
+const dotenvPath = path.resolve(
+	path.join(__dirname, '../.env')
+);
+require('dotenv').config({ path: dotenvPath });
+
+
 const httpServer = require('http').createServer();
 const io = require('socket.io')(
 	httpServer,
@@ -28,5 +35,6 @@ io.on('connection', (socket) => {
 	});
 });
 
-const port = 3000;
+const port = process.env.SERVER_PORT || 3000;
+console.log(`http://localhost:${port}`);
 httpServer.listen(port);

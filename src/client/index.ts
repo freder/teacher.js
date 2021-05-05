@@ -4,6 +4,11 @@ import html from 'nanohtml/lib/browser';
 require('./styles.css');
 
 
+const serverPort = process.env.SERVER_PORT;
+const serverUrl = `http://localhost:${serverPort}`;
+console.log('environment:', process.env.NODE_ENV);
+console.log('server url:', serverUrl);
+
 // TODO: increase security
 // check if admin flag is set
 const isAdmin = window.location.hash === '#admin';
@@ -28,8 +33,7 @@ function initAdminControls(socket: Socket) {
 
 
 function main() {
-	// TODO: use config file, or .env
-	const socket = io('http://localhost:3000');
+	const socket = io(serverUrl);
 
 	socket.on('connect', () => {
 		if (isAdmin) {
