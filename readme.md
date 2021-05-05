@@ -1,5 +1,10 @@
 # teacher.solar
 
+## conventions
+
+- this repo uses [git-flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
+
+
 ## setup
 
 ```shell
