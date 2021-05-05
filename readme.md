@@ -22,6 +22,8 @@ rename `src/.env-example` to `src/.env` (and edit, if necessary).
 - run server: `node src/server/index.js`
 - run dev server (client): `npm run dev`
 
+then open `http://localhost:8080`. to assume the teacher role, open `http://localhost:8080#admin`.
+
 
 ## build
 
