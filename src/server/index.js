@@ -4,6 +4,11 @@ const dotenvPath = path.resolve(
 );
 require('dotenv').config({ path: dotenvPath });
 
+const debug = require('debug');
+const debugPrefix = 'T.S';
+const logSlideCmd = debug(`${debugPrefix}:cmd:slides`);
+const logNetEvent = debug(`${debugPrefix}:net`);
+const logInfo = debug(`${debugPrefix}:info`);
 
 const httpServer = require('http').createServer();
 const io = require('socket.io')(
@@ -19,8 +24,7 @@ const io = require('socket.io')(
 );
 
 io.on('connection', (socket) => {
-	// TODO: use logging library
-	console.log('client connected:', socket.id);
+	logNetEvent('client connected:', socket.id);
 	// io.to(socket.id).emit('hello', `oh, hey ${socket.id}`);
 
 	// client may request admin role
@@ -30,12 +34,12 @@ io.on('connection', (socket) => {
 
 	// TODO: check if it comes from an admin user
 	socket.on('slides', (cmd) => {
-		console.log(cmd);
+		logSlideCmd(cmd);
 		// relay to all clients
 		io.emit('slides', cmd);
 	});
 });
 
 const port = process.env.SERVER_PORT || 3000;
-console.log(`http://localhost:${port}`);
+logInfo(`http://localhost:${port}`);
 httpServer.listen(port);
