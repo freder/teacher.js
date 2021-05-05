@@ -3,6 +3,8 @@
 ## conventions
 
 - this repo uses [git-flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
+	- stable / production branch: `master`
+	- development / testing branch: `develop`
 
 
 ## setup
