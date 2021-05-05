@@ -41,7 +41,19 @@ module.exports = {
 				test: /\.(js|jsx|ts|tsx)$/,
 				exclude: /node_modules/,
 				use: ['babel-loader']
-			}
+			},
+
+			{
+				test: /\.css$/i,
+				use: [
+					{
+						loader: 'file-loader',
+						options: {
+							name: '[name].[ext]',
+						}
+					}
+				],
+			},
 		]
 	},
 

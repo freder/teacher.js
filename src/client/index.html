@@ -5,8 +5,25 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title><%= htmlWebpackPlugin.options.title %></title>
+		<link rel="stylesheet" href="styles.css">
 	</head>
 	<body>
+		<div>
+			role: <span id="role">user</span>
+		</div>
 
+		<div id="admin-controls">
+			<div>
+				<button class="left">←</button><button class="right">→</button>
+			</div>
+			<div>
+				<button class="up">↑</button><button class="down">↓</button>
+			</div>
+		</div>
+
+		<div id="log-container">
+			<div>event log:</div>
+			<div id="log"></div>
+		</div>
 	</body>
 </html>
