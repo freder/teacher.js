@@ -19,7 +19,8 @@ rename `src/.env-example` to `src/.env` (and edit, if necessary).
 
 ## run
 
-- run server: `node src/server/index.js`
+- run server: `DEBUG='T.S:*' node src/server/index.js`
+	- uses https://github.com/visionmedia/debug#readme for logging
 - run dev server (client): `npm run dev`
 
 then open `http://localhost:8080`. to assume the teacher role, open `http://localhost:8080#admin`.
