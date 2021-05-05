@@ -11,14 +11,25 @@
 npm install
 ```
 
+
+## config
+
+rename `src/.env-example` to `src/.env` (and edit, if necessary).
+
+
 ## run
 
-```shell
-npm run dev
-```
+- run server: `node src/server/index.js`
+- run dev server (client): `npm run dev`
+
 
 ## build
 
 ```shell
 npm run build:prod
 ```
+
+
+## deploy
+
+`TODO`

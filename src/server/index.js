@@ -10,6 +10,7 @@ const io = require('socket.io')(
 	httpServer,
 	{
 		serveClient: false,
+		// TODO: tighten security
 		cors: {
 			origin: '*',
 			methods: ['GET', 'POST'],
