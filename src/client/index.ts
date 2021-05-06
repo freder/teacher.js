@@ -1,6 +1,8 @@
 import { io, Socket } from 'socket.io-client';
 import html from 'nanohtml/lib/browser';
 
+import { SlideEventData } from '../shared/types';
+
 require('./styles.css');
 
 
@@ -21,9 +23,13 @@ const adminControlsElem = document.querySelector('#admin-controls') as HTMLEleme
 
 
 function initAdminControls(socket: Socket) {
-	window.addEventListener('message', ({ origin, data }) => {
+	window.addEventListener('message', ({ /* origin, */ data }) => {
 		if (data.type === 'slidechanged') {
-			socket.emit('slidechanged', data.index);
+			const msg: SlideEventData = {
+				type: 'slidechanged',
+				index: data.index,
+			};
+			socket.emit('slide-event', msg);
 		}
 	});
 }
@@ -43,8 +49,10 @@ function main() {
 			});
 		} else {
 			logContainerElem.style.display = 'unset';
-			socket.on('slidechanged', (cmd: string) => {
-				const elem = html`<div>${Date.now()}: ${cmd}</div>`;
+			socket.on('slidechanged', (index: [number, number]) => {
+				const idx = JSON.stringify(index);
+				const timestamp = Date.now();
+				const elem = html`<div>${timestamp}: ${idx}</div>`;
 				logElem.prepend(elem);
 			});
 		}

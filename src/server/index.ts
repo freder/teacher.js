@@ -5,6 +5,8 @@ import { Server, Socket } from 'socket.io';
 import debug from 'debug';
 import dotenv from 'dotenv';
 
+import { SlideEventData } from '../shared/types';
+
 
 const dotenvPath = path.resolve(
 	path.join(__dirname, '../.env')
@@ -43,10 +45,15 @@ function main() {
 		});
 
 		// TODO: check if it comes from an admin user
-		socket.on('slidechanged', (data) => {
-			logSlideCmd(data);
-			// relay to all clients
-			io.emit('slidechanged', data);
+		socket.on('slide-event', (msg: SlideEventData) => {
+			logSlideCmd(JSON.stringify(msg));
+
+			// relay to all clients:
+			switch (msg.type) {
+				case 'slidechanged': {
+					io.emit('slidechanged', msg.index);
+				}
+			}
 		});
 	});
 
