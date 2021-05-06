@@ -2,6 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import html from 'nanohtml/lib/browser';
 
 import { SlideEventData } from '../shared/types';
+import { messageTypes } from '../shared/constants';
 
 require('./styles.css');
 
@@ -26,10 +27,10 @@ function initAdminControls(socket: Socket) {
 	window.addEventListener('message', ({ /* origin, */ data }) => {
 		if (data.type === 'slidechanged') {
 			const msg: SlideEventData = {
-				type: 'slidechanged',
+				type: messageTypes.SLIDE_CHANGED,
 				index: data.index,
 			};
-			socket.emit('slide-event', msg);
+			socket.emit(messageTypes.SLIDE_EVENT, msg);
 		}
 	});
 }
@@ -49,10 +50,11 @@ function main() {
 			});
 		} else {
 			logContainerElem.style.display = 'unset';
-			socket.on('slidechanged', (index: [number, number]) => {
-				const idx = JSON.stringify(index);
+			socket.on(messageTypes.SLIDE_CHANGED, (index: [number, number]) => {
 				const timestamp = Date.now();
-				const elem = html`<div>${timestamp}: ${idx}</div>`;
+				const type = messageTypes.SLIDE_CHANGED;
+				const idx = JSON.stringify(index);
+				const elem = html`<div>${timestamp}: ${type}: ${idx}</div>`;
 				logElem.prepend(elem);
 			});
 		}
