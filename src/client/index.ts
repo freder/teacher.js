@@ -1,5 +1,4 @@
 import { io, Socket } from 'socket.io-client';
-import html from 'nanohtml/lib/browser';
 
 import { SlideEventData } from '../shared/types';
 import { messageTypes } from '../shared/constants';
@@ -54,7 +53,8 @@ function main() {
 				const timestamp = Date.now();
 				const type = messageTypes.SLIDE_CHANGED;
 				const idx = JSON.stringify(index);
-				const elem = html`<div>${timestamp}: ${type}: ${idx}</div>`;
+				const elem = document.createElement('div');
+				elem.textContent = `${timestamp}: ${type}: ${idx}`;
 				logElem.prepend(elem);
 			});
 		}
