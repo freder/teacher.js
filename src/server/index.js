@@ -33,10 +33,10 @@ io.on('connection', (socket) => {
 	});
 
 	// TODO: check if it comes from an admin user
-	socket.on('slides', (cmd) => {
-		logSlideCmd(cmd);
+	socket.on('slidechanged', (data) => {
+		logSlideCmd(data);
 		// relay to all clients
-		io.emit('slides', cmd);
+		io.emit('slidechanged', data);
 	});
 });
 

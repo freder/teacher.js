@@ -21,14 +21,21 @@ const adminControlsElem = document.querySelector('#admin-controls') as HTMLEleme
 
 
 function initAdminControls(socket: Socket) {
-	document.querySelector('#admin-controls button.left')
-		.addEventListener('click', () => socket.emit('slides', 'left'));
-	document.querySelector('#admin-controls button.right')
-		.addEventListener('click', () => socket.emit('slides', 'right'));
-	document.querySelector('#admin-controls button.up')
-		.addEventListener('click', () => socket.emit('slides', 'up'));
-	document.querySelector('#admin-controls button.down')
-		.addEventListener('click', () => socket.emit('slides', 'down'));
+	// document.querySelector('#admin-controls button.left')
+	// 	.addEventListener('click', () => socket.emit('slides', 'left'));
+	// document.querySelector('#admin-controls button.right')
+	// 	.addEventListener('click', () => socket.emit('slides', 'right'));
+	// document.querySelector('#admin-controls button.up')
+	// 	.addEventListener('click', () => socket.emit('slides', 'up'));
+	// document.querySelector('#admin-controls button.down')
+	// 	.addEventListener('click', () => socket.emit('slides', 'down'));
+
+	window.addEventListener('message', ({ origin, data }) => {
+		console.log(origin, data);
+		if (data.type === 'slidechanged') {
+			socket.emit('slidechanged', data.index);
+		}
+	});
 }
 
 
@@ -46,7 +53,7 @@ function main() {
 			});
 		} else {
 			logContainerElem.style.display = 'unset';
-			socket.on('slides', (cmd: string) => {
+			socket.on('slidechanged', (cmd: string) => {
 				const elem = html`<div>${Date.now()}: ${cmd}</div>`;
 				logElem.prepend(elem);
 			});
