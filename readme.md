@@ -21,7 +21,7 @@ rename `src/.env-example` to `src/.env` (and edit, if necessary).
 
 ## run
 
-- run server: `DEBUG='T.S:*' node src/server/index.js`
+- run server: `DEBUG='T.S:*' npm run server`
 	- uses https://github.com/visionmedia/debug#readme for logging
 - run dev server (client): `npm run dev`
 

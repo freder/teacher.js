@@ -1,13 +1,15 @@
-const http = require('http');
-const path = require('path');
+import { createServer } from 'http';
+import path from 'path';
 
-const socketio = require('socket.io');
-const debug = require('debug');
+import { Server, Socket } from 'socket.io';
+import debug from 'debug';
+import dotenv from 'dotenv';
+
+
 const dotenvPath = path.resolve(
 	path.join(__dirname, '../.env')
 );
-require('dotenv').config({ path: dotenvPath });
-
+dotenv.config({ path: dotenvPath });
 
 const port = process.env.SERVER_PORT || 3000;
 
@@ -18,8 +20,8 @@ const logInfo = debug(`${debugPrefix}:info`);
 
 
 function main() {
-	const httpServer = http.createServer();
-	const io = socketio(
+	const httpServer = createServer();
+	const io = new Server(
 		httpServer,
 		{
 			serveClient: false,
@@ -31,7 +33,7 @@ function main() {
 		}
 	);
 
-	io.on('connection', (socket) => {
+	io.on('connection', (socket: Socket) => {
 		logNetEvent('client connected:', socket.id);
 		// io.to(socket.id).emit('hello', `oh, hey ${socket.id}`);
 
@@ -54,3 +56,4 @@ function main() {
 
 
 main();
+export {};
