@@ -1,5 +1,4 @@
 import { io, Socket } from 'socket.io-client';
-import html from 'nanohtml/lib/browser';
 
 require('./styles.css');
 
@@ -44,7 +43,8 @@ function main() {
 		} else {
 			logContainerElem.style.display = 'unset';
 			socket.on('slidechanged', (cmd: string) => {
-				const elem = html`<div>${Date.now()}: ${cmd}</div>`;
+				const elem = document.createElement('div');
+				elem.textContent = `${Date.now()}: ${cmd}`;
 				logElem.prepend(elem);
 			});
 		}
