@@ -14,7 +14,7 @@ console.log('server url:', serverUrl);
 const isAdmin = window.location.hash === '#admin';
 
 // elements
-const roleElem = document.querySelector('#role');
+const roleElem = document.querySelector('#role') as HTMLElement;
 const logContainerElem = document.querySelector('#log-container') as HTMLElement;
 const logElem = document.querySelector('#log') as HTMLElement;
 const adminControlsElem = document.querySelector('#admin-controls') as HTMLElement;
@@ -46,7 +46,7 @@ function main() {
 			});
 		} else {
 			logContainerElem.style.display = 'unset';
-			socket.on('slides', (cmd) => {
+			socket.on('slides', (cmd: string) => {
 				const elem = html`<div>${Date.now()}: ${cmd}</div>`;
 				logElem.prepend(elem);
 			});
