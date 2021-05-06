@@ -9,7 +9,7 @@
     "build:dev": "NODE_ENV=development npm run build",
     "build:prod": "NODE_ENV=production npm run build",
     "test": "jest",
-    "server": "npx ts-node src/server/index.ts"
+    "server": "npx ts-node src/server/server.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.14.0",
