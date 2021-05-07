@@ -27,7 +27,11 @@ module.exports = {
 	},
 
 	resolve: {
-		extensions: ['.js', '.ts', '.jsx', '.tsx']
+		extensions: ['.js', '.ts', '.svelte'],
+		alias: {
+			svelte: path.resolve('node_modules', 'svelte')
+		},
+		mainFields: ['svelte', 'browser', 'module', 'main']
 	},
 
 	plugins: [
@@ -56,6 +60,19 @@ module.exports = {
 				test: /\.(js|jsx|ts|tsx)$/,
 				exclude: /node_modules/,
 				use: ['babel-loader']
+			},
+
+			{
+				// test: /\.(html|svelte)$/,
+				test: /\.(svelte)$/,
+				use: {
+					loader: 'svelte-loader',
+					options: {
+						compilerOptions: {
+							dev: NODE_ENV === 'development',
+						},
+					}
+				}
 			},
 
 			{

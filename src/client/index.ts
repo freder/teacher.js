@@ -4,6 +4,7 @@ import { Message, RevealStateChangePayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
 require('./styles.css');
+import App from './components/App.svelte';
 
 
 const serverPort = process.env.SERVER_PORT;
@@ -23,8 +24,14 @@ const claimAdminButton = document.querySelector('button#claim-admin') as HTMLEle
 
 
 function main() {
-	socket = io(serverUrl);
+	/* const app = */ new App({
+		target: document.body,
+		props: {
+			answer: 42
+		}
+	});
 
+	socket = io(serverUrl);
 	socket.on('connect', () => {
 		claimAdminButton.onclick = () => {
 			const secret = prompt('enter password');
