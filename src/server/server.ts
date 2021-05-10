@@ -7,7 +7,11 @@ import debug from 'debug';
 import dotenv from 'dotenv';
 import * as R from 'ramda';
 
-import { SlideEventData } from '../shared/types';
+import {
+	Message,
+	Payload,
+	SlideEventPayload
+} from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
 
@@ -17,6 +21,7 @@ const dotenvPath = path.resolve(
 dotenv.config({ path: dotenvPath });
 
 const port = process.env.SERVER_PORT || 3000;
+let io: Server;
 
 const debugPrefix = 'T.S';
 const logSlideCmd = debug(`${debugPrefix}:cmd:slides`);
@@ -28,6 +33,7 @@ let adminIds: Array<string> = [];
 
 
 function createToken(clientId: string) {
+	// adapted from https://github.com/reveal/multiplex/blob/master/index.js
 	const cipher = crypto.createCipheriv('blowfish', clientId, process.env.SECRET);
 	return cipher.final('hex');
 }
@@ -48,9 +54,36 @@ function makeAdmin(socket: Socket) {
 }
 
 
+function requireAuth(
+	socket: Socket,
+	handler: (payload: Payload) => void
+) {
+	return (msg: Message) => {
+		if (!checkToken(socket.id, msg.authToken)) {
+			// socket.emit('__error__', { message: 'not authorized' });
+			return;
+		}
+		handler(msg.payload);
+	};
+}
+
+
+function handleSlideStateChange(payload: SlideEventPayload) {
+	logSlideCmd(JSON.stringify(payload));
+	const { type, index } = payload;
+
+	// relay to all clients:
+	switch (type) {
+		case messageTypes.SLIDE_CHANGED: {
+			io.emit(messageTypes.SLIDE_CHANGED, index);
+		}
+	}
+}
+
+
 function main() {
 	const httpServer = createServer();
-	const io = new Server(
+	io = new Server(
 		httpServer,
 		{
 			serveClient: false,
@@ -79,22 +112,10 @@ function main() {
 			}
 		});
 
-		// TODO: check if it comes from an admin user
-		socket.on(messageTypes.SLIDE_EVENT, (payload: SlideEventData) => {
-			logSlideCmd(JSON.stringify(payload));
-
-			const { type, index, authToken } = payload;
-			if (!checkToken(socket.id, authToken)) {
-				return;
-			}
-
-			// relay to all clients:
-			switch (type) {
-				case messageTypes.SLIDE_CHANGED: {
-					io.emit(messageTypes.SLIDE_CHANGED, index);
-				}
-			}
-		});
+		socket.on(
+			messageTypes.SLIDE_EVENT,
+			requireAuth(socket, handleSlideStateChange)
+		);
 
 		socket.on('disconnect', () => {
 			logNetEvent('client disconnected:', socket.id);

@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-import { SlideEventData } from '../shared/types';
+import { Message, SlideEventPayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
 require('./styles.css');
@@ -36,7 +36,7 @@ function main() {
 				return;
 			}
 			authToken = token;
-			document.body.style.background = 'gold';
+			document.body.style.background = 'lightgray';
 			roleElem.textContent = 'admin';
 		});
 
@@ -44,12 +44,12 @@ function main() {
 			// TODO: rename to 'slide-state-change'
 			if (data.type === 'slidechanged') {
 				if (!authToken) { return; }
-				const payload: SlideEventData = {
-					authToken,
+				const payload: SlideEventPayload = {
 					type: messageTypes.SLIDE_CHANGED,
 					index: data.index,
 				};
-				socket.emit(messageTypes.SLIDE_EVENT, payload);
+				const msg: Message = { authToken, payload };
+				socket.emit(messageTypes.SLIDE_EVENT, msg);
 			}
 		});
 
