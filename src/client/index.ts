@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-import { Message, SlideEventPayload } from '../shared/types';
+import { Message, RevealStateChangePayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
 require('./styles.css');
@@ -40,26 +40,33 @@ function main() {
 			roleElem.textContent = 'admin';
 		});
 
+		// iframe messages
 		window.addEventListener('message', ({ /* origin, */ data }) => {
-			// TODO: rename to 'slide-state-change'
-			if (data.type === 'slidechanged') {
+			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
 				if (!authToken) { return; }
-				const payload: SlideEventPayload = {
-					type: messageTypes.SLIDE_CHANGED,
-					index: data.index,
+				const payload: RevealStateChangePayload = {
+					state: data.state,
 				};
 				const msg: Message = { authToken, payload };
-				socket.emit(messageTypes.SLIDE_EVENT, msg);
+				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			}
 		});
 
-		socket.on(messageTypes.SLIDE_CHANGED, (index: [number, number]) => {
-			const timestamp = Date.now();
-			const type = messageTypes.SLIDE_CHANGED;
-			const idx = JSON.stringify(index);
+		socket.on(messageTypes.REVEAL_STATE_CHANGED, ({ state }) => {
+			const ts = Date.now();
+			const type = messageTypes.REVEAL_STATE_CHANGED;
+			const s = JSON.stringify(state);
 			const elem = document.createElement('div');
-			elem.textContent = `${timestamp}: ${type}: ${idx}`;
+			elem.textContent = `${ts}: ${type}: ${s}`;
 			logElem.prepend(elem);
+
+			// inform iframe
+			const data = {
+				type: messageTypes.REVEAL_STATE_CHANGED,
+				state,
+			};
+			const iframe = document.querySelector('iframe#presentation') as HTMLIFrameElement;
+			iframe.contentWindow.postMessage(data, '*');
 		});
 	});
 }
