@@ -1,11 +1,17 @@
 import { createServer } from 'http';
 import path from 'path';
+import crypto from 'crypto';
 
 import { Server, Socket } from 'socket.io';
 import debug from 'debug';
 import dotenv from 'dotenv';
+import * as R from 'ramda';
 
-import { SlideEventData } from '../shared/types';
+import {
+	Message,
+	Payload,
+	SlideEventPayload
+} from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
 
@@ -15,6 +21,7 @@ const dotenvPath = path.resolve(
 dotenv.config({ path: dotenvPath });
 
 const port = process.env.SERVER_PORT || 3000;
+let io: Server;
 
 const debugPrefix = 'T.S';
 const logSlideCmd = debug(`${debugPrefix}:cmd:slides`);
@@ -22,15 +29,66 @@ const logNetEvent = debug(`${debugPrefix}:net`);
 const logInfo = debug(`${debugPrefix}:info`);
 
 
+let adminIds: Array<string> = [];
+
+
+function createToken(clientId: string) {
+	// adapted from https://github.com/reveal/multiplex/blob/master/index.js
+	const cipher = crypto.createCipheriv('blowfish', clientId, process.env.SECRET);
+	return cipher.final('hex');
+}
+
+
+function checkToken(clientId: string, token: string) {
+	return (
+		createToken(clientId) === token
+		&& adminIds.includes(clientId)
+	);
+}
+
+
+function makeAdmin(socket: Socket) {
+	const token = createToken(socket.id);
+	socket.emit(messageTypes.ADMIN_TOKEN, { token });
+	adminIds = [socket.id];
+}
+
+
+function requireAuth(
+	socket: Socket,
+	handler: (payload: Payload) => void
+) {
+	return (msg: Message) => {
+		if (!checkToken(socket.id, msg.authToken)) {
+			// socket.emit('__error__', { message: 'not authorized' });
+			return;
+		}
+		handler(msg.payload);
+	};
+}
+
+
+function handleSlideStateChange(payload: SlideEventPayload) {
+	logSlideCmd(JSON.stringify(payload));
+	const { type, index } = payload;
+
+	// relay to all clients:
+	switch (type) {
+		case messageTypes.SLIDE_CHANGED: {
+			io.emit(messageTypes.SLIDE_CHANGED, index);
+		}
+	}
+}
+
+
 function main() {
 	const httpServer = createServer();
-	const io = new Server(
+	io = new Server(
 		httpServer,
 		{
 			serveClient: false,
-			// TODO: tighten security
 			cors: {
-				origin: '*',
+				origin: '*', // TODO: tighten security
 				methods: ['GET', 'POST'],
 			}
 		}
@@ -38,23 +96,30 @@ function main() {
 
 	io.on('connection', (socket: Socket) => {
 		logNetEvent('client connected:', socket.id);
-		// io.to(socket.id).emit('hello', `oh, hey ${socket.id}`);
 
-		// client may request admin role
-		socket.on('request-role:admin', () => {
-			socket.emit('grant-role:admin');
+		// first client to connect automatically becomes admin:
+		const clientIds = [...io.sockets.sockets.keys()];
+		if (clientIds.length === 1) {
+			makeAdmin(socket);
+		}
+
+		// whoever knows the secret can claim the room
+		socket.on(messageTypes.CLAIM_ADMIN_ROLE, ({ secret }) => {
+			if (process.env.SECRET === secret) {
+				makeAdmin(socket);
+			} else {
+				socket.emit(messageTypes.ADMIN_TOKEN, false);
+			}
 		});
 
-		// TODO: check if it comes from an admin user
-		socket.on(messageTypes.SLIDE_EVENT, (msg: SlideEventData) => {
-			logSlideCmd(JSON.stringify(msg));
+		socket.on(
+			messageTypes.SLIDE_EVENT,
+			requireAuth(socket, handleSlideStateChange)
+		);
 
-			// relay to all clients:
-			switch (msg.type) {
-				case messageTypes.SLIDE_CHANGED: {
-					io.emit(messageTypes.SLIDE_CHANGED, msg.index);
-				}
-			}
+		socket.on('disconnect', () => {
+			logNetEvent('client disconnected:', socket.id);
+			adminIds = R.without([socket.id], adminIds);
 		});
 	});
 
