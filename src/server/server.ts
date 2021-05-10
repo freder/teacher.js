@@ -1,9 +1,11 @@
 import { createServer } from 'http';
 import path from 'path';
+import crypto from 'crypto';
 
 import { Server, Socket } from 'socket.io';
 import debug from 'debug';
 import dotenv from 'dotenv';
+import * as R from 'ramda';
 
 import { SlideEventData } from '../shared/types';
 import { messageTypes } from '../shared/constants';
@@ -22,15 +24,38 @@ const logNetEvent = debug(`${debugPrefix}:net`);
 const logInfo = debug(`${debugPrefix}:info`);
 
 
+let adminIds: Array<string> = [];
+
+
+function createToken(clientId: string) {
+	const cipher = crypto.createCipheriv('blowfish', clientId, process.env.SECRET);
+	return cipher.final('hex');
+}
+
+
+function checkToken(clientId: string, token: string) {
+	return (
+		createToken(clientId) === token
+		&& adminIds.includes(clientId)
+	);
+}
+
+
+function makeAdmin(socket: Socket) {
+	const token = createToken(socket.id);
+	socket.emit(messageTypes.ADMIN_TOKEN, { token });
+	adminIds = [socket.id];
+}
+
+
 function main() {
 	const httpServer = createServer();
 	const io = new Server(
 		httpServer,
 		{
 			serveClient: false,
-			// TODO: tighten security
 			cors: {
-				origin: '*',
+				origin: '*', // TODO: tighten security
 				methods: ['GET', 'POST'],
 			}
 		}
@@ -38,23 +63,42 @@ function main() {
 
 	io.on('connection', (socket: Socket) => {
 		logNetEvent('client connected:', socket.id);
-		// io.to(socket.id).emit('hello', `oh, hey ${socket.id}`);
 
-		// client may request admin role
-		socket.on('request-role:admin', () => {
-			socket.emit('grant-role:admin');
+		// first client to connect automatically becomes admin:
+		const clientIds = [...io.sockets.sockets.keys()];
+		if (clientIds.length === 1) {
+			makeAdmin(socket);
+		}
+
+		// whoever knows the secret can claim the room
+		socket.on(messageTypes.CLAIM_ADMIN_ROLE, ({ secret }) => {
+			if (process.env.SECRET === secret) {
+				makeAdmin(socket);
+			} else {
+				socket.emit(messageTypes.ADMIN_TOKEN, false);
+			}
 		});
 
 		// TODO: check if it comes from an admin user
-		socket.on(messageTypes.SLIDE_EVENT, (msg: SlideEventData) => {
-			logSlideCmd(JSON.stringify(msg));
+		socket.on(messageTypes.SLIDE_EVENT, (payload: SlideEventData) => {
+			logSlideCmd(JSON.stringify(payload));
+
+			const { type, index, authToken } = payload;
+			if (!checkToken(socket.id, authToken)) {
+				return;
+			}
 
 			// relay to all clients:
-			switch (msg.type) {
+			switch (type) {
 				case messageTypes.SLIDE_CHANGED: {
-					io.emit(messageTypes.SLIDE_CHANGED, msg.index);
+					io.emit(messageTypes.SLIDE_CHANGED, index);
 				}
 			}
+		});
+
+		socket.on('disconnect', () => {
+			logNetEvent('client disconnected:', socket.id);
+			adminIds = R.without([socket.id], adminIds);
 		});
 	});
 

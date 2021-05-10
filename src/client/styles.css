@@ -2,10 +2,6 @@
 	box-sizing: border-box;
 }
 
-#log-container, #admin-controls {
-	display: none;
-}
-
 #log {
 	font-family: monospace;
 }
