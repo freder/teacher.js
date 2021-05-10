@@ -83,7 +83,11 @@ module.exports = {
 	},
 
 	devServer: {
+		public: process.env.SERVER_NAME,
+		port: process.env.HTTP_SERVER_PORT,
+		host: process.env.SERVER_IP,
 		contentBase: path.join(__dirname, ouputDirName),
 		compress: true,
+
 	},
 };
