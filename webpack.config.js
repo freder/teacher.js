@@ -6,6 +6,7 @@ require('dotenv').config({ path: dotenvPath });
 
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -40,6 +41,15 @@ module.exports = {
 			'SERVER_PORT',
 			'SERVER_NAME',
 		]),
+
+		new CopyPlugin({
+			patterns: [
+				{
+					from: './src/client/reveal-hooks.js',
+					to: 'reveal-hooks.js',
+				},
+			],
+		}),
 	],
 
 	devtool: (NODE_ENV === 'development')
