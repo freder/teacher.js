@@ -28,6 +28,7 @@ const debugPrefix = 'T.S';
 const logSlideCmd = debug(`${debugPrefix}:cmd:slides`);
 const logNetEvent = debug(`${debugPrefix}:net`);
 const logInfo = debug(`${debugPrefix}:info`);
+const logAuth = debug(`${debugPrefix}:auth`);
 
 
 let adminIds: Array<string> = [];
@@ -61,7 +62,10 @@ function requireAuth(
 ) {
 	return (msg: Message) => {
 		if (!checkToken(socket.id, msg.authToken)) {
-			// socket.emit('__error__', { message: 'not authorized' });
+			logAuth(
+				'not authorized',
+				JSON.stringify(msg, null, '  ')
+			);
 			return;
 		}
 		handler(msg.payload);
