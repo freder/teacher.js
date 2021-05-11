@@ -10,7 +10,7 @@ import * as R from 'ramda';
 import {
 	Message,
 	Payload,
-	SlideEventPayload
+	RevealStateChangePayload
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
@@ -68,16 +68,10 @@ function requireAuth(
 }
 
 
-function handleSlideStateChange(payload: SlideEventPayload) {
+function handleRevealStateChange(payload: RevealStateChangePayload) {
 	logSlideCmd(JSON.stringify(payload));
-	const { type, index } = payload;
-
 	// relay to all clients:
-	switch (type) {
-		case messageTypes.SLIDE_CHANGED: {
-			io.emit(messageTypes.SLIDE_CHANGED, index);
-		}
-	}
+	io.emit(messageTypes.REVEAL_STATE_CHANGED, payload);
 }
 
 
@@ -113,8 +107,8 @@ function main() {
 		});
 
 		socket.on(
-			messageTypes.SLIDE_EVENT,
-			requireAuth(socket, handleSlideStateChange)
+			messageTypes.REVEAL_STATE_CHANGED,
+			requireAuth(socket, handleRevealStateChange)
 		);
 
 		socket.on('disconnect', () => {

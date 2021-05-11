@@ -1,6 +1,5 @@
 export const messageTypes = {
 	CLAIM_ADMIN_ROLE: 'CLAIM_ADMIN_ROLE',
 	ADMIN_TOKEN: 'ADMIN_TOKEN',
-	SLIDE_EVENT: 'SLIDE_EVENT',
-	SLIDE_CHANGED: 'SLIDE_CHANGED',
+	REVEAL_STATE_CHANGED: 'reveal-state-change',
 };
