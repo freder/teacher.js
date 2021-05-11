@@ -20,6 +20,7 @@ const dotenvPath = path.resolve(
 );
 dotenv.config({ path: dotenvPath });
 
+const host = process.env.SERVER_HOST || 'localhost';
 const port = process.env.SERVER_PORT || 3000;
 let io: Server;
 
@@ -117,7 +118,7 @@ function main() {
 		});
 	});
 
-	logInfo(`http://localhost:${port}`);
+	logInfo(`http://${host}:${port}`);
 	httpServer.listen(port);
 }
 

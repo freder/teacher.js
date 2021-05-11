@@ -37,7 +37,8 @@ module.exports = {
 
 		new webpack.EnvironmentPlugin([
 			'NODE_ENV',
-			'SERVER_PORT'
+			'SERVER_PORT',
+			'SERVER_NAME',
 		]),
 	],
 
@@ -83,11 +84,10 @@ module.exports = {
 	},
 
 	devServer: {
-		public: process.env.SERVER_NAME,
-		port: process.env.HTTP_SERVER_PORT,
-		host: process.env.SERVER_IP,
+		public: process.env.SERVER_NAME || undefined,
+		port: process.env.CLIENT_DEV_SERVER_PORT,
+		host: process.env.CLIENT_DEV_SERVER_HOST,
 		contentBase: path.join(__dirname, ouputDirName),
 		compress: true,
-
 	},
 };

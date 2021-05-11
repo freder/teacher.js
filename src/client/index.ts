@@ -6,8 +6,8 @@ import { messageTypes } from '../shared/constants';
 require('./styles.css');
 
 
-const serverPort = 3000;
-const serverName = '0.teacher.solar';
+const serverPort = process.env.SERVER_PORT;
+const serverName = process.env.SERVER_NAME;
 const serverUrl = `${serverName}:${serverPort}`;
 
 console.log('environment:', process.env.NODE_ENV);
