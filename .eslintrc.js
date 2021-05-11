@@ -7,6 +7,9 @@ module.exports = {
 		commonjs: true,
 		es6: true
 	},
+	globals: {
+		Reveal: true,
+	},
 	plugins: [
 		'@typescript-eslint',
 		'jest',

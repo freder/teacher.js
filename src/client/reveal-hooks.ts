@@ -1,10 +1,8 @@
 /* global Reveal */
+import { messageTypes } from '../shared/constants';
 
 // check if we're in an iframe
 if (window.location !== window.parent.location) {
-	// also defined in src/shared/constants.ts
-	const messageType = 'reveal-state-change';
-
 	// register slideshow hooks
 	const eventTypes = [
 		'slidechanged',
@@ -13,7 +11,7 @@ if (window.location !== window.parent.location) {
 	];
 	const handler = () => {
 		const data = {
-			type: messageType,
+			type: messageTypes.REVEAL_STATE_CHANGED,
 			state: Reveal.getState(),
 		};
 		// inform parent
@@ -26,7 +24,7 @@ if (window.location !== window.parent.location) {
 	// receive commands from the parent
 	window.addEventListener('message', ({ /* origin, */ data }) => {
 		// TODO: check origin?
-		if (data.type === messageType) {
+		if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
 			Reveal.setState(data.state);
 		}
 	});
