@@ -6,6 +6,8 @@ import { Server, Socket } from 'socket.io';
 import debug from 'debug';
 import dotenv from 'dotenv';
 import * as R from 'ramda';
+import express from 'express';
+import fetch from 'node-fetch';
 
 import {
 	Message,
@@ -77,7 +79,32 @@ function handleRevealStateChange(payload: RevealStateChangePayload) {
 
 
 function main() {
-	const httpServer = createServer();
+	const app = express();
+	const httpServer = createServer(app);
+
+	// to proxy a website in order to inject custom js code
+	// http://0.0.0.0:3000/inject/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
+	app.get('/inject/:url', (req, res) => {
+		const urlStr = decodeURIComponent(req.params.url);
+		const url = new URL(urlStr);
+		fetch(urlStr)
+			.then((res) => res.text())
+			.then((htmlStr) => {
+				const output = htmlStr
+					.replace(
+						'</head>',
+						`<base href="${url.origin}"></head>`
+					)
+					.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
+					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
+					.replace(
+						'</body>',
+						'<script>alert(123);</script></body>'
+					);
+				res.send(output);
+			});
+	});
+
 	io = new Server(
 		httpServer,
 		{
