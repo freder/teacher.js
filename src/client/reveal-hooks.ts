@@ -1,5 +1,11 @@
-/* global Reveal */
 import { messageTypes } from '../shared/constants';
+
+
+declare global {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const Reveal: any;
+}
+
 
 // check if we're in an iframe
 if (window.location !== window.parent.location) {
