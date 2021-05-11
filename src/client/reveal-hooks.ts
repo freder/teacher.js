@@ -8,6 +8,8 @@ if (window.location !== window.parent.location) {
 		'slidechanged',
 		'fragmentshown',
 		'fragmenthidden',
+		'overviewshown',
+		'overviewhidden',
 	];
 	const handler = () => {
 		const data = {
