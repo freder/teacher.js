@@ -31,7 +31,41 @@ const logInfo = debug(`${debugPrefix}:info`);
 const logAuth = debug(`${debugPrefix}:auth`);
 
 
-let adminIds: Array<string> = [];
+type User = {
+	socketId: string,
+	name: string,
+};
+
+type RoomState = {
+	adminIds: Array<string>,
+	users: Array<User>,
+};
+
+const stateData: RoomState = {
+	adminIds: [],
+	users: [],
+};
+
+// proxy object intercepts "set" operations, so that we can
+// react to property changes
+const state = new Proxy(
+	stateData,
+	{
+		set(target, _prop, value/* , receiver */) {
+			const prop = _prop as (keyof RoomState);
+			if (prop === 'adminIds') {
+				console.log('list of admins changed:');
+				console.log(state.adminIds, '→', value);
+			} else if (prop === 'users') {
+				console.log('list of users changed:');
+				console.log(state.users, '→', value);
+				console.log([...io.sockets.sockets.keys()]);
+			}
+			target[prop] = value;
+			return true;
+		}
+	}
+);
 
 
 // adapted from https://github.com/reveal/multiplex/blob/master/index.js
@@ -45,7 +79,7 @@ function createToken(clientId: string) {
 function checkToken(clientId: string, token: string) {
 	return (
 		createToken(clientId) === token
-		&& adminIds.includes(clientId)
+		&& state.adminIds.includes(clientId)
 	);
 }
 
@@ -53,7 +87,7 @@ function checkToken(clientId: string, token: string) {
 function makeAdmin(socket: Socket) {
 	const token = createToken(socket.id);
 	socket.emit(messageTypes.ADMIN_TOKEN, { token });
-	adminIds = [socket.id];
+	state.adminIds = [socket.id];
 }
 
 
@@ -96,6 +130,8 @@ function main() {
 
 	io.on('connection', (socket: Socket) => {
 		logNetEvent('client connected:', socket.id);
+		const user: User = { socketId: socket.id, name: 'herbert' };
+		state.users = [...state.users, user];
 
 		// first client to connect automatically becomes admin:
 		const clientIds = [...io.sockets.sockets.keys()];
@@ -119,7 +155,7 @@ function main() {
 
 		socket.on('disconnect', () => {
 			logNetEvent('client disconnected:', socket.id);
-			adminIds = R.without([socket.id], adminIds);
+			state.adminIds = R.without([socket.id], state.adminIds);
 		});
 	});
 
