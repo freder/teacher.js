@@ -37,10 +37,12 @@
 
 <div>
 	role: <span>{$role}</span>
-	{' '}
-	<button on:click={claimAdmin}>
-		claim admin role
-	</button>
+	{#if $role !== 'admin'}
+		{' '}
+		<button on:click={claimAdmin}>
+			claim admin role
+		</button>
+	{/if}
 </div>
 
 <div>
