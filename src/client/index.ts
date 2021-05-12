@@ -44,7 +44,6 @@ function main() {
 
 		// iframe messages
 		window.addEventListener('message', (msg) => {
-			console.log(msg);
 			const { /* origin, */ data } = msg;
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
 				if (!authToken) { return; }
