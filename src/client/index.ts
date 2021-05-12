@@ -1,11 +1,11 @@
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 
-import { Message, RevealStateChangePayload } from '../shared/types';
+import type { Message, RevealStateChangePayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
-require('./styles.css');
 import App from './components/App.svelte';
+require('./styles.css');
 
 
 const serverPort = process.env.SERVER_PORT;

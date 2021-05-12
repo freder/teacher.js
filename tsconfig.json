@@ -1,6 +1,8 @@
 // https://iamturns.com/typescript-babel/
 
 {
+	"extends": "@tsconfig/svelte/tsconfig.json",
+
 	"compilerOptions": {
 		// Target latest version of ECMAScript.
 		"target": "esnext",
@@ -24,6 +26,7 @@
 
 		"sourceMap": true,
 	},
+
 	"include": [
 		"src"
 	]

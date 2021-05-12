@@ -7,7 +7,7 @@ import debug from 'debug';
 import dotenv from 'dotenv';
 import * as R from 'ramda';
 
-import {
+import type {
 	Message,
 	Payload,
 	RevealStateChangePayload
