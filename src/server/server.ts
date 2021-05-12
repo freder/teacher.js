@@ -34,10 +34,11 @@ const logAuth = debug(`${debugPrefix}:auth`);
 let adminIds: Array<string> = [];
 
 
+// adapted from https://github.com/reveal/multiplex/blob/master/index.js
 function createToken(clientId: string) {
-	// adapted from https://github.com/reveal/multiplex/blob/master/index.js
-	const cipher = crypto.createCipheriv('blowfish', clientId, process.env.SECRET);
-	return cipher.final('hex');
+	const hash = crypto.createHash('sha256');
+	hash.update(`${process.env.SECRET}${clientId}`);
+	return hash.digest('hex');
 }
 
 
