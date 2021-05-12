@@ -36,6 +36,7 @@ module.exports = {
 			template: `${clientPath}/index.html`,
 			minify: false,
 			inject: 'body',
+			chunks: ['main', 'vendor'],
 		}),
 
 		new webpack.EnvironmentPlugin([
