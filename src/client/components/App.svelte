@@ -26,6 +26,13 @@
 	#log {
 		font-family: monospace;
 	}
+
+	iframe#presentation {
+		width: 100%;
+		height: 80vh;
+		margin-top: 1rem;
+		margin-bottom: 1rem;
+	}
 </style>
 
 <div>
@@ -41,12 +48,6 @@
 	<iframe
 		id="presentation"
 		src="https://kastalia.medienhaus.udk-berlin.de/11995"
-		style="
-			width: 100%;
-			height: 80vh;
-			margin-top: 1rem;
-			margin-bottom: 1rem;
-		"
 	></iframe>
 </div>
 
