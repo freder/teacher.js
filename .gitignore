@@ -1,3 +1,8 @@
 node_modules
 dist
+stats
+_notes
+
 .env
+settings.json
+eink_waveform.wbf
