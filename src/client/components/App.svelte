@@ -1,11 +1,12 @@
 <script>
 	import { onDestroy } from 'svelte';
+import { each } from 'svelte/internal';
 	import { derived } from 'svelte/store';
 
 	export let authToken;
 	export let claimAdmin;
+	export let log;
 
-	// TODO: how would one do this outside of a .svelte file?
 	const role = derived(
 		authToken,
 		($authToken) => ($authToken) ? 'admin' : 'user'
@@ -22,12 +23,39 @@
 	});
 </script>
 
+<style>
+	#log {
+		font-family: monospace;
+	}
+</style>
+
 <div>
 	role: <span>{$role}</span>
 	{' '}
 	<button on:click={claimAdmin}>
 		claim admin role
 	</button>
-	{' '}
-	<span>{$authToken}</span>
+</div>
+
+<div>
+	<!-- svelte-ignore a11y-missing-attribute -->
+	<iframe
+		id="presentation"
+		src="https://kastalia.medienhaus.udk-berlin.de/11995"
+		style="
+			width: 100%;
+			height: 80vh;
+			margin-top: 1rem;
+			margin-bottom: 1rem;
+		"
+	></iframe>
+</div>
+
+<div>
+	<div>event log:</div>
+	<div id="log">
+		{#each $log as entry}
+			<div>{entry}</div>
+		{/each}
+	</div>
 </div>

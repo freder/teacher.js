@@ -17,17 +17,15 @@ console.log('server url:', serverUrl);
 
 let socket: Socket;
 const authToken = writable(null);
-
-// elements
-const appContainer = document.querySelector('#App') as HTMLElement;
-const logElem = document.querySelector('#log') as HTMLElement;
+const log = writable([]);
 
 
 function main() {
 	/* const app = */ new App({
-		target: appContainer,
+		target: document.querySelector('#App'),
 		props: {
 			authToken,
+			log,
 			claimAdmin: () => {
 				const secret = prompt('enter password');
 				if (!secret) { return; }
@@ -65,9 +63,8 @@ function main() {
 			const ts = Date.now();
 			const type = messageTypes.REVEAL_STATE_CHANGED;
 			const s = JSON.stringify(state);
-			const elem = document.createElement('div');
-			elem.textContent = `${ts}: ${type}: ${s}`;
-			logElem.prepend(elem);
+			const entry = `${ts}: ${type}: ${s}`;
+			log.update((prev) => [entry, ...prev]);
 
 			// inform iframe
 			const data = {
