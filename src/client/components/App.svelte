@@ -1,6 +1,5 @@
 <script>
 	import { onDestroy } from 'svelte';
-import { each } from 'svelte/internal';
 	import { derived } from 'svelte/store';
 
 	export let authToken;
