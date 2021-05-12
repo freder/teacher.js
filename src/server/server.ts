@@ -39,11 +39,15 @@ type User = {
 type RoomState = {
 	adminIds: Array<string>,
 	users: Array<User>,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	revealState: any,
 };
 
 const stateData: RoomState = {
 	adminIds: [],
 	users: [],
+	// TODO: split up in to two state objects?
+	revealState: {},
 };
 
 // proxy object intercepts "set" operations, so that we can
@@ -55,13 +59,26 @@ const state = new Proxy(
 			const prop = _prop as (keyof RoomState);
 			if (prop === 'adminIds') {
 				console.log('list of admins changed:');
-				console.log(state.adminIds, '→', value);
+				console.log(state.adminIds);
+				console.log('↓');
+				console.log(value);
 			} else if (prop === 'users') {
 				console.log('list of users changed:');
-				console.log(state.users, '→', value);
-				console.log([...io.sockets.sockets.keys()]);
-			}
+				console.log(state.users);
+				console.log('↓');
+				console.log(value);
+			} /* else if (prop === 'revealState') {
+				//
+			} */
 			target[prop] = value;
+
+			if (['adminIds', 'users'].includes(prop)) {
+				io.emit(
+					messageTypes.ROOM_UPDATE,
+					R.pick(['adminIds', 'users'], target)
+				);
+			}
+
 			return true;
 		}
 	}
@@ -98,7 +115,7 @@ function requireAuth(
 	return (msg: Message) => {
 		if (!checkToken(socket.id, msg.authToken)) {
 			logAuth(
-				'not authorized',
+				`not authorized: ${socket.id}`,
 				JSON.stringify(msg, null, '  ')
 			);
 			return;
@@ -110,6 +127,7 @@ function requireAuth(
 
 function handleRevealStateChange(payload: RevealStateChangePayload) {
 	logSlideCmd(JSON.stringify(payload));
+	state.revealState = payload.state;
 	// relay to all clients:
 	io.emit(messageTypes.REVEAL_STATE_CHANGED, payload);
 }
@@ -130,7 +148,10 @@ function main() {
 
 	io.on('connection', (socket: Socket) => {
 		logNetEvent('client connected:', socket.id);
-		const user: User = { socketId: socket.id, name: 'herbert' };
+		const user: User = {
+			socketId: socket.id,
+			name: 'anonymous'
+		};
 		state.users = [...state.users, user];
 
 		// first client to connect automatically becomes admin:
@@ -148,6 +169,19 @@ function main() {
 			}
 		});
 
+		socket.on(messageTypes.USER_INFO, (userInfo) => {
+			console.log(userInfo);
+			const i = R.findIndex(
+				R.propEq('socketId', socket.id),
+				state.users
+			);
+			state.users = R.update(
+				i,
+				R.assoc('name', userInfo.name, state.users[i]),
+				state.users
+			);
+		});
+
 		socket.on(
 			messageTypes.REVEAL_STATE_CHANGED,
 			requireAuth(socket, handleRevealStateChange)
@@ -155,7 +189,14 @@ function main() {
 
 		socket.on('disconnect', () => {
 			logNetEvent('client disconnected:', socket.id);
-			state.adminIds = R.without([socket.id], state.adminIds);
+			state.adminIds = R.without(
+				[socket.id],
+				state.adminIds
+			);
+			state.users = R.without(
+				state.users.filter((user) => user.socketId === socket.id),
+				state.users
+			);
 		});
 	});
 

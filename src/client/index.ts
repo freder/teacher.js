@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
+import UAParser from 'ua-parser-js';
 
 import type { Message, RevealStateChangePayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
@@ -34,8 +35,13 @@ function main() {
 		}
 	});
 
+	const ua = new UAParser();
+	const [os, br] = [ua.getOS(), ua.getBrowser()];
+	const name = `${os.name}, ${br.name} ${br.major}`;
+
 	socket = io(serverUrl);
 	socket.on('connect', () => {
+		socket.emit(messageTypes.USER_INFO, { name });
 		socket.on(messageTypes.ADMIN_TOKEN, ({ token }) => {
 			if (!token) {
 				return alert('denied');
@@ -66,6 +72,12 @@ function main() {
 			const entry = `${ts}: ${type}: ${s}`;
 			log.update((prev) => [entry, ...prev]);
 
+			// if we're the one who originally caused the event, we will
+			// acknowledge it (see above), but not react to it.
+			if (authToken) {
+				return;
+			}
+
 			// inform iframe
 			const data = {
 				type: messageTypes.REVEAL_STATE_CHANGED,
@@ -73,6 +85,10 @@ function main() {
 			};
 			const iframe = document.querySelector('iframe#presentation') as HTMLIFrameElement;
 			iframe.contentWindow.postMessage(data, '*');
+		});
+
+		socket.on(messageTypes.ROOM_UPDATE, (asdf) => {
+			console.log(asdf);
 		});
 	});
 }
