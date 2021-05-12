@@ -1,36 +1,33 @@
 <script>
-	// props are 'exported'
-	export let answer;
-	console.log('all passed in props were:', $$props);
+	import { onDestroy } from 'svelte';
+	import { derived } from 'svelte/store';
 
-	import { createEventDispatcher } from 'svelte';
-	const dispatch = createEventDispatcher();
+	export let authToken;
+	export let claimAdmin;
 
-	function doSomething() {
-		alert('yep');
-	}
+	// TODO: how would one do this outside of a .svelte file?
+	const role = derived(
+		authToken,
+		($authToken) => ($authToken) ? 'admin' : 'user'
+	);
+
+	const unsubAuthToken = role.subscribe((value) => {
+		document.body.style.background = (value === 'admin')
+			? 'lightgrey'
+			: 'unset';
+	});
+
+	onDestroy(() => {
+		unsubAuthToken();
+	});
 </script>
 
-<p>{answer}</p>
-{#if answer === 42}
-	<button on:click|once={doSomething}>kfkfkf</button>
-{:else}
-	this is weird
-{/if}
-
-<!--
-{#each cats as cat, i (cat.id)}
-	...
-{/each}
--->
-
-<!--
-<input bind:value={name}>
--->
-
-<!--
-<div
-	contenteditable="true"
-	bind:innerHTML={html}
-></div>
--->
+<div>
+	role: <span>{$role}</span>
+	{' '}
+	<button on:click={claimAdmin}>
+		claim admin role
+	</button>
+	{' '}
+	<span>{$authToken}</span>
+</div>
