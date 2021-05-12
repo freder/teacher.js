@@ -8,5 +8,5 @@ export type Message = {
 
 export type RevealStateChangePayload = {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	state: any,
+	state: Map<any, any>,
 };
