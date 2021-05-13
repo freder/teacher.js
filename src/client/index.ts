@@ -94,7 +94,8 @@ function main() {
 
 			// if we're the one who originally caused the event, we will
 			// acknowledge it (see above), but not react to it.
-			if (authToken) {
+			if (get(roomState).adminIds.includes(get(userId))) {
+				// TODO: find a nicer way for this ↑
 				return;
 			}
 
