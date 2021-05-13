@@ -1,4 +1,5 @@
 import { Janus } from 'janus-gateway';
+import { janusServers } from '../shared/constants';
 
 
 type JanusInstance = any;
@@ -89,12 +90,8 @@ export async function initJanus(): Promise<JanusInstance> {
 
 	const janus = await new Promise<JanusInstance>((resolve, reject) => {
 		const j = new Janus({
-			// TODO: make server configurable
-			server: [
-				'ws://0.teacher.solar:8188/',
-				'http://0.teacher.solar:8088/janus'
-			],
-			// iceServers: [],
+			server: janusServers,
+			// iceServers: [], // TODO: needed?
 			success: () => {
 				console.log('success');
 				resolve(j);

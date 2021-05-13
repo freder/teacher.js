@@ -15,3 +15,9 @@ export const moduleTypes = {
 	PRESENTATION: 'PRESENTATION',
 	WIKIPEDIA: 'WIKIPEDIA',
 };
+
+export const janusServers = [
+	'ws://0.teacher.solar:8188/',
+	'http://0.teacher.solar:8088/janus'
+];
+export const janusRoomId = 1234;

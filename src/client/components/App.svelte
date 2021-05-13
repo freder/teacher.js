@@ -15,6 +15,11 @@
 	export let startPres;
 	export let stopPres;
 	export let onPresentationLoaded;
+	export let startAudio;
+	export let stopAudio;
+	export let toggleMute;
+	export let muted;
+	export let audioStarted;
 
 	let kastaliaId;
 	let wikipediaToc;
@@ -125,6 +130,22 @@
 						claim admin role
 					</button>
 				{/if}
+			</div>
+
+			<div>
+				<button
+					on:click={$audioStarted ? stopAudio : startAudio}
+				>
+					{$audioStarted ? 'stop' : 'start'} audio
+				</button>
+				<button on:click={toggleMute}>
+					{$muted ? 'unmute' : 'mute'}
+				</button>
+			</div>
+
+			<div>
+				<button on:click={startPres}>start presentation</button>
+				<button on:click={stopPres}>end presentation</button>
 			</div>
 		</div>
 

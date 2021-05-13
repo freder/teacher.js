@@ -7,7 +7,7 @@ import type {
 	RevealStateChangePayload,
 	RoomState,
 } from '../shared/types';
-import { messageTypes } from '../shared/constants';
+import { janusRoomId, messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
@@ -28,6 +28,8 @@ const roomState = writable(initialRoomState);
 const userId = writable(undefined);
 const authToken = writable(null);
 const log = writable([]);
+const audioStarted = writable(false);
+const muted = writable(false);
 
 
 function appendToLog(type: string, obj: Record<string, unknown>) {
@@ -97,7 +99,13 @@ async function main() {
 
 			onPresentationLoaded: () => {
 				socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
-			}
+			},
+
+			startAudio: () => startAudio(),
+			stopAudio: () => stopAudio(),
+			audioStarted,
+			toggleMute: () => toggleMute(),
+			muted,
 		}
 	});
 
@@ -172,13 +180,12 @@ async function main() {
 	const janus = await initJanus();
 	let myid: string;
 	let webrtcUp: boolean;
-	let audioenabled = true;
 
 	function joinHandler(msg: any) {
 		// Successfully joined, negotiate WebRTC now
 		if (msg['id']) {
 			myid = msg['id'];
-			console.log('Successfully joined room ' + msg['room'] + ' with ID ' + myid);
+			console.info('Successfully joined room ' + msg['room'] + ' with ID ' + myid);
 			if (!webrtcUp) {
 				webrtcUp = true;
 				// Publish our stream
@@ -186,7 +193,7 @@ async function main() {
 					iceRestart: true,
 					media: { video: false }, // This is an audio only room
 					success: (jsep: any) => {
-						console.log('Got SDP!', jsep);
+						console.info('Got SDP!', jsep);
 						const publish = { request: 'configure', muted: false };
 						audioBridge.send({ message: publish, jsep: jsep });
 					},
@@ -199,31 +206,31 @@ async function main() {
 
 		// Any room participant?
 		if (msg['participants']) {
-			const list = msg['participants'];
-			// console.log('Got a list of participants:', list);
+			// const list = msg['participants'];
+			// console.info('Got a list of participants:', list);
 			// for (const f in list) {
 			// 	const id = list[f]['id'];
 			// 	const display = list[f]['display'];
 			// 	const setup = list[f]['setup'];
 			// 	const muted = list[f]['muted'];
-			// 	console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
 			// }
 		}
-	};
+	}
 
 	function roomChangedHandler(myid: string, msg: any) {
 		myid = msg['id'];
-		console.log('Moved to room ' + msg['room'] + ', new ID: ' + myid);
+		console.info('Moved to room ' + msg['room'] + ', new ID: ' + myid);
 		// Any room participant?
 		if (msg['participants']) {
-			const list = msg['participants'];
-			// console.log('Got a list of participants:', list);
+			// const list = msg['participants'];
+			// console.info('Got a list of participants:', list);
 			// for (const f in list) {
 			// 	const id = list[f]['id'];
 			// 	const display = list[f]['display'];
 			// 	const setup = list[f]['setup'];
 			// 	const muted = list[f]['muted'];
-			// 	console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
 			// }
 		}
 		return myid;
@@ -231,14 +238,14 @@ async function main() {
 
 	function eventHandler(msg: any) {
 		if (msg['participants']) {
-			const list = msg['participants'];
-			// console.log('Got a list of participants:', list);
+			// const list = msg['participants'];
+			// console.info('Got a list of participants:', list);
 			// for (const f in list) {
 			// 	const id = list[f]['id'];
 			// 	const display = list[f]['display'];
 			// 	const setup = list[f]['setup'];
 			// 	const muted = list[f]['muted'];
-			// 	console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
 			// }
 		} else if (msg['error']) {
 			if (msg['error_code'] === 485) {
@@ -253,16 +260,17 @@ async function main() {
 		if (msg['leaving']) {
 			// One of the participants has gone away?
 			const leaving = msg['leaving'];
-			console.log('Participant left: ' + leaving);
+			console.info('Participant left: ' + leaving);
 		}
 	}
 
-	function toggleAudio() {
-		audioenabled = !audioenabled;
+	function toggleMute() {
+		const m = !get(muted);
+		muted.set(m);
 		audioBridge.send({
 			message: {
 				request: 'configure',
-				muted: !audioenabled
+				muted: m
 			}
 		});
 	}
@@ -272,9 +280,9 @@ async function main() {
 			// We got a message/event (msg) from the plugin
 			// If jsep is not null, this involves a WebRTC negotiation
 
-			console.log(' ::: Got a message :::', msg);
+			console.info(' ::: Got a message :::', msg);
 			const event = msg['audiobridge'];
-			console.log('Event: ' + event);
+			console.info('Event: ' + event);
 
 			if (event) {
 				if (event === 'joined') {
@@ -291,14 +299,14 @@ async function main() {
 			}
 
 			if (jsep) {
-				console.log('Handling SDP as well...', jsep);
+				console.info('Handling SDP as well...', jsep);
 				audioBridge.handleRemoteJsep({ jsep: jsep });
 			}
 		},
 
 		oncleanup: () => {
 			webrtcUp = false;
-			console.log(' ::: Got a cleanup notification :::');
+			console.info(' ::: Got a cleanup notification :::');
 		}
 	};
 
@@ -307,14 +315,16 @@ async function main() {
 	const startAudio = () => {
 		const register = {
 			request: 'join',
-			room: 1234, // TODO: make configurable,
+			room: janusRoomId,
 			display: get(userId), // TODO: get actual user name
 		};
 		audioBridge.send({ message: register});
+		audioStarted.set(true);
 	};
 
 	const stopAudio = () => {
 		janus.destroy();
+		audioStarted.set(false);
 	};
 }
 
