@@ -87,6 +87,14 @@ module.exports = {
 	module: {
 		rules: [
 			{
+				test: require.resolve('janus-gateway'),
+				loader: 'exports-loader',
+				options: {
+					exports: 'Janus',
+				},
+			},
+
+			{
 				test: /\.(js|jsx|ts|tsx)$/,
 				exclude: /node_modules/,
 				use: ['babel-loader']
