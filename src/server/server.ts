@@ -11,8 +11,10 @@ import { observable, observe } from 'mobx';
 import type {
 	Message,
 	Payload,
-	RevealState,
-	RevealStateChangePayload
+	PresentationState,
+	RevealStateChangePayload,
+	RoomState,
+	User
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
@@ -32,25 +34,11 @@ const logNetEvent = debug(`${debugPrefix}:net`);
 const logInfo = debug(`${debugPrefix}:info`);
 // const logAuth = debug(`${debugPrefix}:auth`);
 
-
-type User = {
-	socketId: string,
-	name: string,
-};
-
-type RoomState = {
-	adminIds: Array<string>,
-	users: Array<User>,
-};
-
-type PresentationState = {
-	state: RevealState,
-};
-
 const roomStateData: RoomState = {
 	adminIds: [],
 	users: [],
 };
+
 const presentationStateData: PresentationState = {
 	state: {
 		indexh: 0,
@@ -61,7 +49,7 @@ const presentationStateData: PresentationState = {
 };
 
 const roomState = observable(roomStateData);
-observe(roomState, (change) => {
+observe(roomState, (/* change */) => {
 	// if (change.type === 'update') {
 	io.emit(
 		messageTypes.ROOM_UPDATE,
@@ -71,7 +59,7 @@ observe(roomState, (change) => {
 });
 
 const presentationState = observable(presentationStateData);
-observe(presentationState, (change) => {
+observe(presentationState, (/* change */) => {
 	// if (change.type === 'update') {
 	io.emit(
 		messageTypes.REVEAL_STATE_CHANGED,

@@ -17,3 +17,17 @@ export type RevealState = {
 export type RevealStateChangePayload = {
 	state: RevealState,
 };
+
+export type User = {
+	socketId: string,
+	name: string,
+};
+
+export type RoomState = {
+	adminIds: Array<string>,
+	users: Array<User>,
+};
+
+export type PresentationState = {
+	state: RevealState,
+};
