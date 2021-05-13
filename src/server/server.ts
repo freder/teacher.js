@@ -34,14 +34,15 @@ const logNetEvent = debug(`${debugPrefix}:net`);
 const logInfo = debug(`${debugPrefix}:info`);
 // const logAuth = debug(`${debugPrefix}:auth`);
 
-const roomStateData: RoomState = {
+
+const initialRoomState: RoomState = {
 	adminIds: [],
 	users: [],
-	// presentationUrl: 'https://kastalia.medienhaus.udk-berlin.de/11995',
 	presentationUrl: undefined,
 };
+const roomStateData = { ...initialRoomState } as RoomState;
 
-const presentationStateData: PresentationState = {
+const initialPresentationState: PresentationState = {
 	state: {
 		indexh: 0,
 		indexv: 0,
@@ -49,6 +50,7 @@ const presentationStateData: PresentationState = {
 		overview: false,
 	}
 };
+const presentationStateData = { ...initialPresentationState } as PresentationState;
 
 const roomState = observable(roomStateData);
 observe(roomState, (/* change */) => {
@@ -127,6 +129,7 @@ function handlePresentationStart(payload: any) {
 
 function handlePresentationEnd() {
 	roomState.presentationUrl = undefined;
+	presentationState.state = { ...initialPresentationState.state };
 }
 
 

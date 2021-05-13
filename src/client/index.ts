@@ -46,6 +46,7 @@ function main() {
 			roomState,
 			log,
 			claimAdmin,
+
 			startPres: () => {
 				socket.emit(
 					messageTypes.START_PRESENTATION,
@@ -57,12 +58,17 @@ function main() {
 					}
 				);
 			},
+
 			stopPres: () => {
 				socket.emit(
 					messageTypes.END_PRESENTATION,
 					{ authToken: get(authToken) }
 				);
 			},
+
+			onPresentationLoaded: () => {
+				socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
+			}
 		}
 	});
 

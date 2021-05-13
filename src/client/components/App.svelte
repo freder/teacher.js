@@ -5,10 +5,10 @@
 	export let userId;
 	export let log;
 	export let roomState;
-	// "actions"
 	export let claimAdmin;
 	export let startPres;
 	export let stopPres;
+	export let onPresentationLoaded;
 
 	const role = derived(
 		roomState,
@@ -107,6 +107,7 @@
 				<iframe
 					id="presentation"
 					src={$roomState.presentationUrl}
+					on:load={onPresentationLoaded}
 				></iframe>
 			{/if}
 		</div>
