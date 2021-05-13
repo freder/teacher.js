@@ -10,7 +10,7 @@ import type {
 import { messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
-import { initJanus } from './audio';
+import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
 
@@ -170,6 +170,132 @@ async function main() {
 	});
 
 	const janus = await initJanus();
+	let myid: string;
+	let webrtcUp: boolean;
+
+	function joinHandler(msg: any) {
+		// Successfully joined, negotiate WebRTC now
+		if (msg['id']) {
+			myid = msg['id'];
+			console.log('Successfully joined room ' + msg['room'] + ' with ID ' + myid);
+			if (!webrtcUp) {
+				webrtcUp = true;
+				// Publish our stream
+				audioBridge.createOffer({
+					media: { video: false }, // This is an audio only room
+					success: (jsep: any) => {
+						console.log('Got SDP!', jsep);
+						const publish = { request: 'configure', muted: false };
+						audioBridge.send({ message: publish, jsep: jsep });
+					},
+					error: (error: any) => {
+						console.error('WebRTC error:', error);
+					}
+				});
+			}
+		}
+		// Any room participant?
+		if (msg['participants']) {
+			const list = msg['participants'];
+			console.log('Got a list of participants:', list);
+			for (const f in list) {
+				const id = list[f]['id'];
+				const display = list[f]['display'];
+				const setup = list[f]['setup'];
+				const muted = list[f]['muted'];
+				console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			}
+		}
+	};
+
+	function roomChangedHandler(myid: string, msg: any) {
+		myid = msg['id'];
+		console.log('Moved to room ' + msg['room'] + ', new ID: ' + myid);
+		// Any room participant?
+		if (msg['participants']) {
+			const list = msg['participants'];
+			console.log('Got a list of participants:', list);
+			for (const f in list) {
+				const id = list[f]['id'];
+				const display = list[f]['display'];
+				const setup = list[f]['setup'];
+				const muted = list[f]['muted'];
+				console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			}
+		}
+		return myid;
+	}
+
+	function eventHandler(msg: any) {
+		if (msg['participants']) {
+			const list = msg['participants'];
+			console.log('Got a list of participants:', list);
+			for (const f in list) {
+				const id = list[f]['id'];
+				const display = list[f]['display'];
+				const setup = list[f]['setup'];
+				const muted = list[f]['muted'];
+				console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			}
+		} else if (msg['error']) {
+			if (msg['error_code'] === 485) {
+				// This is a 'no such room' error: give a more meaningful description
+			} else {
+				console.error(msg['error']);
+			}
+			return;
+		}
+		// Any new feed to attach to?
+		if (msg['leaving']) {
+			// One of the participants has gone away?
+			const leaving = msg['leaving'];
+			console.log('Participant left: ' + leaving);
+		}
+	}
+
+	const callbacks = {
+		onmessage: (msg, jsep) => {
+			// We got a message/event (msg) from the plugin
+			// If jsep is not null, this involves a WebRTC negotiation
+
+			console.log(' ::: Got a message :::', msg);
+			const event = msg['audiobridge'];
+			console.log('Event: ' + event);
+
+			if (event) {
+				if (event === 'joined') {
+					joinHandler(msg);
+				} else if (event === 'roomchanged') {
+					// The user switched to a different room
+					myid = roomChangedHandler(myid, msg);
+				} else if (event === 'destroyed') {
+					// The room has been destroyed
+					console.warn('The room has been destroyed!');
+				} else if (event === 'event') {
+					eventHandler(msg);
+				}
+			}
+
+			if (jsep) {
+				console.log('Handling SDP as well...', jsep);
+				audioBridge.handleRemoteJsep({ jsep: jsep });
+			}
+		},
+	};
+	const audioBridge = await attachAudioBridgePlugin(janus, callbacks);
+
+	const startAudio = () => {
+		const register = {
+			request: 'join',
+			room: 1234, // TODO: make configurable,
+			display: get(userId), // TODO: get actual user name
+		};
+		audioBridge.send({ message: register});
+	};
+
+	const stopAudio = () => {
+		// TODO: implement
+	};
 }
 
 
