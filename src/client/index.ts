@@ -177,7 +177,9 @@ async function main() {
 		});
 	});
 
-	const janus = await initJanus();
+	// -------- audio --------
+	let janus: any;
+	let audioBridge: any;
 	let myid: string;
 	let webrtcUp: boolean;
 
@@ -310,9 +312,12 @@ async function main() {
 		}
 	};
 
-	const audioBridge = await attachAudioBridgePlugin(janus, callbacks);
+	const startAudio = async () => {
+		if (!janus) {
+			janus = await initJanus();
+		}
+		audioBridge = await attachAudioBridgePlugin(janus, callbacks);
 
-	const startAudio = () => {
 		const register = {
 			request: 'join',
 			room: janusRoomId,
@@ -324,6 +329,10 @@ async function main() {
 
 	const stopAudio = () => {
 		janus.destroy();
+		janus = null;
+		myid = null;
+		webrtcUp = false;
+		audioBridge = null;
 		audioStarted.set(false);
 	};
 }
