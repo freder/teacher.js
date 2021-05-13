@@ -146,10 +146,12 @@
 				</button>
 			</div>
 
-			<div>
-				<button on:click={startPres}>start presentation</button>
-				<button on:click={stopPres}>end presentation</button>
-			</div>
+			{#if $role === 'admin'}
+				<div>
+					<button on:click={startPres}>start presentation</button>
+					<button on:click={stopPres}>end presentation</button>
+				</div>
+			{/if}
 		</div>
 
 		<div style="display: inline-block;">
