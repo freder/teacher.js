@@ -6,7 +6,14 @@ export type Message = {
 	payload: Payload,
 };
 
+export type RevealState = {
+	indexh: number,
+	indexv: number,
+	indexf?: number,
+	paused: boolean,
+	overview: boolean,
+};
+
 export type RevealStateChangePayload = {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	state: Map<any, any>,
+	state: RevealState,
 };

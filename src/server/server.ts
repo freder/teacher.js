@@ -6,10 +6,12 @@ import { Server, Socket } from 'socket.io';
 import debug from 'debug';
 import dotenv from 'dotenv';
 import * as R from 'ramda';
+import { observable, observe } from 'mobx';
 
 import type {
 	Message,
 	Payload,
+	RevealState,
 	RevealStateChangePayload
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
@@ -28,7 +30,7 @@ const debugPrefix = 'T.S';
 const logSlideCmd = debug(`${debugPrefix}:cmd:slides`);
 const logNetEvent = debug(`${debugPrefix}:net`);
 const logInfo = debug(`${debugPrefix}:info`);
-const logAuth = debug(`${debugPrefix}:auth`);
+// const logAuth = debug(`${debugPrefix}:auth`);
 
 
 type User = {
@@ -39,50 +41,44 @@ type User = {
 type RoomState = {
 	adminIds: Array<string>,
 	users: Array<User>,
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	revealState: any,
 };
 
-const stateData: RoomState = {
+type PresentationState = {
+	state: RevealState,
+};
+
+const roomStateData: RoomState = {
 	adminIds: [],
 	users: [],
-	// TODO: split up in to two state objects?
-	revealState: {},
+};
+const presentationStateData: PresentationState = {
+	state: {
+		indexh: 0,
+		indexv: 0,
+		paused: false,
+		overview: false,
+	}
 };
 
-// proxy object intercepts "set" operations, so that we can
-// react to property changes
-const state = new Proxy(
-	stateData,
-	{
-		set(target, _prop, value/* , receiver */) {
-			const prop = _prop as (keyof RoomState);
-			if (prop === 'adminIds') {
-				console.log('list of admins changed:');
-				console.log(state.adminIds);
-				console.log('↓');
-				console.log(value);
-			} else if (prop === 'users') {
-				console.log('list of users changed:');
-				console.log(state.users);
-				console.log('↓');
-				console.log(value);
-			} /* else if (prop === 'revealState') {
-				//
-			} */
-			target[prop] = value;
+const roomState = observable(roomStateData);
+observe(roomState, (change) => {
+	// if (change.type === 'update') {
+	io.emit(
+		messageTypes.ROOM_UPDATE,
+		roomState
+	);
+	// }
+});
 
-			if (['adminIds', 'users'].includes(prop)) {
-				io.emit(
-					messageTypes.ROOM_UPDATE,
-					R.pick(['adminIds', 'users'], target)
-				);
-			}
-
-			return true;
-		}
-	}
-);
+const presentationState = observable(presentationStateData);
+observe(presentationState, (change) => {
+	// if (change.type === 'update') {
+	io.emit(
+		messageTypes.REVEAL_STATE_CHANGED,
+		presentationState
+	);
+	// }
+});
 
 
 // adapted from https://github.com/reveal/multiplex/blob/master/index.js
@@ -96,7 +92,7 @@ function createToken(clientId: string) {
 function checkToken(clientId: string, token: string) {
 	return (
 		createToken(clientId) === token
-		&& state.adminIds.includes(clientId)
+		&& roomState.adminIds.includes(clientId)
 	);
 }
 
@@ -104,7 +100,7 @@ function checkToken(clientId: string, token: string) {
 function makeAdmin(socket: Socket) {
 	const token = createToken(socket.id);
 	socket.emit(messageTypes.ADMIN_TOKEN, { token });
-	state.adminIds = [socket.id];
+	roomState.adminIds = [socket.id];
 }
 
 
@@ -114,10 +110,10 @@ function requireAuth(
 ) {
 	return (msg: Message) => {
 		if (!checkToken(socket.id, msg.authToken)) {
-			logAuth(
-				`not authorized: ${socket.id}`,
-				JSON.stringify(msg, null, '  ')
-			);
+			// logAuth(
+			// 	`not authorized: ${socket.id}`,
+			// 	JSON.stringify(msg, null, '  ')
+			// );
 			return;
 		}
 		handler(msg.payload);
@@ -127,9 +123,7 @@ function requireAuth(
 
 function handleRevealStateChange(payload: RevealStateChangePayload) {
 	logSlideCmd(JSON.stringify(payload));
-	state.revealState = payload.state;
-	// relay to all clients:
-	io.emit(messageTypes.REVEAL_STATE_CHANGED, payload);
+	presentationState.state = payload.state;
 }
 
 
@@ -152,7 +146,7 @@ function main() {
 			socketId: socket.id,
 			name: 'anonymous'
 		};
-		state.users = [...state.users, user];
+		roomState.users = [...roomState.users, user];
 
 		// first client to connect automatically becomes admin:
 		const clientIds = [...io.sockets.sockets.keys()];
@@ -170,15 +164,15 @@ function main() {
 		});
 
 		socket.on(messageTypes.USER_INFO, (userInfo) => {
-			console.log(userInfo);
+			// console.log(userInfo);
 			const i = R.findIndex(
 				R.propEq('socketId', socket.id),
-				state.users
+				roomState.users
 			);
-			state.users = R.update(
+			roomState.users = R.update(
 				i,
-				R.assoc('name', userInfo.name, state.users[i]),
-				state.users
+				R.assoc('name', userInfo.name, roomState.users[i]),
+				roomState.users
 			);
 		});
 
@@ -189,13 +183,13 @@ function main() {
 
 		socket.on('disconnect', () => {
 			logNetEvent('client disconnected:', socket.id);
-			state.adminIds = R.without(
+			roomState.adminIds = R.without(
 				[socket.id],
-				state.adminIds
+				roomState.adminIds
 			);
-			state.users = R.without(
-				state.users.filter((user) => user.socketId === socket.id),
-				state.users
+			roomState.users = R.without(
+				roomState.users.filter((user) => user.socketId === socket.id),
+				roomState.users
 			);
 		});
 	});
