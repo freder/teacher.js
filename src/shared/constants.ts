@@ -4,4 +4,5 @@ export const messageTypes = {
 	REVEAL_STATE_CHANGED: 'reveal-state-change',
 	ROOM_UPDATE: 'ROOM_UPDATE',
 	USER_INFO: 'USER_INFO',
+	BRING_ME_UP_TO_SPEED: 'BRING_ME_UP_TO_SPEED',
 };

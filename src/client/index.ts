@@ -56,7 +56,13 @@ function main() {
 	socket = io(serverUrl);
 	socket.on('connect', () => {
 		userId.set(socket.id);
+
 		socket.emit(messageTypes.USER_INFO, { name });
+
+		// in case we're connecting late: request a full state.
+		// server will emit all the necessary messages, such as
+		// ROOM_UPDATE, REVEAL_STATE_CHANGED
+		socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
 
 		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
 			roomState.set(rs);

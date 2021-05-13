@@ -169,6 +169,11 @@ function main() {
 			requireAuth(socket, handleRevealStateChange)
 		);
 
+		socket.on(messageTypes.BRING_ME_UP_TO_SPEED, () => {
+			socket.emit(messageTypes.ROOM_UPDATE, roomState);
+			socket.emit(messageTypes.REVEAL_STATE_CHANGED, presentationState);
+		});
+
 		socket.on('disconnect', () => {
 			logNetEvent('client disconnected:', socket.id);
 			roomState.adminIds = R.without(
