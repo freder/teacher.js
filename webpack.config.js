@@ -17,6 +17,10 @@ const clientPath = './src/client';
 
 
 const plugins = [
+	new webpack.ProvidePlugin({
+		adapter: ['webrtc-adapter', 'default']
+	}),
+
 	new HtmlWebpackPlugin({
 		title: 'teacher.solar',
 		template: `${clientPath}/index.html`,
