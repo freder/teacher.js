@@ -1,7 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
-import { Janus } from 'janus-gateway';
 
 import type {
 	Message,
@@ -11,6 +10,7 @@ import type {
 import { messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
+import { initJanus } from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
 
@@ -38,7 +38,7 @@ function appendToLog(type: string, obj: Record<string, unknown>) {
 }
 
 
-function main() {
+async function main() {
 	console.log(Janus);
 
 	const claimAdmin = () => {
@@ -168,6 +168,8 @@ function main() {
 			}
 		});
 	});
+
+	const janus = await initJanus();
 }
 
 
