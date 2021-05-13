@@ -334,6 +334,7 @@ async function main() {
 		webrtcUp = false;
 		audioBridge = null;
 		audioStarted.set(false);
+		muted.set(false);
 	};
 }
 

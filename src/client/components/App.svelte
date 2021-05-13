@@ -138,7 +138,10 @@
 				>
 					{$audioStarted ? 'stop' : 'start'} audio
 				</button>
-				<button on:click={toggleMute}>
+				<button
+					on:click={toggleMute}
+					disabled={!$audioStarted}
+				>
 					{$muted ? 'unmute' : 'mute'}
 				</button>
 			</div>

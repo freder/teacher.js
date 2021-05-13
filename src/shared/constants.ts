@@ -17,6 +17,7 @@ export const moduleTypes = {
 };
 
 export const janusServers = [
+	// TODO: check if these are correct
 	'ws://0.teacher.solar:8188/',
 	'http://0.teacher.solar:8088/janus'
 ];
