@@ -6,7 +6,29 @@ export type Message = {
 	payload: Payload,
 };
 
+export type RevealState = {
+	indexh: number,
+	indexv: number,
+	indexf?: number,
+	paused: boolean,
+	overview: boolean,
+};
+
 export type RevealStateChangePayload = {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	state: Map<any, any>,
+	state: RevealState,
+};
+
+export type User = {
+	socketId: string,
+	name: string,
+};
+
+export type RoomState = {
+	adminIds: Array<string>,
+	users: Array<User>,
+	presentationUrl?: string,
+};
+
+export type PresentationState = {
+	state: RevealState,
 };
