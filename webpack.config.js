@@ -6,11 +6,51 @@ require('dotenv').config({ path: dotenvPath });
 
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin');
+const { StatsWriterPlugin } = require('webpack-stats-plugin');
+
 
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const ouputDirName = 'dist';
 const clientPath = './src/client';
+
+
+const plugins = [
+	new HtmlWebpackPlugin({
+		title: 'teacher.solar',
+		template: `${clientPath}/index.html`,
+		minify: false,
+		inject: 'body',
+		chunks: ['main', 'vendor'],
+	}),
+
+	new webpack.EnvironmentPlugin([
+		'NODE_ENV',
+		'SERVER_PORT',
+		'SERVER_NAME',
+	]),
+];
+if (NODE_ENV === 'production') {
+	plugins.push(
+		new BundleStatsWebpackPlugin({
+			outDir: '../stats',
+			// baseline: true,
+			stats: {
+				excludeAssets: [/stats/],
+			},
+		})
+	);
+	plugins.push(
+		new StatsWriterPlugin({
+			filename: '../stats/webpack-stats.json',
+			stats: {
+				all: true,
+				source: false,
+			},
+		})
+	);
+}
 
 
 module.exports = {
@@ -30,21 +70,7 @@ module.exports = {
 		extensions: ['.js', '.ts', '.jsx', '.tsx']
 	},
 
-	plugins: [
-		new HtmlWebpackPlugin({
-			title: 'teacher.solar',
-			template: `${clientPath}/index.html`,
-			minify: false,
-			inject: 'body',
-			chunks: ['main', 'vendor'],
-		}),
-
-		new webpack.EnvironmentPlugin([
-			'NODE_ENV',
-			'SERVER_PORT',
-			'SERVER_NAME',
-		]),
-	],
+	plugins: plugins,
 
 	devtool: (NODE_ENV === 'development')
 		? 'inline-source-map'
