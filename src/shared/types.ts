@@ -26,6 +26,7 @@ export type User = {
 export type RoomState = {
 	adminIds: Array<string>,
 	users: Array<User>,
+	presentationUrl?: string,
 };
 
 export type PresentationState = {

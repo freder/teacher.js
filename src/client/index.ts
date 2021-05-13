@@ -46,6 +46,23 @@ function main() {
 			roomState,
 			log,
 			claimAdmin,
+			startPres: () => {
+				socket.emit(
+					messageTypes.START_PRESENTATION,
+					{
+						authToken: get(authToken),
+						payload: {
+							url: 'https://kastalia.medienhaus.udk-berlin.de/11995'
+						}
+					}
+				);
+			},
+			stopPres: () => {
+				socket.emit(
+					messageTypes.END_PRESENTATION,
+					{ authToken: get(authToken) }
+				);
+			},
 		}
 	});
 
@@ -65,6 +82,7 @@ function main() {
 		socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
 
 		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
+			console.log(rs);
 			roomState.set(rs);
 		});
 
@@ -111,7 +129,9 @@ function main() {
 				state,
 			};
 			const iframe = document.querySelector('iframe#presentation') as HTMLIFrameElement;
-			iframe.contentWindow.postMessage(data, '*');
+			if (iframe) {
+				iframe.contentWindow.postMessage(data, '*');
+			}
 		});
 	});
 }

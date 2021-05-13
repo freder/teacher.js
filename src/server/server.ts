@@ -37,6 +37,8 @@ const logInfo = debug(`${debugPrefix}:info`);
 const roomStateData: RoomState = {
 	adminIds: [],
 	users: [],
+	// presentationUrl: 'https://kastalia.medienhaus.udk-berlin.de/11995',
+	presentationUrl: undefined,
 };
 
 const presentationStateData: PresentationState = {
@@ -97,6 +99,9 @@ function requireAuth(
 	handler: (payload: Payload) => void
 ) {
 	return (msg: Message) => {
+		if (!msg.authToken) {
+			return;
+		}
 		if (!checkToken(socket.id, msg.authToken)) {
 			// logAuth(
 			// 	`not authorized: ${socket.id}`,
@@ -112,6 +117,16 @@ function requireAuth(
 function handleRevealStateChange(payload: RevealStateChangePayload) {
 	logSlideCmd(JSON.stringify(payload));
 	presentationState.state = payload.state;
+}
+
+
+function handlePresentationStart(payload: any) {
+	roomState.presentationUrl = payload.url;
+}
+
+
+function handlePresentationEnd() {
+	roomState.presentationUrl = undefined;
 }
 
 
@@ -167,6 +182,16 @@ function main() {
 		socket.on(
 			messageTypes.REVEAL_STATE_CHANGED,
 			requireAuth(socket, handleRevealStateChange)
+		);
+
+		socket.on(
+			messageTypes.START_PRESENTATION,
+			requireAuth(socket, handlePresentationStart)
+		);
+
+		socket.on(
+			messageTypes.END_PRESENTATION,
+			requireAuth(socket, handlePresentationEnd)
 		);
 
 		socket.on(messageTypes.BRING_ME_UP_TO_SPEED, () => {

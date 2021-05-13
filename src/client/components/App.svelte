@@ -3,9 +3,12 @@
 	import { derived } from 'svelte/store';
 
 	export let userId;
-	export let claimAdmin;
 	export let log;
 	export let roomState;
+	// "actions"
+	export let claimAdmin;
+	export let startPres;
+	export let stopPres;
 
 	const role = derived(
 		roomState,
@@ -62,12 +65,20 @@
 <div id="container">
 	<div id="room-panel">
 		<div>
-			role: <span>{$role}</span>
-			{#if $role !== 'admin'}
-				{' '}
-				<button on:click={claimAdmin}>
-					claim admin role
-				</button>
+			<div>
+				role: <span>{$role}</span>
+				{#if $role !== 'admin'}
+					{' '}
+					<button on:click={claimAdmin}>
+						claim admin role
+					</button>
+				{/if}
+			</div>
+			{#if $role === 'admin'}
+				<div>
+					<button on:click={startPres}>start presentation</button>
+					<button on:click={stopPres}>end presentation</button>
+				</div>
 			{/if}
 		</div>
 
@@ -91,11 +102,13 @@
 
 	<div id="main">
 		<div>
-			<!-- svelte-ignore a11y-missing-attribute -->
-			<iframe
-				id="presentation"
-				src="https://kastalia.medienhaus.udk-berlin.de/11995"
-			></iframe>
+			{#if $roomState.presentationUrl}
+				<!-- svelte-ignore a11y-missing-attribute -->
+				<iframe
+					id="presentation"
+					src={$roomState.presentationUrl}
+				></iframe>
+			{/if}
 		</div>
 
 		<hr>
