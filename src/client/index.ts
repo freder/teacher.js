@@ -172,6 +172,7 @@ async function main() {
 	const janus = await initJanus();
 	let myid: string;
 	let webrtcUp: boolean;
+	let audioenabled = true;
 
 	function joinHandler(msg: any) {
 		// Successfully joined, negotiate WebRTC now
@@ -182,6 +183,7 @@ async function main() {
 				webrtcUp = true;
 				// Publish our stream
 				audioBridge.createOffer({
+					iceRestart: true,
 					media: { video: false }, // This is an audio only room
 					success: (jsep: any) => {
 						console.log('Got SDP!', jsep);
@@ -194,17 +196,18 @@ async function main() {
 				});
 			}
 		}
+
 		// Any room participant?
 		if (msg['participants']) {
 			const list = msg['participants'];
-			console.log('Got a list of participants:', list);
-			for (const f in list) {
-				const id = list[f]['id'];
-				const display = list[f]['display'];
-				const setup = list[f]['setup'];
-				const muted = list[f]['muted'];
-				console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			}
+			// console.log('Got a list of participants:', list);
+			// for (const f in list) {
+			// 	const id = list[f]['id'];
+			// 	const display = list[f]['display'];
+			// 	const setup = list[f]['setup'];
+			// 	const muted = list[f]['muted'];
+			// 	console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			// }
 		}
 	};
 
@@ -214,14 +217,14 @@ async function main() {
 		// Any room participant?
 		if (msg['participants']) {
 			const list = msg['participants'];
-			console.log('Got a list of participants:', list);
-			for (const f in list) {
-				const id = list[f]['id'];
-				const display = list[f]['display'];
-				const setup = list[f]['setup'];
-				const muted = list[f]['muted'];
-				console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			}
+			// console.log('Got a list of participants:', list);
+			// for (const f in list) {
+			// 	const id = list[f]['id'];
+			// 	const display = list[f]['display'];
+			// 	const setup = list[f]['setup'];
+			// 	const muted = list[f]['muted'];
+			// 	console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			// }
 		}
 		return myid;
 	}
@@ -229,22 +232,23 @@ async function main() {
 	function eventHandler(msg: any) {
 		if (msg['participants']) {
 			const list = msg['participants'];
-			console.log('Got a list of participants:', list);
-			for (const f in list) {
-				const id = list[f]['id'];
-				const display = list[f]['display'];
-				const setup = list[f]['setup'];
-				const muted = list[f]['muted'];
-				console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			}
+			// console.log('Got a list of participants:', list);
+			// for (const f in list) {
+			// 	const id = list[f]['id'];
+			// 	const display = list[f]['display'];
+			// 	const setup = list[f]['setup'];
+			// 	const muted = list[f]['muted'];
+			// 	console.log('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+			// }
 		} else if (msg['error']) {
 			if (msg['error_code'] === 485) {
-				// This is a 'no such room' error: give a more meaningful description
+				// 'no such room' error
 			} else {
 				console.error(msg['error']);
 			}
 			return;
 		}
+
 		// Any new feed to attach to?
 		if (msg['leaving']) {
 			// One of the participants has gone away?
@@ -253,8 +257,18 @@ async function main() {
 		}
 	}
 
+	function toggleAudio() {
+		audioenabled = !audioenabled;
+		audioBridge.send({
+			message: {
+				request: 'configure',
+				muted: !audioenabled
+			}
+		});
+	}
+
 	const callbacks = {
-		onmessage: (msg, jsep) => {
+		onmessage: (msg: any, jsep: any) => {
 			// We got a message/event (msg) from the plugin
 			// If jsep is not null, this involves a WebRTC negotiation
 
@@ -281,7 +295,13 @@ async function main() {
 				audioBridge.handleRemoteJsep({ jsep: jsep });
 			}
 		},
+
+		oncleanup: () => {
+			webrtcUp = false;
+			console.log(' ::: Got a cleanup notification :::');
+		}
 	};
+
 	const audioBridge = await attachAudioBridgePlugin(janus, callbacks);
 
 	const startAudio = () => {
@@ -294,7 +314,7 @@ async function main() {
 	};
 
 	const stopAudio = () => {
-		// TODO: implement
+		janus.destroy();
 	};
 }
 

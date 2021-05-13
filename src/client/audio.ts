@@ -62,6 +62,16 @@ export function attachAudioBridgePlugin(
 			// 	// The plugin handle is not valid anymore
 			// }
 
+			// onlocalstream: function(stream) {
+			// 	console.log(' ::: Got a local stream :::', stream);
+			// 	// We're not going to attach the local audio stream
+			// },
+
+			onremotestream: (stream) => {
+				const audioElement = document.querySelector('audio#roomaudio');
+				Janus.attachMediaStream(audioElement, stream);
+			},
+
 			...callbacks
 		});
 	});
