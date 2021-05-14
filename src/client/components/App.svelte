@@ -1,14 +1,14 @@
 <script>
-	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
 
 	import { getWikipediaTocUrl } from '../utils';
 	import { serverUrl } from '../constants';
 	import { moduleTypes } from '../../shared/constants';
 
-	export let userId;
-	export let log;
+	export let userState;
+	export let uiState;
 	export let roomState;
+	export let audioState;
 	export let claimAdmin;
 	export let setWikiUrl;
 	export let setActiveModule;
@@ -18,22 +18,20 @@
 	export let startAudio;
 	export let stopAudio;
 	export let toggleMute;
-	export let muted;
-	export let audioStarted;
 
 	let kastaliaId;
 	let wikipediaToc;
 
 	const role = derived(
 		roomState,
-		($roomState) => ($roomState.adminIds.includes($userId)) ? 'admin' : 'user'
+		($roomState) => ($roomState.adminIds.includes($userState.userId)) ? 'admin' : 'user'
 	);
 
-	// const unsubAuthToken = role.subscribe((value) => {
-	// 	document.body.style.background = (value === 'admin')
+	// $: {
+	// 	document.body.style.background = ($role === 'admin')
 	// 		? 'lightgrey'
 	// 		: 'unset';
-	// });
+	// }
 
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
@@ -134,15 +132,15 @@
 
 			<div>
 				<button
-					on:click={$audioStarted ? stopAudio : startAudio}
+					on:click={$audioState.audioStarted ? stopAudio : startAudio}
 				>
-					{$audioStarted ? 'stop' : 'start'} audio
+					{$audioState.audioStarted ? 'stop' : 'start'} audio
 				</button>
 				<button
 					on:click={toggleMute}
-					disabled={!$audioStarted}
+					disabled={!$audioState.audioStarted}
 				>
-					{$muted ? 'unmute' : 'mute'}
+					{$audioState.muted ? 'unmute' : 'mute'}
 				</button>
 			</div>
 
@@ -285,7 +283,7 @@
 					Event log:
 				</div>
 				<div id="log">
-					{#each $log as entry}
+					{#each $uiState.log as entry}
 						<div>{entry}</div>
 					{/each}
 				</div>

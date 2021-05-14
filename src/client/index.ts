@@ -25,18 +25,27 @@ const initialRoomState: RoomState = {
 	users: [],
 };
 const roomState = writable(initialRoomState);
-const userId = writable(undefined);
-const authToken = writable(null);
-const log = writable([]);
-const audioStarted = writable(false);
-const muted = writable(false);
+const userState = writable({
+	userId: undefined,
+	authToken: undefined,
+});
+const uiState = writable({
+	log: [],
+});
+const audioState = writable({
+	audioStarted: false,
+	muted: false,
+});
 
 
 function appendToLog(type: string, obj: Record<string, unknown>) {
 	const ts = Date.now();
 	const s = JSON.stringify(obj);
 	const entry = `${ts}: ${type}: ${s}`;
-	log.update((prev) => [entry, ...prev]);
+	uiState.update((prev) => ({
+		...prev,
+		log: [entry, ...prev.log]
+	}));
 }
 
 
@@ -52,9 +61,10 @@ async function main() {
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
 		props: {
-			userId,
+			userState,
 			roomState,
-			log,
+			uiState,
+			audioState,
 			claimAdmin,
 
 			setActiveModule: (moduleType: string) => {
@@ -62,7 +72,7 @@ async function main() {
 				socket.emit(
 					messageTypes.SET_ACTIVE_MODULE,
 					{
-						authToken: get(authToken),
+						authToken: get(userState).authToken,
 						payload: { activeModule: moduleType }
 					}
 				);
@@ -72,7 +82,7 @@ async function main() {
 				socket.emit(
 					messageTypes.SET_WIKIPEDIA_URL,
 					{
-						authToken: get(authToken),
+						authToken: get(userState).authToken,
 						payload: { url: wikipediaUrl }
 					}
 				);
@@ -82,7 +92,7 @@ async function main() {
 				socket.emit(
 					messageTypes.START_PRESENTATION,
 					{
-						authToken: get(authToken),
+						authToken: get(userState).authToken,
 						payload: {
 							url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
 						}
@@ -93,7 +103,7 @@ async function main() {
 			stopPres: () => {
 				socket.emit(
 					messageTypes.END_PRESENTATION,
-					{ authToken: get(authToken) }
+					{ authToken: get(userState).authToken }
 				);
 			},
 
@@ -103,9 +113,7 @@ async function main() {
 
 			startAudio: () => startAudio(),
 			stopAudio: () => stopAudio(),
-			audioStarted,
 			toggleMute: () => toggleMute(),
-			muted,
 		}
 	});
 
@@ -115,7 +123,7 @@ async function main() {
 
 	socket = io(serverUrl);
 	socket.on('connect', () => {
-		userId.set(socket.id);
+		userState.update((prev) => ({ ...prev, userId: socket.id }));
 
 		socket.emit(messageTypes.USER_INFO, { name });
 
@@ -132,19 +140,19 @@ async function main() {
 			if (!token) {
 				return alert('denied');
 			}
-			authToken.set(token);
+			userState.update((prev) => ({ ...prev, authToken: token }));
 		});
 
 		// iframe messages
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
-				if (!get(authToken)) { return; }
+				if (!get(userState).authToken) { return; }
 				const payload: RevealStateChangePayload = {
 					state: data.state,
 				};
 				const msg: Message = {
-					authToken: get(authToken),
+					authToken: get(userState).authToken,
 					payload
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
@@ -160,8 +168,9 @@ async function main() {
 
 			// if we're the one who originally caused the event, we will
 			// acknowledge it (see above), but not react to it.
-			if (get(roomState).adminIds.includes(get(userId))) {
-				// TODO: find a nicer way for this ↑
+			const { adminIds } = get(roomState);
+			const { userId } = get(userState);
+			if (adminIds.includes(userId)) {
 				return;
 			}
 
@@ -267,8 +276,8 @@ async function main() {
 	}
 
 	function toggleMute() {
-		const m = !get(muted);
-		muted.set(m);
+		const m = !get(audioState).muted;
+		audioState.update((prev) => ({ ...prev, muted: m }));
 		audioBridge.send({
 			message: {
 				request: 'configure',
@@ -321,10 +330,10 @@ async function main() {
 		const register = {
 			request: 'join',
 			room: janusRoomId,
-			display: get(userId), // TODO: get actual user name
+			display: get(userState).userId, // TODO: get actual user name
 		};
 		audioBridge.send({ message: register});
-		audioStarted.set(true);
+		audioState.update((prev) => ({ ...prev, audioStarted: true }));
 	};
 
 	const stopAudio = () => {
@@ -333,8 +342,11 @@ async function main() {
 		myid = null;
 		webrtcUp = false;
 		audioBridge = null;
-		audioStarted.set(false);
-		muted.set(false);
+		audioState.update((prev) => ({
+			...prev,
+			audioStarted: false,
+			muted: false,
+		}));
 	};
 }
 
