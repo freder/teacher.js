@@ -18,6 +18,10 @@ export type RevealStateChangePayload = {
 	state: RevealState,
 };
 
+export type PresentationStartPayload = {
+	url: string,
+};
+
 export type User = {
 	socketId: string,
 	name: string,

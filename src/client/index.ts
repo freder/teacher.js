@@ -4,6 +4,7 @@ import UAParser from 'ua-parser-js';
 
 import type {
 	Message,
+	PresentationStartPayload,
 	RevealStateChangePayload,
 	RoomState,
 } from '../shared/types';
@@ -89,13 +90,14 @@ async function main() {
 			},
 
 			startPres: (kastaliaId: string) => {
+				const payload: PresentationStartPayload = {
+					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
+				};
 				socket.emit(
 					messageTypes.START_PRESENTATION,
 					{
 						authToken: get(userState).authToken,
-						payload: {
-							url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
-						}
+						payload,
 					}
 				);
 			},

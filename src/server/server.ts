@@ -14,6 +14,7 @@ import cors from 'cors';
 import type {
 	Message,
 	Payload,
+	PresentationStartPayload,
 	PresentationState,
 	RevealStateChangePayload,
 	RoomState,
@@ -127,8 +128,8 @@ function handleRevealStateChange(payload: RevealStateChangePayload) {
 }
 
 
-function handlePresentationStart(payload: Record<string, unknown>) {
-	roomState.presentationUrl = payload.url as string;
+function handlePresentationStart(payload: PresentationStartPayload) {
+	roomState.presentationUrl = payload.url;
 }
 
 

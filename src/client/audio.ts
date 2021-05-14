@@ -68,8 +68,8 @@ export function attachAudioBridgePlugin(
 			// 	// We're not going to attach the local audio stream
 			// },
 
-			onremotestream: (stream) => {
-				const audioElement = document.querySelector('audio#roomaudio');
+			onremotestream: (stream: MediaStream) => {
+				const audioElement = document.querySelector('audio#roomaudio') as HTMLAudioElement;
 				Janus.attachMediaStream(audioElement, stream);
 			},
 
