@@ -49,3 +49,7 @@ button:active {
 	top: 2px;
 	left: 2px;
 }
+
+#roomaudio {
+	display: none;
+}
