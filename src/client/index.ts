@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
@@ -28,6 +29,7 @@ const initialRoomState: RoomState = {
 const roomState = writable(initialRoomState);
 const userState = writable({
 	userId: undefined,
+	name: 'anonymous',
 	authToken: undefined,
 });
 const uiState = writable({
@@ -50,14 +52,29 @@ function appendToLog(type: string, obj: Record<string, unknown>) {
 }
 
 
+function setUserName(name: string) {
+	userState.update((prev) => ({ ...prev, name }));
+	serverUpdateUser();
+}
+
+
+function serverUpdateUser() {
+	socket.emit(
+		messageTypes.USER_INFO,
+		R.omit(['authToken', 'userId'], get(userState))
+	);
+}
+
+
+function claimAdmin() {
+	const secret = prompt('enter password');
+	if (!secret) { return; }
+	socket.emit(messageTypes.CLAIM_ADMIN_ROLE, { secret });
+}
+
+
 async function main() {
 	console.log(Janus);
-
-	const claimAdmin = () => {
-		const secret = prompt('enter password');
-		if (!secret) { return; }
-		socket.emit(messageTypes.CLAIM_ADMIN_ROLE, { secret });
-	};
 
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
@@ -116,18 +133,19 @@ async function main() {
 			startAudio: () => startAudio(),
 			stopAudio: () => stopAudio(),
 			toggleMute: () => toggleMute(),
+
+			setUserName,
 		}
 	});
-
-	const ua = new UAParser();
-	const [os, br] = [ua.getOS(), ua.getBrowser()];
-	const name = `${os.name}, ${br.name} ${br.major}`;
 
 	socket = io(serverUrl);
 	socket.on('connect', () => {
 		userState.update((prev) => ({ ...prev, userId: socket.id }));
 
-		socket.emit(messageTypes.USER_INFO, { name });
+		const ua = new UAParser();
+		const [os, br] = [ua.getOS(), ua.getBrowser()];
+		const name = `${os.name}, ${br.name} ${br.major}`;
+		setUserName(name);
 
 		// in case we're connecting late: request a full state.
 		// server will emit all the necessary messages, such as
@@ -332,7 +350,7 @@ async function main() {
 		const register = {
 			request: 'join',
 			room: janusRoomId,
-			display: get(userState).userId, // TODO: get actual user name
+			display: get(userState).name,
 		};
 		audioBridge.send({ message: register});
 		audioState.update((prev) => ({ ...prev, audioStarted: true }));

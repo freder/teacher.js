@@ -1,4 +1,5 @@
 <script>
+	import { names } from 'debug';
 	import { derived } from 'svelte/store';
 
 	import { getWikipediaTocUrl } from '../utils';
@@ -18,6 +19,7 @@
 	export let startAudio;
 	export let stopAudio;
 	export let toggleMute;
+	export let setUserName;
 
 	let kastaliaId;
 	let wikipediaToc;
@@ -40,6 +42,21 @@
 		setWikiUrl(url.toString());
 		event.target.value = '';
 	}
+
+	const updateName = () => {
+		const name = prompt();
+		// can't be empty
+		if (!name || name.trim() === '') {
+			return;
+		}
+		// force unique
+		const names = $roomState.users.map(({ name }) => name);
+		if (names.includes(name)) {
+			alert('name is already taken');
+			return;
+		}
+		setUserName(name);
+	};
 
 	onDestroy(() => {
 		unsubAuthToken();
@@ -122,6 +139,11 @@
 		>
 			<div>
 				<!-- role: <span>{$role}</span> -->
+
+				<button on:click={updateName}>
+					set user name
+				</button>
+
 				{#if $role !== 'admin'}
 					{' '}
 					<button on:click={claimAdmin}>
@@ -236,7 +258,7 @@
 					{#each $roomState.users as user}
 						<li>
 							<span
-								style={user.socketId === $userId
+								style={(user.socketId === $userState.userId)
 									? 'background: black; color: white;'
 									: ''
 								}

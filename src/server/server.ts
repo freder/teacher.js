@@ -198,7 +198,7 @@ function main() {
 		logNetEvent('client connected:', socket.id);
 		const user: User = {
 			socketId: socket.id,
-			name: 'anonymous'
+			name: null
 		};
 		roomState.users = [...roomState.users, user];
 
