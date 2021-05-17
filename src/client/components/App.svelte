@@ -15,7 +15,8 @@
 	export let stopPres;
 	export let onPresentationLoaded;
 
-	let contentMode = undefined;
+	let contentMode;
+	let kastaliaId;
 
 	const role = derived(
 		roomState,
@@ -129,9 +130,17 @@
 					<input
 						type="text"
 						placeholder="Kastalia knot id"
+						bind:value={kastaliaId}
 					>
-					<button on:click={startPres}>start presentation</button>
-					<button on:click={stopPres}>end presentation</button>
+					<button on:click={() => startPres(kastaliaId)}>
+						start presentation
+					</button>
+					<button on:click={() => {
+						kastaliaId = undefined;
+						stopPres();
+					}}>
+						end presentation
+					</button>
 				{:else if contentMode === WIKIPEDIA}
 					<input
 						type="text"
