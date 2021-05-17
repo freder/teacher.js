@@ -101,7 +101,6 @@ function main() {
 		socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
 
 		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
-			console.log(rs);
 			roomState.set(rs);
 		});
 

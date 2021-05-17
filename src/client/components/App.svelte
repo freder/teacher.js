@@ -7,6 +7,8 @@
 	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
 
+	import { getWikipediaTOC } from '../utils';
+
 	export let userId;
 	export let log;
 	export let roomState;
@@ -169,10 +171,11 @@
 						type="text"
 						placeholder="Wikipedia URL"
 						bind:value={wikipediaUrl}
-						on:keydown={(event) => {
+						on:keydown={async (event) => {
 							if (event.key === 'Enter') {
 								startWiki(wikipediaUrl);
 								event.target.blur();
+								const toc = await getWikipediaTOC(wikipediaUrl);
 							}
 						}}
 					>
@@ -217,9 +220,7 @@
 					></iframe>
 				{:else if (contentMode === WIKIPEDIA) && wikipediaUrl}
 					<!-- svelte-ignore a11y-missing-attribute -->
-					<iframe
-						src={wikipediaUrl}
-					></iframe>
+					<iframe src={wikipediaUrl}></iframe>
 				{/if}
 			</div>
 
