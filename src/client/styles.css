@@ -33,7 +33,7 @@ hr {
 	padding: 0;
 }
 
-input[type="text"] {
+input[type="text"], select {
 	font-size: 1rem;
 }
 

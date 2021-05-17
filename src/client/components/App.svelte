@@ -7,7 +7,8 @@
 	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
 
-	import { getWikipediaTOC } from '../utils';
+	import { getWikipediaTocUrl } from '../utils';
+	import { serverUrl } from '../constants';
 
 	export let userId;
 	export let log;
@@ -21,6 +22,7 @@
 	let contentMode;
 	let kastaliaId;
 	let wikipediaUrl;
+	let wikipediaToc;
 
 	const role = derived(
 		roomState,
@@ -36,6 +38,15 @@
 	const setContentMode = (mode) => {
 		contentMode = mode;
 	};
+
+	const wikiJumpToSection = (event) => {
+		const anchor = event.target.value;
+		console.log(anchor);
+		const url = new URL(wikipediaUrl);
+		url.hash = `#${anchor}`;
+		wikipediaUrl = url.toString();
+		event.target.value = '';
+	}
 
 	onDestroy(() => {
 		unsubAuthToken();
@@ -171,14 +182,29 @@
 						type="text"
 						placeholder="Wikipedia URL"
 						bind:value={wikipediaUrl}
-						on:keydown={async (event) => {
+						on:keydown={(event) => {
 							if (event.key === 'Enter') {
 								startWiki(wikipediaUrl);
 								event.target.blur();
-								const toc = await getWikipediaTOC(wikipediaUrl);
+								const url = getWikipediaTocUrl(wikipediaUrl);
+								fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
+									.then((res) => res.json())
+									.then((toc) => { wikipediaToc = toc.parse.sections; });
 							}
 						}}
 					>
+					{#if wikipediaToc}
+						<span>jump to: </span>
+						<!-- svelte-ignore a11y-no-onchange -->
+						<select on:change={wikiJumpToSection}>
+							<option value="">[Section]</option>
+							{#each wikipediaToc as section}
+								<option value={section.anchor}>
+									{'–'.repeat(section.toclevel - 1)} {section.line}
+								</option>
+							{/each}
+						</select>
+					{/if}
 				{/if}
 			{/if}
 		</div>

@@ -9,13 +9,10 @@ import type {
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
+import { serverUrl } from './constants';
 import App from './components/App.svelte';
 require('./styles.css');
 
-
-const serverPort = process.env.SERVER_PORT;
-const serverName = process.env.SERVER_NAME;
-const serverUrl = `${serverName}:${serverPort}`;
 
 console.log('environment:', process.env.NODE_ENV);
 console.log('server url:', serverUrl);
