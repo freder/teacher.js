@@ -23,10 +23,13 @@ export type User = {
 	name: string,
 };
 
+
 export type RoomState = {
 	adminIds: Array<string>,
 	users: Array<User>,
+	activeModule?: string,
 	presentationUrl?: string,
+	wikipediaUrl?: string,
 };
 
 export type PresentationState = {

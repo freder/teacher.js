@@ -41,7 +41,9 @@ const logInfo = debug(`${debugPrefix}:info`);
 const initialRoomState: RoomState = {
 	adminIds: [],
 	users: [],
+	activeModule: undefined,
 	presentationUrl: undefined,
+	wikipediaUrl: undefined,
 };
 const roomStateData = { ...initialRoomState } as RoomState;
 
@@ -125,14 +127,24 @@ function handleRevealStateChange(payload: RevealStateChangePayload) {
 }
 
 
-function handlePresentationStart(payload: any) {
-	roomState.presentationUrl = payload.url;
+function handlePresentationStart(payload: Record<string, unknown>) {
+	roomState.presentationUrl = payload.url as string;
 }
 
 
 function handlePresentationEnd() {
 	roomState.presentationUrl = undefined;
 	presentationState.state = { ...initialPresentationState.state };
+}
+
+
+function handleWikipediaUrl(payload: Record<string, unknown>) {
+	roomState.wikipediaUrl = payload.url as string;
+}
+
+
+function handleActiveModule(payload: Record<string, unknown>) {
+	roomState.activeModule = payload.activeModule as string;
 }
 
 
@@ -218,6 +230,11 @@ function main() {
 		});
 
 		socket.on(
+			messageTypes.SET_ACTIVE_MODULE,
+			requireAuth(socket, handleActiveModule)
+		);
+
+		socket.on(
 			messageTypes.REVEAL_STATE_CHANGED,
 			requireAuth(socket, handleRevealStateChange)
 		);
@@ -230,6 +247,11 @@ function main() {
 		socket.on(
 			messageTypes.END_PRESENTATION,
 			requireAuth(socket, handlePresentationEnd)
+		);
+
+		socket.on(
+			messageTypes.SET_WIKIPEDIA_URL,
+			requireAuth(socket, handleWikipediaUrl)
 		);
 
 		socket.on(messageTypes.BRING_ME_UP_TO_SPEED, () => {

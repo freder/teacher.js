@@ -1,27 +1,22 @@
-<script context="module">
-	const PRESENTATION = 'PRESENTATION';
-	const WIKIPEDIA = 'WIKIPEDIA';
-</script>
-
 <script>
 	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
 
 	import { getWikipediaTocUrl } from '../utils';
 	import { serverUrl } from '../constants';
+	import { moduleTypes } from '../../shared/constants';
 
 	export let userId;
 	export let log;
 	export let roomState;
 	export let claimAdmin;
-	export let startWiki;
+	export let setWikiUrl;
+	export let setActiveModule;
 	export let startPres;
 	export let stopPres;
 	export let onPresentationLoaded;
 
-	let contentMode;
 	let kastaliaId;
-	let wikipediaUrl;
 	let wikipediaToc;
 
 	const role = derived(
@@ -35,16 +30,11 @@
 	// 		: 'unset';
 	// });
 
-	const setContentMode = (mode) => {
-		contentMode = mode;
-	};
-
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
-		console.log(anchor);
-		const url = new URL(wikipediaUrl);
+		const url = new URL($roomState.wikipediaUrl);
 		url.hash = `#${anchor}`;
-		wikipediaUrl = url.toString();
+		setWikiUrl(url.toString());
 		event.target.value = '';
 	}
 
@@ -142,21 +132,21 @@
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
-					class:selected={contentMode === PRESENTATION}
-					on:click={() => setContentMode(PRESENTATION)}
+					class:selected={$roomState.activeModule === moduleTypes.PRESENTATION}
+					on:click={() => setActiveModule(moduleTypes.PRESENTATION)}
 				>
 					Presentation
 				</button>
 				<button
-					class:selected={contentMode === WIKIPEDIA}
-					on:click={() => setContentMode(WIKIPEDIA)}
+					class:selected={$roomState.activeModule === moduleTypes.WIKIPEDIA}
+					on:click={() => setActiveModule(moduleTypes.WIKIPEDIA)}
 				>
 					Wikipedia
 				</button>
 				<span>: </span>
 
 				<!-- CONTEXTUAL OPTIONS -->
-				{#if contentMode === PRESENTATION}
+				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
 					<input
 						type="text"
 						placeholder="Kastalia knot id"
@@ -177,14 +167,14 @@
 					}}>
 						end presentation
 					</button>
-				{:else if contentMode === WIKIPEDIA}
+				{:else if $roomState.activeModule === moduleTypes.WIKIPEDIA}
 					<input
 						type="text"
 						placeholder="Wikipedia URL"
-						bind:value={wikipediaUrl}
 						on:keydown={(event) => {
 							if (event.key === 'Enter') {
-								startWiki(wikipediaUrl);
+								const wikipediaUrl = event.target.value;
+								setWikiUrl(wikipediaUrl);
 								event.target.blur();
 								const url = getWikipediaTocUrl(wikipediaUrl);
 								fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
@@ -197,7 +187,7 @@
 						<span>jump to: </span>
 						<!-- svelte-ignore a11y-no-onchange -->
 						<select on:change={wikiJumpToSection}>
-							<option value="">[Section]</option>
+							<option value="">[select section]</option>
 							{#each wikipediaToc as section}
 								<option value={section.anchor}>
 									{'–'.repeat(section.toclevel - 1)} {section.line}
@@ -206,6 +196,8 @@
 						</select>
 					{/if}
 				{/if}
+			{:else}
+				{$roomState.activeModule || ''}
 			{/if}
 		</div>
 	</div>
@@ -238,15 +230,19 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if (contentMode === PRESENTATION) && $roomState.presentationUrl}
+				{#if ($roomState.activeModule === moduleTypes.PRESENTATION) && $roomState.presentationUrl}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<iframe
+						id="presentation"
 						src={$roomState.presentationUrl}
 						on:load={onPresentationLoaded}
 					></iframe>
-				{:else if (contentMode === WIKIPEDIA) && wikipediaUrl}
+				{:else if ($roomState.activeModule === moduleTypes.WIKIPEDIA) && $roomState.wikipediaUrl}
 					<!-- svelte-ignore a11y-missing-attribute -->
-					<iframe src={wikipediaUrl}></iframe>
+					<iframe
+						id="wikipedia"
+						src={$roomState.wikipediaUrl}
+					></iframe>
 				{/if}
 			</div>
 

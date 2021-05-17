@@ -29,6 +29,14 @@ const authToken = writable(null);
 const log = writable([]);
 
 
+function appendToLog(type: string, obj: Record<string, unknown>) {
+	const ts = Date.now();
+	const s = JSON.stringify(obj);
+	const entry = `${ts}: ${type}: ${s}`;
+	log.update((prev) => [entry, ...prev]);
+}
+
+
 function main() {
 	const claimAdmin = () => {
 		const secret = prompt('enter password');
@@ -44,17 +52,25 @@ function main() {
 			log,
 			claimAdmin,
 
-			startWiki: (wikipediaUrl: string) => {
-				console.log(wikipediaUrl);
-				// socket.emit(
-				// 	messageTypes.START_WIKIPEDIA,
-				// 	{
-				// 		authToken: get(authToken),
-				// 		payload: {
-				// 			url: wikipediaUrl
-				// 		}
-				// 	}
-				// );
+			setActiveModule: (moduleType: string) => {
+				console.log(moduleType);
+				socket.emit(
+					messageTypes.SET_ACTIVE_MODULE,
+					{
+						authToken: get(authToken),
+						payload: { activeModule: moduleType }
+					}
+				);
+			},
+
+			setWikiUrl: (wikipediaUrl: string) => {
+				socket.emit(
+					messageTypes.SET_WIKIPEDIA_URL,
+					{
+						authToken: get(authToken),
+						payload: { url: wikipediaUrl }
+					}
+				);
 			},
 
 			startPres: (kastaliaId: string) => {
@@ -124,12 +140,12 @@ function main() {
 			}
 		});
 
+		socket.on(messageTypes.ROOM_UPDATE, (msg) => {
+			appendToLog(messageTypes.ROOM_UPDATE, msg);
+		});
+
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, ({ state }) => {
-			const ts = Date.now();
-			const type = messageTypes.REVEAL_STATE_CHANGED;
-			const s = JSON.stringify(state);
-			const entry = `${ts}: ${type}: ${s}`;
-			log.update((prev) => [entry, ...prev]);
+			appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
 			// if we're the one who originally caused the event, we will
 			// acknowledge it (see above), but not react to it.
