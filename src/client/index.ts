@@ -47,7 +47,20 @@ function main() {
 			log,
 			claimAdmin,
 
-			startPres: (kastaliaId) => {
+			startWiki: (wikipediaUrl: string) => {
+				console.log(wikipediaUrl);
+				// socket.emit(
+				// 	messageTypes.START_WIKIPEDIA,
+				// 	{
+				// 		authToken: get(authToken),
+				// 		payload: {
+				// 			url: wikipediaUrl
+				// 		}
+				// 	}
+				// );
+			},
+
+			startPres: (kastaliaId: string) => {
 				socket.emit(
 					messageTypes.START_PRESENTATION,
 					{

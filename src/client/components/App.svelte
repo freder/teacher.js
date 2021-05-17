@@ -11,12 +11,14 @@
 	export let log;
 	export let roomState;
 	export let claimAdmin;
+	export let startWiki;
 	export let startPres;
 	export let stopPres;
 	export let onPresentationLoaded;
 
 	let contentMode;
 	let kastaliaId;
+	let wikipediaUrl;
 
 	const role = derived(
 		roomState,
@@ -89,7 +91,7 @@
 		overflow-y: auto;
 	}
 
-	iframe#presentation {
+	iframe {
 		width: 100%;
 		height: 100%;
 		border: none;
@@ -166,6 +168,13 @@
 					<input
 						type="text"
 						placeholder="Wikipedia URL"
+						bind:value={wikipediaUrl}
+						on:keydown={(event) => {
+							if (event.key === 'Enter') {
+								startWiki(wikipediaUrl);
+								event.target.blur();
+							}
+						}}
 					>
 				{/if}
 			{/if}
@@ -203,9 +212,13 @@
 				{#if (contentMode === PRESENTATION) && $roomState.presentationUrl}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<iframe
-						id="presentation"
 						src={$roomState.presentationUrl}
 						on:load={onPresentationLoaded}
+					></iframe>
+				{:else if (contentMode === WIKIPEDIA) && wikipediaUrl}
+					<!-- svelte-ignore a11y-missing-attribute -->
+					<iframe
+						src={wikipediaUrl}
 					></iframe>
 				{/if}
 			</div>
