@@ -47,13 +47,13 @@ function main() {
 			log,
 			claimAdmin,
 
-			startPres: () => {
+			startPres: (kastaliaId) => {
 				socket.emit(
 					messageTypes.START_PRESENTATION,
 					{
 						authToken: get(authToken),
 						payload: {
-							url: 'https://kastalia.medienhaus.udk-berlin.de/11995'
+							url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
 						}
 					}
 				);
