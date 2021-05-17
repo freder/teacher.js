@@ -51,7 +51,7 @@
 	}
 
 	#header {
-		background: var(--accent-color);
+		background: var(--header-color);
 		border-bottom: solid 2px black;
 	}
 
@@ -197,7 +197,7 @@
 					{/if}
 				{/if}
 			{:else}
-				{$roomState.activeModule || ''}
+				<!--  -->
 			{/if}
 		</div>
 	</div>
