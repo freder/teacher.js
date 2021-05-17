@@ -15,11 +15,11 @@
 		($roomState) => ($roomState.adminIds.includes($userId)) ? 'admin' : 'user'
 	);
 
-	const unsubAuthToken = role.subscribe((value) => {
-		document.body.style.background = (value === 'admin')
-			? 'lightgrey'
-			: 'unset';
-	});
+	// const unsubAuthToken = role.subscribe((value) => {
+	// 	document.body.style.background = (value === 'admin')
+	// 		? 'lightgrey'
+	// 		: 'unset';
+	// });
 
 	onDestroy(() => {
 		unsubAuthToken();
@@ -29,21 +29,20 @@
 <style>
 	#container {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		height: 100%;
 	}
 
 	#room-panel {
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: 300px;
-		background: gold;
-		padding: 10px;
+		width: var(--panel-width);
+		border-right: solid 2px black;
 	}
 
 	#main {
 		flex: 1;
-		padding: 10px;
+		display: flex;
 	}
 
 	.userlist {
@@ -54,19 +53,35 @@
 
 	#log {
 		font-family: monospace;
+		height: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
 	}
 
 	iframe#presentation {
 		width: 100%;
-		height: 80vh;
+		height: 100%;
+		border: none;
 	}
 </style>
 
 <div id="container">
-	<div id="room-panel">
-		<div>
+	<div
+		id="header"
+		style="
+			padding: var(--padding);
+			background: var(--accent-color);
+			border-bottom: solid 2px black;
+		"
+	>
+		<div
+			style="
+				width: var(--panel-width);
+				display: inline-block;
+			"
+		>
 			<div>
-				role: <span>{$role}</span>
+				<!-- role: <span>{$role}</span> -->
 				{#if $role !== 'admin'}
 					{' '}
 					<button on:click={claimAdmin}>
@@ -74,52 +89,93 @@
 					</button>
 				{/if}
 			</div>
-			{#if $role === 'admin'}
-				<div>
-					<button on:click={startPres}>start presentation</button>
-					<button on:click={stopPres}>end presentation</button>
-				</div>
-			{/if}
 		</div>
 
-		<hr>
+		<div style="display: inline-block;">
+			{#if $role === 'admin'}
+				<!-- TABS -->
+				<button>presentation</button>
+				<button>wikipedia</button>
+				<span>: </span>
 
-		<div>participants:</div>
-		<ul class="userlist">
-			{#each $roomState.users as user}
-				<li>
-					{user.name}
-					{#if user.socketId === $userId}
-						{' (you)'}
-					{/if}
-					{#if $roomState.adminIds.includes(user.socketId)}
-						{' (admin)'}
-					{/if}
-				</li>
-			{/each}
-		</ul>
+				<!-- CONTEXTUAL OPTIONS -->
+				<input
+					type="text"
+					placeholder="Kastalia knot id"
+				>
+
+				<input
+					type="text"
+					placeholder="Wikipedia URL"
+				>
+
+				<button on:click={startPres}>start presentation</button>
+				<button on:click={stopPres}>end presentation</button>
+			{/if}
+		</div>
 	</div>
 
 	<div id="main">
-		<div>
-			{#if $roomState.presentationUrl}
-				<!-- svelte-ignore a11y-missing-attribute -->
-				<iframe
-					id="presentation"
-					src={$roomState.presentationUrl}
-					on:load={onPresentationLoaded}
-				></iframe>
-			{/if}
+		<div id="room-panel">
+			<div style="padding: var(--padding);">
+				<div style="font-weight: bold;">
+					Participants:
+				</div>
+				<ul class="userlist">
+					{#each $roomState.users as user}
+						<li>
+							<span
+								style={user.socketId === $userId
+									? 'border-bottom: solid 2px black;'
+									: ''
+								}
+							>
+								{user.name}
+							</span>
+							{#if $roomState.adminIds.includes(user.socketId)}
+								{' (admin)'}
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</div>
 		</div>
 
-		<hr>
+		<div
+			style="
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+			"
+		>
+			<div style="flex: 1;">
+				{#if $roomState.presentationUrl}
+					<!-- svelte-ignore a11y-missing-attribute -->
+					<iframe
+						id="presentation"
+						src={$roomState.presentationUrl}
+						on:load={onPresentationLoaded}
+					></iframe>
+				{/if}
+			</div>
 
-		<div>
-			<div>event log:</div>
-			<div id="log">
-				{#each $log as entry}
-					<div>{entry}</div>
-				{/each}
+			<hr>
+
+			<div
+				style="
+					padding: var(--padding);
+					flex-grow: 0;
+					max-height: 100px;
+				"
+			>
+				<div style="font-weight: bold;">
+					Event log:
+				</div>
+				<div id="log">
+					{#each $log as entry}
+						<div>{entry}</div>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>
