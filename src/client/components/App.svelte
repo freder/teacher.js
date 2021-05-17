@@ -1,3 +1,8 @@
+<script context="module">
+	const PRESENTATION = 'PRESENTATION';
+	const WIKIPEDIA = 'WIKIPEDIA';
+</script>
+
 <script>
 	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
@@ -10,6 +15,8 @@
 	export let stopPres;
 	export let onPresentationLoaded;
 
+	let contentMode = undefined;
+
 	const role = derived(
 		roomState,
 		($roomState) => ($roomState.adminIds.includes($userId)) ? 'admin' : 'user'
@@ -20,6 +27,10 @@
 	// 		? 'lightgrey'
 	// 		: 'unset';
 	// });
+
+	const setContentMode = (mode) => {
+		contentMode = mode;
+	};
 
 	onDestroy(() => {
 		unsubAuthToken();
@@ -63,6 +74,11 @@
 		height: 100%;
 		border: none;
 	}
+
+	button.selected {
+		background: black;
+		color: white;
+	}
 </style>
 
 <div id="container">
@@ -94,23 +110,34 @@
 		<div style="display: inline-block;">
 			{#if $role === 'admin'}
 				<!-- TABS -->
-				<button>presentation</button>
-				<button>wikipedia</button>
+				<button
+					class:selected={contentMode === PRESENTATION}
+					on:click={() => setContentMode(PRESENTATION)}
+				>
+					Presentation
+				</button>
+				<button
+					class:selected={contentMode === WIKIPEDIA}
+					on:click={() => setContentMode(WIKIPEDIA)}
+				>
+					Wikipedia
+				</button>
 				<span>: </span>
 
 				<!-- CONTEXTUAL OPTIONS -->
-				<input
-					type="text"
-					placeholder="Kastalia knot id"
-				>
-
-				<input
-					type="text"
-					placeholder="Wikipedia URL"
-				>
-
-				<button on:click={startPres}>start presentation</button>
-				<button on:click={stopPres}>end presentation</button>
+				{#if contentMode === PRESENTATION}
+					<input
+						type="text"
+						placeholder="Kastalia knot id"
+					>
+					<button on:click={startPres}>start presentation</button>
+					<button on:click={stopPres}>end presentation</button>
+				{:else if contentMode === WIKIPEDIA}
+					<input
+						type="text"
+						placeholder="Wikipedia URL"
+					>
+				{/if}
 			{/if}
 		</div>
 	</div>
