@@ -168,7 +168,7 @@
 						<li>
 							<span
 								style={user.socketId === $userId
-									? 'border-bottom: solid 2px black;'
+									? 'background: black; color: white;'
 									: ''
 								}
 							>
