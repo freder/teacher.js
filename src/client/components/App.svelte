@@ -45,6 +45,11 @@
 		height: 100%;
 	}
 
+	#header {
+		background: var(--accent-color);
+		border-bottom: solid 2px black;
+	}
+
 	#room-panel {
 		flex-grow: 0;
 		flex-shrink: 0;
@@ -55,6 +60,20 @@
 	#main {
 		flex: 1;
 		display: flex;
+	}
+
+	#content-container {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.section-title {
+		font-weight: bold;
+	}
+
+	.padded {
+		padding: var(--padding);
 	}
 
 	.userlist {
@@ -85,11 +104,7 @@
 <div id="container">
 	<div
 		id="header"
-		style="
-			padding: var(--padding);
-			background: var(--accent-color);
-			border-bottom: solid 2px black;
-		"
+		class="padded"
 	>
 		<div
 			style="
@@ -159,8 +174,8 @@
 
 	<div id="main">
 		<div id="room-panel">
-			<div style="padding: var(--padding);">
-				<div style="font-weight: bold;">
+			<div class="padded">
+				<div class="section-title">
 					Participants:
 				</div>
 				<ul class="userlist">
@@ -183,15 +198,9 @@
 			</div>
 		</div>
 
-		<div
-			style="
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-			"
-		>
+		<div id="content-container">
 			<div style="flex: 1;">
-				{#if $roomState.presentationUrl}
+				{#if (contentMode === PRESENTATION) && $roomState.presentationUrl}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<iframe
 						id="presentation"
@@ -204,13 +213,13 @@
 			<hr>
 
 			<div
+				class="padded"
 				style="
-					padding: var(--padding);
 					flex-grow: 0;
 					max-height: 100px;
 				"
 			>
-				<div style="font-weight: bold;">
+				<div class="section-title">
 					Event log:
 				</div>
 				<div id="log">
