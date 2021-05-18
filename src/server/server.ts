@@ -1,6 +1,7 @@
 import { createServer } from 'http';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'fs';
 
 import { Server, Socket } from 'socket.io';
 import dotenv from 'dotenv';
@@ -44,6 +45,11 @@ let io: Server;
 
 
 type HandlerType = (msgType: string, payload: Payload, socket: Socket) => void;
+
+const wikipediaSnippet = fs.readFileSync(
+	path.join(__dirname, 'snippets/wikipedia.js')
+).toString();
+
 
 const initialRoomState: RoomState = {
 	adminIds: [],
@@ -226,6 +232,27 @@ function main() {
 		fetch(urlStr)
 			.then((res) => res.text())
 			.then((txt) => res.send(txt));
+	});
+
+	// inject custom code snippet
+	// http://.../proxy/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
+	// TODO: cache the output / response
+	app.get('/proxy/wikipedia/:url', (req, res) => {
+		const urlStr = decodeURIComponent(req.params.url);
+		const url = new URL(urlStr);
+		fetch(urlStr)
+			.then((res) => res.text())
+			.then((htmlStr) => {
+				const output = htmlStr
+					.replace(
+						'</head>',
+						`<base href="${url.origin}"></head>`
+					)
+					.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
+					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
+					.replace('</body>', `<script>${wikipediaSnippet}</script></body>`);
+				res.send(output);
+			});
 	});
 
 	io = new Server(

@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
@@ -138,6 +139,28 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 
 
 async function main() {
+	const setWikiUrl = (wikipediaUrl: string) => {
+		const msg: Message<WikipediaUrlPayload> = {
+			authToken: get(userState).authToken,
+			payload: { url: wikipediaUrl }
+		};
+		socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
+	};
+
+	// const setWikiUrl = (wikipediaUrl: string) => {
+	// 	// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
+	// 	const encodedUrl = encodeURIComponent(wikipediaUrl);
+	// 	console.log(encodedUrl);
+	// 	const url = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
+	// 	socket.emit(
+	// 		messageTypes.SET_WIKIPEDIA_URL,
+	// 		{
+	// 			authToken: get(authToken),
+	// 			payload: { url }
+	// 		}
+	// 	);
+	// };
+
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
 		props: {
@@ -154,14 +177,7 @@ async function main() {
 				};
 				socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
 			},
-
-			setWikiUrl: (wikipediaUrl: string) => {
-				const msg: Message<WikipediaUrlPayload> = {
-					authToken: get(userState).authToken,
-					payload: { url: wikipediaUrl }
-				};
-				socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
-			},
+			setWikiUrl,
 
 			startPres: (kastaliaId: string) => {
 				const payload: PresentationStartPayload = {
@@ -224,6 +240,11 @@ async function main() {
 
 		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
 			const rs = msg.payload;
+			// if (get(authToken)) {
+			// 	if (get(roomState).wikipediaUrl !== rs.wikipediaUrl) {
+			// 		return;
+			// 	}
+			// }
 			roomState.set(rs);
 			appendToLog(messageTypes.ROOM_UPDATE, rs);
 		});
@@ -239,6 +260,7 @@ async function main() {
 		// iframe messages
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
+
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
 				const { authToken } = get(userState);
 				if (!authToken) { return; }
@@ -247,6 +269,17 @@ async function main() {
 					payload: { state: data.state }
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
+			} else if (data.type === 'WIKIPEDIA_SECTION_CHANGED') {
+				console.log(data);
+				// if (get(authToken)) {
+				// 	const current = get(roomState).wikipediaUrl;
+				// 	const encodedWikiUrl = R.last(current.split('/'));
+				// 	const url = new URL(
+				// 		decodeURIComponent(encodedWikiUrl)
+				// 	);
+				// 	url.hash = data.hash;
+				// 	setWikiUrl(url.toString());
+				// }
 			}
 		});
 
