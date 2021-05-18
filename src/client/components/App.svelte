@@ -246,7 +246,7 @@
 				{/if}
 			</div>
 
-			<hr>
+			<!-- <hr>
 
 			<div
 				class="padded"
@@ -263,7 +263,7 @@
 						<div>{entry}</div>
 					{/each}
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 </div>
