@@ -203,7 +203,7 @@
 	</div>
 
 	<div id="main">
-		<div id="room-panel">
+		<!-- <div id="room-panel">
 			<div class="padded">
 				<div class="section-title">
 					Participants:
@@ -226,7 +226,7 @@
 					{/each}
 				</ul>
 			</div>
-		</div>
+		</div> -->
 
 		<div id="content-container">
 			<div style="flex: 1;">
