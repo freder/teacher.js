@@ -101,11 +101,5 @@ export async function initJanus(): Promise<JanusInstance> {
 			}
 		});
 	});
-
-	let audioBridge: any;
-	let myid = null;
-	let webrtcUp = false;
-	// let audioenabled = false;
-
 	return janus;
 }

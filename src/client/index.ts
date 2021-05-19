@@ -74,8 +74,6 @@ function claimAdmin() {
 
 
 async function main() {
-	console.log(Janus);
-
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
 		props: {
