@@ -2,13 +2,13 @@ import { Janus } from 'janus-gateway';
 import { janusServers } from '../shared/constants';
 
 
-type JanusInstance = any;
-type AudioBridgeInstance = any;
+type JanusInstance = Record<string, unknown>;
+type AudioBridgeInstance = Record<string, unknown>;
 
 
 export function attachAudioBridgePlugin(
 	janus: JanusInstance,
-	callbacks: any
+	callbacks: Record<string, (...args: unknown[]) => void>
 ): Promise<AudioBridgeInstance> {
 	return new Promise((resolve, reject) => {
 		let audioBridge: AudioBridgeInstance;
