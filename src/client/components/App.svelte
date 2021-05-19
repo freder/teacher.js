@@ -138,32 +138,12 @@
 			"
 		>
 			<div>
-				<!-- role: <span>{$role}</span> -->
-
-				<button on:click={updateName}>
-					set user name
-				</button>
-
 				{#if $role !== 'admin'}
 					{' '}
 					<button on:click={claimAdmin}>
 						claim admin role
 					</button>
 				{/if}
-			</div>
-
-			<div>
-				<button
-					on:click={$audioState.audioStarted ? stopAudio : startAudio}
-				>
-					{$audioState.audioStarted ? 'stop' : 'start'} audio
-				</button>
-				<button
-					on:click={toggleMute}
-					disabled={!$audioState.audioStarted}
-				>
-					{$audioState.muted ? 'unmute' : 'mute'}
-				</button>
 			</div>
 		</div>
 
@@ -182,7 +162,6 @@
 				>
 					Wikipedia
 				</button>
-				<span>: </span>
 
 				<!-- CONTEXTUAL OPTIONS -->
 				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
@@ -243,6 +222,27 @@
 
 	<div id="main">
 		<div id="room-panel">
+			<div class="padded">
+				<button on:click={updateName}>
+					set user name
+				</button>
+
+				<button
+					on:click={$audioState.audioStarted ? stopAudio : startAudio}
+				>
+					{$audioState.audioStarted ? 'stop' : 'start'} audio
+				</button>
+
+				<button
+					on:click={toggleMute}
+					disabled={!$audioState.audioStarted}
+				>
+					{$audioState.muted ? 'unmute' : 'mute'}
+				</button>
+			</div>
+
+			<hr>
+
 			<div class="padded">
 				<div class="section-title">
 					Participants:
