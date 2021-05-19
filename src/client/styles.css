@@ -4,8 +4,9 @@
 
 :root {
 	--padding: 10px;
-	--panel-width: 250px;
+	--panel-width: 200px;
 	--accent-color: gold;
+	--header-color: lightgray;
 }
 
 html {
@@ -33,7 +34,7 @@ hr {
 	padding: 0;
 }
 
-input[type="text"] {
+input[type="text"], select {
 	font-size: 1rem;
 }
 

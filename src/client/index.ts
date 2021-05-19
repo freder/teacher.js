@@ -9,13 +9,10 @@ import type {
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 
+import { serverUrl } from './constants';
 import App from './components/App.svelte';
 require('./styles.css');
 
-
-const serverPort = process.env.SERVER_PORT;
-const serverName = process.env.SERVER_NAME;
-const serverUrl = `${serverName}:${serverPort}`;
 
 console.log('environment:', process.env.NODE_ENV);
 console.log('server url:', serverUrl);
@@ -30,6 +27,14 @@ const roomState = writable(initialRoomState);
 const userId = writable(undefined);
 const authToken = writable(null);
 const log = writable([]);
+
+
+function appendToLog(type: string, obj: Record<string, unknown>) {
+	const ts = Date.now();
+	const s = JSON.stringify(obj);
+	const entry = `${ts}: ${type}: ${s}`;
+	log.update((prev) => [entry, ...prev]);
+}
 
 
 function main() {
@@ -47,7 +52,28 @@ function main() {
 			log,
 			claimAdmin,
 
-			startPres: (kastaliaId) => {
+			setActiveModule: (moduleType: string) => {
+				console.log(moduleType);
+				socket.emit(
+					messageTypes.SET_ACTIVE_MODULE,
+					{
+						authToken: get(authToken),
+						payload: { activeModule: moduleType }
+					}
+				);
+			},
+
+			setWikiUrl: (wikipediaUrl: string) => {
+				socket.emit(
+					messageTypes.SET_WIKIPEDIA_URL,
+					{
+						authToken: get(authToken),
+						payload: { url: wikipediaUrl }
+					}
+				);
+			},
+
+			startPres: (kastaliaId: string) => {
 				socket.emit(
 					messageTypes.START_PRESENTATION,
 					{
@@ -88,7 +114,6 @@ function main() {
 		socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
 
 		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
-			console.log(rs);
 			roomState.set(rs);
 		});
 
@@ -115,12 +140,12 @@ function main() {
 			}
 		});
 
+		socket.on(messageTypes.ROOM_UPDATE, (msg) => {
+			appendToLog(messageTypes.ROOM_UPDATE, msg);
+		});
+
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, ({ state }) => {
-			const ts = Date.now();
-			const type = messageTypes.REVEAL_STATE_CHANGED;
-			const s = JSON.stringify(state);
-			const entry = `${ts}: ${type}: ${s}`;
-			log.update((prev) => [entry, ...prev]);
+			appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
 			// if we're the one who originally caused the event, we will
 			// acknowledge it (see above), but not react to it.

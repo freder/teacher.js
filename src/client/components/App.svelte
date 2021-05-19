@@ -1,22 +1,23 @@
-<script context="module">
-	const PRESENTATION = 'PRESENTATION';
-	const WIKIPEDIA = 'WIKIPEDIA';
-</script>
-
 <script>
 	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
+
+	import { getWikipediaTocUrl } from '../utils';
+	import { serverUrl } from '../constants';
+	import { moduleTypes } from '../../shared/constants';
 
 	export let userId;
 	export let log;
 	export let roomState;
 	export let claimAdmin;
+	export let setWikiUrl;
+	export let setActiveModule;
 	export let startPres;
 	export let stopPres;
 	export let onPresentationLoaded;
 
-	let contentMode;
 	let kastaliaId;
+	let wikipediaToc;
 
 	const role = derived(
 		roomState,
@@ -29,9 +30,13 @@
 	// 		: 'unset';
 	// });
 
-	const setContentMode = (mode) => {
-		contentMode = mode;
-	};
+	const wikiJumpToSection = (event) => {
+		const anchor = event.target.value;
+		const url = new URL($roomState.wikipediaUrl);
+		url.hash = `#${anchor}`;
+		setWikiUrl(url.toString());
+		event.target.value = '';
+	}
 
 	onDestroy(() => {
 		unsubAuthToken();
@@ -46,7 +51,7 @@
 	}
 
 	#header {
-		background: var(--accent-color);
+		background: var(--header-color);
 		border-bottom: solid 2px black;
 	}
 
@@ -89,7 +94,7 @@
 		overflow-y: auto;
 	}
 
-	iframe#presentation {
+	iframe {
 		width: 100%;
 		height: 100%;
 		border: none;
@@ -127,21 +132,21 @@
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
-					class:selected={contentMode === PRESENTATION}
-					on:click={() => setContentMode(PRESENTATION)}
+					class:selected={$roomState.activeModule === moduleTypes.PRESENTATION}
+					on:click={() => setActiveModule(moduleTypes.PRESENTATION)}
 				>
 					Presentation
 				</button>
 				<button
-					class:selected={contentMode === WIKIPEDIA}
-					on:click={() => setContentMode(WIKIPEDIA)}
+					class:selected={$roomState.activeModule === moduleTypes.WIKIPEDIA}
+					on:click={() => setActiveModule(moduleTypes.WIKIPEDIA)}
 				>
 					Wikipedia
 				</button>
 				<span>: </span>
 
 				<!-- CONTEXTUAL OPTIONS -->
-				{#if contentMode === PRESENTATION}
+				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
 					<input
 						type="text"
 						placeholder="Kastalia knot id"
@@ -162,12 +167,37 @@
 					}}>
 						end presentation
 					</button>
-				{:else if contentMode === WIKIPEDIA}
+				{:else if $roomState.activeModule === moduleTypes.WIKIPEDIA}
 					<input
 						type="text"
 						placeholder="Wikipedia URL"
+						on:keydown={(event) => {
+							if (event.key === 'Enter') {
+								const wikipediaUrl = event.target.value;
+								setWikiUrl(wikipediaUrl);
+								event.target.blur();
+								const url = getWikipediaTocUrl(wikipediaUrl);
+								fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
+									.then((res) => res.json())
+									.then((toc) => { wikipediaToc = toc.parse.sections; });
+							}
+						}}
 					>
+					{#if wikipediaToc}
+						<span>jump to: </span>
+						<!-- svelte-ignore a11y-no-onchange -->
+						<select on:change={wikiJumpToSection}>
+							<option value="">[select section]</option>
+							{#each wikipediaToc as section}
+								<option value={section.anchor}>
+									{'–'.repeat(section.toclevel - 1)} {section.line}
+								</option>
+							{/each}
+						</select>
+					{/if}
 				{/if}
+			{:else}
+				<!--  -->
 			{/if}
 		</div>
 	</div>
@@ -200,17 +230,23 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if (contentMode === PRESENTATION) && $roomState.presentationUrl}
+				{#if ($roomState.activeModule === moduleTypes.PRESENTATION) && $roomState.presentationUrl}
 					<!-- svelte-ignore a11y-missing-attribute -->
 					<iframe
 						id="presentation"
 						src={$roomState.presentationUrl}
 						on:load={onPresentationLoaded}
 					></iframe>
+				{:else if ($roomState.activeModule === moduleTypes.WIKIPEDIA) && $roomState.wikipediaUrl}
+					<!-- svelte-ignore a11y-missing-attribute -->
+					<iframe
+						id="wikipedia"
+						src={$roomState.wikipediaUrl}
+					></iframe>
 				{/if}
 			</div>
 
-			<hr>
+			<!-- <hr>
 
 			<div
 				class="padded"
@@ -227,7 +263,7 @@
 						<div>{entry}</div>
 					{/each}
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 </div>

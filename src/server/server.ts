@@ -7,6 +7,9 @@ import debug from 'debug';
 import dotenv from 'dotenv';
 import * as R from 'ramda';
 import { observable, observe } from 'mobx';
+import express from 'express';
+import fetch from 'node-fetch';
+import cors from 'cors';
 
 import type {
 	Message,
@@ -38,7 +41,9 @@ const logInfo = debug(`${debugPrefix}:info`);
 const initialRoomState: RoomState = {
 	adminIds: [],
 	users: [],
+	activeModule: undefined,
 	presentationUrl: undefined,
+	wikipediaUrl: undefined,
 };
 const roomStateData = { ...initialRoomState } as RoomState;
 
@@ -122,8 +127,8 @@ function handleRevealStateChange(payload: RevealStateChangePayload) {
 }
 
 
-function handlePresentationStart(payload: any) {
-	roomState.presentationUrl = payload.url;
+function handlePresentationStart(payload: Record<string, unknown>) {
+	roomState.presentationUrl = payload.url as string;
 }
 
 
@@ -133,8 +138,50 @@ function handlePresentationEnd() {
 }
 
 
+function handleWikipediaUrl(payload: Record<string, unknown>) {
+	roomState.wikipediaUrl = payload.url as string;
+}
+
+
+function handleActiveModule(payload: Record<string, unknown>) {
+	roomState.activeModule = payload.activeModule as string;
+}
+
+
 function main() {
-	const httpServer = createServer();
+	const app = express();
+	app.use(cors()); // TODO: remove in production
+	const httpServer = createServer(app);
+
+	// generic proxy to avoid CORS, etc.
+	app.get('/proxy/:url', (req, res) => {
+		const urlStr = decodeURIComponent(req.params.url);
+		fetch(urlStr)
+			.then((res) => res.text())
+			.then((txt) => res.send(txt));
+	});
+
+	// to proxy a website in order to inject custom js code
+	// http://0.0.0.0:3000/proxy/inject-snippet/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
+	// app.get('/proxy/inject-snippet/wikipedia/:url', (req, res) => {
+	// 	const urlStr = decodeURIComponent(req.params.url);
+	// 	const url = new URL(urlStr);
+	// 	const snippet = '<script>alert(123);</script>'
+	// 	fetch(urlStr)
+	// 		.then((res) => res.text())
+	// 		.then((htmlStr) => {
+	// 			const output = htmlStr
+	// 				.replace(
+	// 					'</head>',
+	// 					`<base href="${url.origin}"></head>`
+	// 				)
+	// 				.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
+	// 				.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
+	// 				.replace('</body>', `${snippet}</body>`);
+	// 			res.send(output);
+	// 		});
+	// });
+
 	io = new Server(
 		httpServer,
 		{
@@ -183,6 +230,11 @@ function main() {
 		});
 
 		socket.on(
+			messageTypes.SET_ACTIVE_MODULE,
+			requireAuth(socket, handleActiveModule)
+		);
+
+		socket.on(
 			messageTypes.REVEAL_STATE_CHANGED,
 			requireAuth(socket, handleRevealStateChange)
 		);
@@ -195,6 +247,11 @@ function main() {
 		socket.on(
 			messageTypes.END_PRESENTATION,
 			requireAuth(socket, handlePresentationEnd)
+		);
+
+		socket.on(
+			messageTypes.SET_WIKIPEDIA_URL,
+			requireAuth(socket, handleWikipediaUrl)
 		);
 
 		socket.on(messageTypes.BRING_ME_UP_TO_SPEED, () => {
