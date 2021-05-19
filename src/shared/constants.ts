@@ -22,7 +22,7 @@ export const janusServers = [
 	...(
 		(process.env.NODE_ENV === 'production')
 			? [
-				'wss://0.teacher.solar:777/',
+				'wss://0.teacher.solar:8989/',
 				'https://0.teacher.solar:777/janus',
 			]
 			: [
