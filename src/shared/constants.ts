@@ -16,10 +16,11 @@ export const moduleTypes = {
 	WIKIPEDIA: 'WIKIPEDIA',
 };
 
+// https://janus.conf.meetecho.com/docs/deploy
 export const janusServers = [
-	// TODO: check if these are correct
-	'wss://0.teacher.solar:8188/',
-	'ws://0.teacher.solar:8188/',
-	'http://0.teacher.solar:8088/janus'
+	'wss://0.teacher.solar:777/',
+	'https://0.teacher.solar:777/janus',
+	// 'ws://0.teacher.solar:8188/',
+	// 'http://0.teacher.solar:8088/janus',
 ];
 export const janusRoomId = 1234;
