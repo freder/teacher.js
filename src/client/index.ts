@@ -84,7 +84,6 @@ async function main() {
 			claimAdmin,
 
 			setActiveModule: (moduleType: string) => {
-				console.log(moduleType);
 				socket.emit(
 					messageTypes.SET_ACTIVE_MODULE,
 					{
