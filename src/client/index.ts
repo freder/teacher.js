@@ -135,7 +135,15 @@ async function main() {
 		}
 	});
 
-	socket = io(serverUrl);
+	let options = {
+		secure: true,
+		reconnect: true,
+		rejectUnauthorized: false
+	};
+	if (process.env.NODE_ENV === 'development') {
+		options = undefined;
+	}
+	socket = io(serverUrl, options);
 	socket.on('connect', () => {
 		userState.update((prev) => ({ ...prev, userId: socket.id }));
 
