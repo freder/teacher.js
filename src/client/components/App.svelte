@@ -5,6 +5,7 @@
 	import { getWikipediaTocUrl } from '../utils';
 	import { moduleTypes } from '../../shared/constants';
 
+	import AudioControls from './AudioControls.svelte';
 	import ParticipantsList from './ParticipantsList.svelte';
 	import Wikipedia from './Wikipedia.svelte';
 	import WikipediaControls from './WikipediaControls.svelte';
@@ -169,18 +170,12 @@
 					set user name
 				</button>
 
-				<button
-					on:click={$audioState.audioStarted ? stopAudio : startAudio}
-				>
-					{$audioState.audioStarted ? 'stop' : 'start'} audio
-				</button>
-
-				<button
-					on:click={toggleMute}
-					disabled={!$audioState.audioStarted}
-				>
-					{$audioState.muted ? 'unmute' : 'mute'}
-				</button>
+				<AudioControls
+					audioState={audioState}
+					startAudio={startAudio}
+					stopAudio={stopAudio}
+					toggleMute={toggleMute}
+				/>
 			</div>
 
 			<hr>
