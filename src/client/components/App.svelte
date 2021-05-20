@@ -10,7 +10,7 @@
 	import WikipediaControls from './WikipediaControls.svelte';
 	import Presentation from './Presentation.svelte';
 	import PresentationControls from './PresentationControls.svelte';
-	import EventLog from './EventLog.svelte';
+	// import EventLog from './EventLog.svelte';
 
 	export let userState;
 	// export let uiState;
@@ -79,16 +79,23 @@
 		border-bottom: solid 2px black;
 	}
 
-	#room-panel {
-		flex-grow: 0;
-		flex-shrink: 0;
+	#header > div {
+		display: inline-block;
+	}
+	#header > div:first-child {
 		width: var(--panel-width);
-		border-right: solid 2px black;
 	}
 
 	#main {
 		flex: 1;
 		display: flex;
+	}
+
+	#panel {
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: var(--panel-width);
+		border-right: solid 2px black;
 	}
 
 	#content-container {
@@ -105,33 +112,23 @@
 		padding: var(--padding);
 	}
 
-	button.active {
-		background: black;
-		color: white;
-	}
+	/* .log {
+		flex-grow: 0;
+		max-height: 100px;
+	} */
 </style>
 
 <div id="container">
-	<div
-		id="header"
-		class="padded"
-	>
-		<div
-			style="
-				width: var(--panel-width);
-				display: inline-block;
-			"
-		>
-			<div>
-				{#if $role !== 'admin'}
-					<button on:click={claimAdmin}>
-						claim admin role
-					</button>
-				{/if}
-			</div>
+	<div id="header" class="padded">
+		<div>
+			{#if $role !== 'admin'}
+				<button on:click={claimAdmin}>
+					claim admin role
+				</button>
+			{/if}
 		</div>
 
-		<div style="display: inline-block;">
+		<div>
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
@@ -161,14 +158,12 @@
 						wikiJumpToSection={wikiJumpToSection}
 					/>
 				{/if}
-			{:else}
-				<!--  -->
 			{/if}
 		</div>
 	</div>
 
 	<div id="main">
-		<div id="room-panel">
+		<div id="panel">
 			<div class="padded">
 				<button on:click={updateName}>
 					set user name
@@ -191,9 +186,7 @@
 			<hr>
 
 			<div class="padded">
-				<div class="section-title">
-					Participants:
-				</div>
+				<div class="section-title">Participants:</div>
 				<ParticipantsList
 					userState={userState}
 					roomState={roomState}
@@ -215,16 +208,8 @@
 
 			<!-- <hr>
 
-			<div
-				class="padded"
-				style="
-					flex-grow: 0;
-					max-height: 100px;
-				"
-			>
-				<div class="section-title">
-					Event log:
-				</div>
+			<div class="padded log">
+				<div class="section-title">Event log:</div>
 				<EventLog log={$uiState.log} />
 			</div> -->
 		</div>
