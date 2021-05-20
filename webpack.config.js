@@ -10,7 +10,6 @@ const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin');
 const { StatsWriterPlugin } = require('webpack-stats-plugin');
 
 
-
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const ouputDirName = 'dist';
 const clientPath = './src/client';
@@ -37,7 +36,7 @@ const plugins = [
 		'JANUS_URL_WS',
 		'JANUS_URL_HTTP',
 		'JANUS_URL_WSS',
-		'JANUS_URL_HTTPS',
+		'JANUS_URL_HTTPS'
 	]),
 ];
 if (NODE_ENV === 'production') {
