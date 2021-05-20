@@ -8,6 +8,8 @@
 	import ParticipantsList from './ParticipantsList.svelte';
 	import Wikipedia from './Wikipedia.svelte';
 	import WikipediaControls from './WikipediaControls.svelte';
+	import Presentation from './Presentation.svelte';
+	import PresentationControls from './PresentationControls.svelte';
 
 	export let userState;
 	// export let uiState;
@@ -109,12 +111,6 @@
 		overflow-y: auto;
 	} */
 
-	iframe {
-		width: 100%;
-		height: 100%;
-		border: none;
-	}
-
 	button.active {
 		background: black;
 		color: white;
@@ -159,26 +155,11 @@
 
 				<!-- CONTEXTUAL OPTIONS -->
 				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
-					<input
-						type="text"
-						placeholder="Kastalia knot id"
-						bind:value={kastaliaId}
-						on:keydown={(event) => {
-							if (event.key === 'Enter') {
-								startPres(kastaliaId);
-								event.target.blur();
-							}
-						}}
-					>
-					<button on:click={() => startPres(kastaliaId)}>
-						start presentation
-					</button>
-					<button on:click={() => {
-						kastaliaId = undefined;
-						stopPres();
-					}}>
-						end presentation
-					</button>
+					<PresentationControls
+						kastaliaId={kastaliaId}
+						startPres={startPres}
+						stopPres={stopPres}
+					/>
 				{:else if $roomState.activeModule === moduleTypes.WIKIPEDIA}
 					<WikipediaControls
 						setWikiUrl={setWikiUrl}
@@ -229,12 +210,10 @@
 		<div id="content-container">
 			<div style="flex: 1;">
 				{#if ($roomState.activeModule === moduleTypes.PRESENTATION) && $roomState.presentationUrl}
-					<!-- svelte-ignore a11y-missing-attribute -->
-					<iframe
-						id="presentation"
-						src={$roomState.presentationUrl}
-						on:load={onPresentationLoaded}
-					></iframe>
+					<Presentation
+						url={$roomState.presentationUrl}
+						onPresentationLoaded={onPresentationLoaded}
+					/>
 				{:else if ($roomState.activeModule === moduleTypes.WIKIPEDIA) && $roomState.wikipediaUrl}
 					<Wikipedia url={$roomState.wikipediaUrl} />
 				{/if}
