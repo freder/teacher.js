@@ -17,6 +17,10 @@ const clientPath = './src/client';
 
 
 const plugins = [
+	new webpack.ProvidePlugin({
+		adapter: ['webrtc-adapter', 'default']
+	}),
+
 	new HtmlWebpackPlugin({
 		title: 'teacher.solar',
 		template: `${clientPath}/index.html`,
@@ -29,6 +33,10 @@ const plugins = [
 		'NODE_ENV',
 		'SERVER_PORT',
 		'SERVER_NAME',
+		'JANUS_URL_WS',
+		'JANUS_URL_HTTP',
+		'JANUS_URL_WSS',
+		'JANUS_URL_HTTPS',
 	]),
 ];
 if (NODE_ENV === 'production') {
@@ -82,6 +90,14 @@ module.exports = {
 
 	module: {
 		rules: [
+			{
+				test: require.resolve('janus-gateway'),
+				loader: 'exports-loader',
+				options: {
+					exports: 'Janus',
+				},
+			},
+
 			{
 				test: /\.(js|jsx|ts|tsx)$/,
 				exclude: /node_modules/,

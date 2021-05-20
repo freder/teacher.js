@@ -6,29 +6,34 @@
 	import { serverUrl } from '../constants';
 	import { moduleTypes } from '../../shared/constants';
 
-	export let userId;
-	export let log;
+	export let userState;
+	export let uiState;
 	export let roomState;
+	export let audioState;
 	export let claimAdmin;
 	export let setWikiUrl;
 	export let setActiveModule;
 	export let startPres;
 	export let stopPres;
 	export let onPresentationLoaded;
+	export let startAudio;
+	export let stopAudio;
+	export let toggleMute;
+	export let setUserName;
 
 	let kastaliaId;
 	let wikipediaToc;
 
 	const role = derived(
 		roomState,
-		($roomState) => ($roomState.adminIds.includes($userId)) ? 'admin' : 'user'
+		($roomState) => ($roomState.adminIds.includes($userState.userId)) ? 'admin' : 'user'
 	);
 
-	// const unsubAuthToken = role.subscribe((value) => {
-	// 	document.body.style.background = (value === 'admin')
+	// $: {
+	// 	document.body.style.background = ($role === 'admin')
 	// 		? 'lightgrey'
 	// 		: 'unset';
-	// });
+	// }
 
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
@@ -37,6 +42,21 @@
 		setWikiUrl(url.toString());
 		event.target.value = '';
 	}
+
+	const updateName = () => {
+		const name = prompt();
+		// can't be empty
+		if (!name || name.trim() === '') {
+			return;
+		}
+		// force unique
+		const names = $roomState.users.map(({ name }) => name);
+		if (names.includes(name)) {
+			alert('name is already taken');
+			return;
+		}
+		setUserName(name);
+	};
 
 	onDestroy(() => {
 		unsubAuthToken();
@@ -118,7 +138,6 @@
 			"
 		>
 			<div>
-				<!-- role: <span>{$role}</span> -->
 				{#if $role !== 'admin'}
 					{' '}
 					<button on:click={claimAdmin}>
@@ -143,7 +162,6 @@
 				>
 					Wikipedia
 				</button>
-				<span>: </span>
 
 				<!-- CONTEXTUAL OPTIONS -->
 				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
@@ -205,6 +223,27 @@
 	<div id="main">
 		<div id="room-panel">
 			<div class="padded">
+				<button on:click={updateName}>
+					set user name
+				</button>
+
+				<button
+					on:click={$audioState.audioStarted ? stopAudio : startAudio}
+				>
+					{$audioState.audioStarted ? 'stop' : 'start'} audio
+				</button>
+
+				<button
+					on:click={toggleMute}
+					disabled={!$audioState.audioStarted}
+				>
+					{$audioState.muted ? 'unmute' : 'mute'}
+				</button>
+			</div>
+
+			<hr>
+
+			<div class="padded">
 				<div class="section-title">
 					Participants:
 				</div>
@@ -212,7 +251,7 @@
 					{#each $roomState.users as user}
 						<li>
 							<span
-								style={user.socketId === $userId
+								style={(user.socketId === $userState.userId)
 									? 'background: black; color: white;'
 									: ''
 								}
@@ -259,7 +298,7 @@
 					Event log:
 				</div>
 				<div id="log">
-					{#each $log as entry}
+					{#each $uiState.log as entry}
 						<div>{entry}</div>
 					{/each}
 				</div>

@@ -15,3 +15,20 @@ export const moduleTypes = {
 	PRESENTATION: 'PRESENTATION',
 	WIKIPEDIA: 'WIKIPEDIA',
 };
+
+// https://janus.conf.meetecho.com/docs/deploy
+export const janusServers = [
+	...(
+		(process.env.NODE_ENV === 'production')
+			? [
+				process.env.JANUS_URL_WSS,
+				process.env.JANUS_URL_HTTPS,
+			]
+			: [
+				process.env.JANUS_URL_WS,
+				process.env.JANUS_URL_HTTP,
+			]
+	)
+];
+// TODO: make configurable
+export const janusRoomId = 1234;
