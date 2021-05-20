@@ -32,6 +32,7 @@ const plugins = [
 	new webpack.EnvironmentPlugin([
 		'NODE_ENV',
 		'SERVER_PORT',
+		'SERVER_PORT_HTTPS',
 		'SERVER_NAME',
 		'JANUS_URL_WS',
 		'JANUS_URL_HTTP',
