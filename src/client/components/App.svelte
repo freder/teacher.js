@@ -10,6 +10,7 @@
 	import WikipediaControls from './WikipediaControls.svelte';
 	import Presentation from './Presentation.svelte';
 	import PresentationControls from './PresentationControls.svelte';
+	import EventLog from './EventLog.svelte';
 
 	export let userState;
 	// export let uiState;
@@ -103,13 +104,6 @@
 	.padded {
 		padding: var(--padding);
 	}
-
-	/* #log {
-		font-family: monospace;
-		height: 100%;
-		overflow-x: hidden;
-		overflow-y: auto;
-	} */
 
 	button.active {
 		background: black;
@@ -231,11 +225,7 @@
 				<div class="section-title">
 					Event log:
 				</div>
-				<div id="log">
-					{#each $uiState.log as entry}
-						<div>{entry}</div>
-					{/each}
-				</div>
+				<EventLog log={$uiState.log} />
 			</div> -->
 		</div>
 	</div>
