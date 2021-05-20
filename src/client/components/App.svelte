@@ -1,12 +1,14 @@
 <script>
 	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
+	import * as R from 'ramda';
 
 	import { getWikipediaTocUrl } from '../utils';
-	import { serverUrl } from '../constants';
 	import { moduleTypes } from '../../shared/constants';
 
 	import ParticipantsList from './ParticipantsList.svelte';
+	import Wikipedia from './Wikipedia.svelte';
+	import WikipediaControls from './WikipediaControls.svelte';
 
 	export let userState;
 	// export let uiState;
@@ -24,7 +26,6 @@
 	export let setUserName;
 
 	let kastaliaId;
-	let wikipediaToc;
 
 	const role = derived(
 		roomState,
@@ -36,6 +37,12 @@
 	// 		? 'lightgrey'
 	// 		: 'unset';
 	// }
+	const activatePresentation = R.partial(
+		setActiveModule, [moduleTypes.PRESENTATION]
+	);
+	const activateWikipedia = R.partial(
+		setActiveModule, [moduleTypes.WIKIPEDIA]
+	);
 
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
@@ -147,14 +154,14 @@
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
-					class:selected={$roomState.activeModule === moduleTypes.PRESENTATION}
-					on:click={() => setActiveModule(moduleTypes.PRESENTATION)}
+					class:active={$roomState.activeModule === moduleTypes.PRESENTATION}
+					on:click={activatePresentation}
 				>
 					Presentation
 				</button>
 				<button
-					class:selected={$roomState.activeModule === moduleTypes.WIKIPEDIA}
-					on:click={() => setActiveModule(moduleTypes.WIKIPEDIA)}
+					class:active={$roomState.activeModule === moduleTypes.WIKIPEDIA}
+					on:click={activateWikipedia}
 				>
 					Wikipedia
 				</button>
@@ -182,33 +189,11 @@
 						end presentation
 					</button>
 				{:else if $roomState.activeModule === moduleTypes.WIKIPEDIA}
-					<input
-						type="text"
-						placeholder="Wikipedia URL"
-						on:keydown={(event) => {
-							if (event.key === 'Enter') {
-								const wikipediaUrl = event.target.value;
-								setWikiUrl(wikipediaUrl);
-								event.target.blur();
-								const url = getWikipediaTocUrl(wikipediaUrl);
-								fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
-									.then((res) => res.json())
-									.then((toc) => { wikipediaToc = toc.parse.sections; });
-							}
-						}}
-					>
-					{#if wikipediaToc}
-						<span>jump to: </span>
-						<!-- svelte-ignore a11y-no-onchange -->
-						<select on:change={wikiJumpToSection}>
-							<option value="">[select section]</option>
-							{#each wikipediaToc as section}
-								<option value={section.anchor}>
-									{'–'.repeat(section.toclevel - 1)} {section.line}
-								</option>
-							{/each}
-						</select>
-					{/if}
+					<WikipediaControls
+						setWikiUrl={setWikiUrl}
+						getWikipediaTocUrl={getWikipediaTocUrl}
+						wikiJumpToSection={wikiJumpToSection}
+					/>
 				{/if}
 			{:else}
 				<!--  -->
@@ -260,11 +245,7 @@
 						on:load={onPresentationLoaded}
 					></iframe>
 				{:else if ($roomState.activeModule === moduleTypes.WIKIPEDIA) && $roomState.wikipediaUrl}
-					<!-- svelte-ignore a11y-missing-attribute -->
-					<iframe
-						id="wikipedia"
-						src={$roomState.wikipediaUrl}
-					></iframe>
+					<Wikipedia url={$roomState.wikipediaUrl} />
 				{/if}
 			</div>
 
