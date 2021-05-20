@@ -33,6 +33,10 @@ const plugins = [
 		'NODE_ENV',
 		'SERVER_PORT',
 		'SERVER_NAME',
+		'JANUS_URL_WS',
+		'JANUS_URL_HTTP',
+		'JANUS_URL_WSS',
+		'JANUS_URL_HTTPS',
 	]),
 ];
 if (NODE_ENV === 'production') {

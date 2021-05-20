@@ -18,17 +18,17 @@ export const moduleTypes = {
 
 // https://janus.conf.meetecho.com/docs/deploy
 export const janusServers = [
-	// TODO: make URLs configurable
 	...(
 		(process.env.NODE_ENV === 'production')
 			? [
-				'wss://0.teacher.solar:8989/',
-				'https://0.teacher.solar:777/janus',
+				process.env.JANUS_URL_WSS,
+				process.env.JANUS_URL_HTTPS,
 			]
 			: [
-				'ws://0.teacher.solar:8188/',
-				'http://0.teacher.solar:8088/janus',
+				process.env.JANUS_URL_WS,
+				process.env.JANUS_URL_HTTP,
 			]
 	)
 ];
+// TODO: make configurable
 export const janusRoomId = 1234;
