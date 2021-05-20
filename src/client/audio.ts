@@ -89,12 +89,11 @@ export async function initJanus(): Promise<JanusInstance> {
 	});
 
 	const janus = await new Promise<JanusInstance>((resolve, reject) => {
-		const j = new Janus({
+		const instance = new Janus({
 			server: janusServers,
 			// iceServers: [], // TODO: needed?
 			success: () => {
-				console.log('success');
-				resolve(j);
+				resolve(instance);
 			},
 			error: (cause: string) => {
 				reject(new Error(cause));
