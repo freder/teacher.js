@@ -6,8 +6,10 @@
 	import { serverUrl } from '../constants';
 	import { moduleTypes } from '../../shared/constants';
 
+	import ParticipantsList from './ParticipantsList.svelte';
+
 	export let userState;
-	export let uiState;
+	// export let uiState;
 	export let roomState;
 	export let audioState;
 	export let claimAdmin;
@@ -101,18 +103,12 @@
 		padding: var(--padding);
 	}
 
-	.userlist {
-		margin: 0;
-		padding: 0;
-		padding-left: 1em;
-	}
-
-	#log {
+	/* #log {
 		font-family: monospace;
 		height: 100%;
 		overflow-x: hidden;
 		overflow-y: auto;
-	}
+	} */
 
 	iframe {
 		width: 100%;
@@ -247,23 +243,10 @@
 				<div class="section-title">
 					Participants:
 				</div>
-				<ul class="userlist">
-					{#each $roomState.users as user}
-						<li>
-							<span
-								style={(user.socketId === $userState.userId)
-									? 'background: black; color: white;'
-									: ''
-								}
-							>
-								{user.name}
-							</span>
-							{#if $roomState.adminIds.includes(user.socketId)}
-								{' (admin)'}
-							{/if}
-						</li>
-					{/each}
-				</ul>
+				<ParticipantsList
+					userState={userState}
+					roomState={roomState}
+				/>
 			</div>
 		</div>
 
