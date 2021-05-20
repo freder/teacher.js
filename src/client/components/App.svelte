@@ -1,5 +1,4 @@
 <script>
-	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
 	import * as R from 'ramda';
 
@@ -29,14 +28,11 @@
 
 	const role = derived(
 		roomState,
-		($roomState) => ($roomState.adminIds.includes($userState.userId)) ? 'admin' : 'user'
+		($roomState) => ($roomState.adminIds.includes($userState.userId))
+			? 'admin'
+			: 'user'
 	);
 
-	// $: {
-	// 	document.body.style.background = ($role === 'admin')
-	// 		? 'lightgrey'
-	// 		: 'unset';
-	// }
 	const activatePresentation = R.partial(
 		setActiveModule, [moduleTypes.PRESENTATION]
 	);
@@ -66,10 +62,6 @@
 		}
 		setUserName(name);
 	};
-
-	onDestroy(() => {
-		unsubAuthToken();
-	});
 </script>
 
 <style>
@@ -123,7 +115,7 @@
 		border: none;
 	}
 
-	button.selected {
+	button.active {
 		background: black;
 		color: white;
 	}
@@ -142,7 +134,6 @@
 		>
 			<div>
 				{#if $role !== 'admin'}
-					{' '}
 					<button on:click={claimAdmin}>
 						claim admin role
 					</button>
