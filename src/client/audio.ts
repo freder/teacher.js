@@ -4,6 +4,7 @@ import { janusServers } from '../shared/constants';
 
 export type JanusInstance = Record<string, unknown>;
 export type AudioBridgeInstance = Record<string, unknown>;
+export type JanusMessage = Record<string, unknown>;
 
 
 export function attachAudioBridgePlugin(
@@ -34,21 +35,14 @@ export function attachAudioBridgePlugin(
 			// 	// e.g., Darken the screen if on=true (getUserMedia incoming), restore it otherwise
 			// },
 
-			iceState: (state) => {
-				console.log('ICE state changed to ' + state);
-			},
+			// iceState: (state) => {
+			// 	console.log('ICE state changed to ' + state);
+			// },
 
 			mediaState: (medium, on: boolean) => {
 				console.log(
 					'Janus ' + (on ? 'started' : 'stopped') +
 					' receiving our ' + medium
-				);
-			},
-
-			webrtcState: (on: boolean) => {
-				console.log(
-					'Janus says our WebRTC PeerConnection is ' +
-					(on ? 'up' : 'down') + ' now'
 				);
 			},
 
@@ -58,11 +52,6 @@ export function attachAudioBridgePlugin(
 
 			// onremotetrack: (track, mid, added) => {
 			// 	// A remote track (working PeerConnection!) with a specific mid has just been added or removed
-			// },
-
-			// oncleanup: () => {
-			// 	// PeerConnection with the plugin closed, clean the UI
-			// 	// The plugin handle is still valid so we can create a new one
 			// },
 
 			// detached: () => {

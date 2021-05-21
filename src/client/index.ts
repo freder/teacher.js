@@ -12,7 +12,7 @@ import type {
 import { janusRoomId, messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
-import { attachAudioBridgePlugin, initJanus } from './audio';
+import { attachAudioBridgePlugin, initJanus, JanusMessage } from './audio';
 import type {
 	JanusInstance,
 	AudioBridgeInstance,
@@ -70,6 +70,14 @@ function appendToLog(type: string, obj: Record<string, unknown>) {
 function setUserName(name: string) {
 	userState.update((prev) => ({ ...prev, name }));
 	serverUpdateUser();
+
+	// TODO: also rename user in janus room
+	// audioBridge.send({
+	// 	message: {
+	// 		request: 'configure',
+	// 		display: name
+	// 	}
+	// });
 }
 
 
@@ -85,6 +93,22 @@ function claimAdmin() {
 	const secret = prompt('enter password');
 	if (!secret) { return; }
 	socket.emit(messageTypes.CLAIM_ADMIN_ROLE, { secret });
+}
+
+
+function makeNameFromBrowser() {
+	const ua = new UAParser();
+	const [os, br] = [ua.getOS(), ua.getBrowser()];
+	return `${os.name}, ${br.name} ${br.major}`;
+}
+
+
+function logParticipants(participants: Array<Record<string, unknown>>) {
+	console.info('Got a list of participants:', participants);
+	for (const f in participants) {
+		const { id, display, setup, muted } = participants[f];
+		console.info('>> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+	}
 }
 
 
@@ -162,9 +186,7 @@ async function main() {
 	socket.on('connect', () => {
 		userState.update((prev) => ({ ...prev, userId: socket.id }));
 
-		const ua = new UAParser();
-		const [os, br] = [ua.getOS(), ua.getBrowser()];
-		const name = `${os.name}, ${br.name} ${br.major}`;
+		const name = makeNameFromBrowser();
 		setUserName(name);
 
 		// in case we're connecting late: request a full state.
@@ -232,7 +254,7 @@ async function main() {
 	let myid: string;
 	let webrtcUp: boolean;
 
-	function joinHandler(msg: any) {
+	function joinHandler(msg: JanusMessage) {
 		// Successfully joined, negotiate WebRTC now
 		if (msg.id) {
 			myid = msg.id;
@@ -244,7 +266,7 @@ async function main() {
 					iceRestart: true,
 					media: { video: false }, // This is an audio only room
 					success: (jsep: any) => {
-						console.info('Got SDP!', jsep);
+						// console.info('Got SDP!', jsep);
 						const publish = { request: 'configure', muted: false };
 						audioBridge.send({ message: publish, jsep: jsep });
 					},
@@ -255,49 +277,25 @@ async function main() {
 			}
 		}
 
-		// Any room participant?
 		if (msg.participants) {
-			// const list = msg.participants;
-			// console.info('Got a list of participants:', list);
-			// for (const f in list) {
-			// 	const id = list[f]['id'];
-			// 	const display = list[f]['display'];
-			// 	const setup = list[f]['setup'];
-			// 	const muted = list[f]['muted'];
-			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			// }
+			logParticipants(msg.participants);
 		}
 	}
 
-	function roomChangedHandler(myid: string, msg: any) {
+	function roomChangedHandler(myid: string, msg: JanusMessage) {
 		myid = msg.id;
 		console.info('Moved to room ' + msg.room + ', new ID: ' + myid);
-		// Any room participant?
+
 		if (msg.participants) {
-			// const list = msg.participants;
-			// console.info('Got a list of participants:', list);
-			// for (const f in list) {
-			// 	const id = list[f]['id'];
-			// 	const display = list[f]['display'];
-			// 	const setup = list[f]['setup'];
-			// 	const muted = list[f]['muted'];
-			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			// }
+			logParticipants(msg.participants);
 		}
+
 		return myid;
 	}
 
-	function eventHandler(msg: any) {
+	function eventHandler(msg: JanusMessage) {
 		if (msg.participants) {
-			// const list = msg.participants;
-			// console.info('Got a list of participants:', list);
-			// for (const f in list) {
-			// 	const id = list[f]['id'];
-			// 	const display = list[f]['display'];
-			// 	const setup = list[f]['setup'];
-			// 	const muted = list[f]['muted'];
-			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			// }
+			logParticipants(msg.participants);
 		} else if (msg.error) {
 			if (msg.error_code === 485) {
 				// 'no such room' error
@@ -327,7 +325,7 @@ async function main() {
 	}
 
 	const callbacks = {
-		onmessage: (msg: any, jsep: any) => {
+		onmessage: (msg: JanusMessage, jsep: any) => {
 			// We got a message/event (msg) from the plugin
 			// If jsep is not null, this involves a WebRTC negotiation
 
@@ -350,14 +348,25 @@ async function main() {
 			}
 
 			if (jsep) {
-				console.info('Handling SDP as well...', jsep);
+				// console.info('Handling SDP as well...', jsep);
 				audioBridge.handleRemoteJsep({ jsep: jsep });
 			}
 		},
 
+		webrtcState: (on: boolean) => {
+			console.log(
+				'Janus says our WebRTC PeerConnection is ' +
+				(on ? 'up' : 'down') + ' now'
+			);
+			webrtcUp = on;
+		},
+
 		oncleanup: () => {
+			// PeerConnection with the plugin closed, clean the UI
+			// The plugin handle is still valid so we can create a new one
+
 			webrtcUp = false;
-			console.info(' ::: Got a cleanup notification :::');
+			// console.info(' ::: Got a cleanup notification :::');
 		}
 	};
 
