@@ -305,9 +305,8 @@ async function main() {
 			return;
 		}
 
-		// Any new feed to attach to?
+		// One of the participants has gone away?
 		if (msg.leaving) {
-			// One of the participants has gone away?
 			const leaving = msg.leaving;
 			console.info('Participant left: ' + leaving);
 		}
@@ -326,9 +325,7 @@ async function main() {
 
 	const callbacks = {
 		onmessage: (msg: JanusMessage, jsep: any) => {
-			// We got a message/event (msg) from the plugin
-			// If jsep is not null, this involves a WebRTC negotiation
-
+			// a message/event has been received from the plugin;
 			console.info(' ::: Got a message :::', msg);
 			const event = msg.audiobridge;
 			console.info('Event: ' + event);
@@ -347,13 +344,21 @@ async function main() {
 				}
 			}
 
+			// If jsep is not null, this involves a WebRTC negotiation
 			if (jsep) {
 				// console.info('Handling SDP as well...', jsep);
 				audioBridge.handleRemoteJsep({ jsep: jsep });
 			}
 		},
 
+		// TODO: how is this callback not mentioned anywhere in the docs?
+		onremotestream: (stream: MediaStream) => {
+			const audioElement = document.querySelector('audio#roomaudio') as HTMLAudioElement;
+			Janus.attachMediaStream(audioElement, stream);
+		},
+
 		webrtcState: (on: boolean) => {
+			// this callback is triggered with a true value when the PeerConnection associated to a handle becomes active (so ICE, DTLS and everything else succeeded) from the Janus perspective, while false is triggered when the PeerConnection goes down instead; useful to figure out when WebRTC is actually up and running between you and Janus (e.g., to notify a user they're actually now active in a conference); notice that in case of false a reason string may be present as an optional parameter
 			console.log(
 				'Janus says our WebRTC PeerConnection is ' +
 				(on ? 'up' : 'down') + ' now'
@@ -362,7 +367,7 @@ async function main() {
 		},
 
 		oncleanup: () => {
-			// PeerConnection with the plugin closed, clean the UI
+			// the WebRTC PeerConnection with the plugin was closed
 			// The plugin handle is still valid so we can create a new one
 
 			webrtcUp = false;
