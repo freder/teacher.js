@@ -52,6 +52,7 @@ const uiState = writable({
 });
 const audioState = writable({
 	audioStarted: false,
+	connected: false,
 	muted: false,
 });
 
@@ -252,15 +253,14 @@ async function main() {
 	let janus: JanusInstance;
 	let audioBridge: AudioBridgeInstance;
 	let myid: string;
-	let webrtcUp: boolean;
 
 	function joinHandler(msg: JanusMessage) {
 		// Successfully joined, negotiate WebRTC now
 		if (msg.id) {
 			myid = msg.id;
 			console.info('Successfully joined room ' + msg.room + ' with ID ' + myid);
-			if (!webrtcUp) {
-				webrtcUp = true;
+			if (!get(audioState).connected) {
+				audioState.update((prev) => ({ ...prev, connected: true }));
 				// Publish our stream
 				audioBridge.createOffer({
 					iceRestart: true,
@@ -363,14 +363,14 @@ async function main() {
 				'Janus says our WebRTC PeerConnection is ' +
 				(on ? 'up' : 'down') + ' now'
 			);
-			webrtcUp = on;
+			audioState.update((prev) => ({ ...prev, connected: on }));
 		},
 
 		oncleanup: () => {
 			// the WebRTC PeerConnection with the plugin was closed
 			// The plugin handle is still valid so we can create a new one
 
-			webrtcUp = false;
+			audioState.update((prev) => ({ ...prev, connected: false }));
 			// console.info(' ::: Got a cleanup notification :::');
 		}
 	};
@@ -394,11 +394,11 @@ async function main() {
 		janus.destroy();
 		janus = null;
 		myid = null;
-		webrtcUp = false;
 		audioBridge = null;
 		audioState.update((prev) => ({
 			...prev,
 			audioStarted: false,
+			connected: false,
 			muted: false,
 		}));
 	};
