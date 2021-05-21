@@ -83,12 +83,12 @@ async function main() {
 			audioState,
 			claimAdmin,
 
-			setActiveModule: (moduleType: string) => {
+			setActiveModule: (moduleName: string) => {
 				socket.emit(
 					messageTypes.SET_ACTIVE_MODULE,
 					{
 						authToken: get(userState).authToken,
-						payload: { activeModule: moduleType }
+						payload: { activeModule: moduleName }
 					}
 				);
 			},

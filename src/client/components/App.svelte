@@ -1,13 +1,20 @@
 <script>
-	import { onDestroy } from 'svelte';
 	import { derived } from 'svelte/store';
+	import * as R from 'ramda';
 
 	import { getWikipediaTocUrl } from '../utils';
-	import { serverUrl } from '../constants';
 	import { moduleTypes } from '../../shared/constants';
 
+	import AudioControls from './AudioControls.svelte';
+	import ParticipantsList from './ParticipantsList.svelte';
+	import Wikipedia from './Wikipedia.svelte';
+	import WikipediaControls from './WikipediaControls.svelte';
+	import Presentation from './Presentation.svelte';
+	import PresentationControls from './PresentationControls.svelte';
+	// import EventLog from './EventLog.svelte';
+
 	export let userState;
-	export let uiState;
+	// export let uiState;
 	export let roomState;
 	export let audioState;
 	export let claimAdmin;
@@ -22,18 +29,20 @@
 	export let setUserName;
 
 	let kastaliaId;
-	let wikipediaToc;
 
 	const role = derived(
 		roomState,
-		($roomState) => ($roomState.adminIds.includes($userState.userId)) ? 'admin' : 'user'
+		($roomState) => ($roomState.adminIds.includes($userState.userId))
+			? 'admin'
+			: 'user'
 	);
 
-	// $: {
-	// 	document.body.style.background = ($role === 'admin')
-	// 		? 'lightgrey'
-	// 		: 'unset';
-	// }
+	const activatePresentation = R.partial(
+		setActiveModule, [moduleTypes.PRESENTATION]
+	);
+	const activateWikipedia = R.partial(
+		setActiveModule, [moduleTypes.WIKIPEDIA]
+	);
 
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
@@ -57,10 +66,6 @@
 		}
 		setUserName(name);
 	};
-
-	onDestroy(() => {
-		unsubAuthToken();
-	});
 </script>
 
 <style>
@@ -75,16 +80,23 @@
 		border-bottom: solid 2px black;
 	}
 
-	#room-panel {
-		flex-grow: 0;
-		flex-shrink: 0;
+	#header > div {
+		display: inline-block;
+	}
+	#header > div:first-child {
 		width: var(--panel-width);
-		border-right: solid 2px black;
 	}
 
 	#main {
 		flex: 1;
 		display: flex;
+	}
+
+	#panel {
+		flex-grow: 0;
+		flex-shrink: 0;
+		width: var(--panel-width);
+		border-right: solid 2px black;
 	}
 
 	#content-container {
@@ -101,207 +113,99 @@
 		padding: var(--padding);
 	}
 
-	.userlist {
-		margin: 0;
-		padding: 0;
-		padding-left: 1em;
-	}
-
-	#log {
-		font-family: monospace;
-		height: 100%;
-		overflow-x: hidden;
-		overflow-y: auto;
-	}
-
-	iframe {
-		width: 100%;
-		height: 100%;
-		border: none;
-	}
-
-	button.selected {
-		background: black;
-		color: white;
-	}
+	/* .log {
+		flex-grow: 0;
+		max-height: 100px;
+	} */
 </style>
 
 <div id="container">
-	<div
-		id="header"
-		class="padded"
-	>
-		<div
-			style="
-				width: var(--panel-width);
-				display: inline-block;
-			"
-		>
-			<div>
-				{#if $role !== 'admin'}
-					{' '}
-					<button on:click={claimAdmin}>
-						claim admin role
-					</button>
-				{/if}
-			</div>
+	<div id="header" class="padded">
+		<div>
+			{#if $role !== 'admin'}
+				<button on:click={claimAdmin}>
+					claim admin role
+				</button>
+			{/if}
 		</div>
 
-		<div style="display: inline-block;">
+		<div>
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
-					class:selected={$roomState.activeModule === moduleTypes.PRESENTATION}
-					on:click={() => setActiveModule(moduleTypes.PRESENTATION)}
+					class:active={$roomState.activeModule === moduleTypes.PRESENTATION}
+					on:click={activatePresentation}
 				>
 					Presentation
 				</button>
 				<button
-					class:selected={$roomState.activeModule === moduleTypes.WIKIPEDIA}
-					on:click={() => setActiveModule(moduleTypes.WIKIPEDIA)}
+					class:active={$roomState.activeModule === moduleTypes.WIKIPEDIA}
+					on:click={activateWikipedia}
 				>
 					Wikipedia
 				</button>
 
 				<!-- CONTEXTUAL OPTIONS -->
 				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
-					<input
-						type="text"
-						placeholder="Kastalia knot id"
-						bind:value={kastaliaId}
-						on:keydown={(event) => {
-							if (event.key === 'Enter') {
-								startPres(kastaliaId);
-								event.target.blur();
-							}
-						}}
-					>
-					<button on:click={() => startPres(kastaliaId)}>
-						start presentation
-					</button>
-					<button on:click={() => {
-						kastaliaId = undefined;
-						stopPres();
-					}}>
-						end presentation
-					</button>
+					<PresentationControls
+						kastaliaId={kastaliaId}
+						startPres={startPres}
+						stopPres={stopPres}
+					/>
 				{:else if $roomState.activeModule === moduleTypes.WIKIPEDIA}
-					<input
-						type="text"
-						placeholder="Wikipedia URL"
-						on:keydown={(event) => {
-							if (event.key === 'Enter') {
-								const wikipediaUrl = event.target.value;
-								setWikiUrl(wikipediaUrl);
-								event.target.blur();
-								const url = getWikipediaTocUrl(wikipediaUrl);
-								fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
-									.then((res) => res.json())
-									.then((toc) => { wikipediaToc = toc.parse.sections; });
-							}
-						}}
-					>
-					{#if wikipediaToc}
-						<span>jump to: </span>
-						<!-- svelte-ignore a11y-no-onchange -->
-						<select on:change={wikiJumpToSection}>
-							<option value="">[select section]</option>
-							{#each wikipediaToc as section}
-								<option value={section.anchor}>
-									{'–'.repeat(section.toclevel - 1)} {section.line}
-								</option>
-							{/each}
-						</select>
-					{/if}
+					<WikipediaControls
+						setWikiUrl={setWikiUrl}
+						getWikipediaTocUrl={getWikipediaTocUrl}
+						wikiJumpToSection={wikiJumpToSection}
+					/>
 				{/if}
-			{:else}
-				<!--  -->
 			{/if}
 		</div>
 	</div>
 
 	<div id="main">
-		<div id="room-panel">
+		<div id="panel">
 			<div class="padded">
 				<button on:click={updateName}>
 					set user name
 				</button>
 
-				<button
-					on:click={$audioState.audioStarted ? stopAudio : startAudio}
-				>
-					{$audioState.audioStarted ? 'stop' : 'start'} audio
-				</button>
-
-				<button
-					on:click={toggleMute}
-					disabled={!$audioState.audioStarted}
-				>
-					{$audioState.muted ? 'unmute' : 'mute'}
-				</button>
+				<AudioControls
+					audioState={audioState}
+					startAudio={startAudio}
+					stopAudio={stopAudio}
+					toggleMute={toggleMute}
+				/>
 			</div>
 
 			<hr>
 
 			<div class="padded">
-				<div class="section-title">
-					Participants:
-				</div>
-				<ul class="userlist">
-					{#each $roomState.users as user}
-						<li>
-							<span
-								style={(user.socketId === $userState.userId)
-									? 'background: black; color: white;'
-									: ''
-								}
-							>
-								{user.name}
-							</span>
-							{#if $roomState.adminIds.includes(user.socketId)}
-								{' (admin)'}
-							{/if}
-						</li>
-					{/each}
-				</ul>
+				<div class="section-title">Participants:</div>
+				<ParticipantsList
+					userState={userState}
+					roomState={roomState}
+				/>
 			</div>
 		</div>
 
 		<div id="content-container">
 			<div style="flex: 1;">
 				{#if ($roomState.activeModule === moduleTypes.PRESENTATION) && $roomState.presentationUrl}
-					<!-- svelte-ignore a11y-missing-attribute -->
-					<iframe
-						id="presentation"
-						src={$roomState.presentationUrl}
-						on:load={onPresentationLoaded}
-					></iframe>
+					<Presentation
+						url={$roomState.presentationUrl}
+						onPresentationLoaded={onPresentationLoaded}
+					/>
 				{:else if ($roomState.activeModule === moduleTypes.WIKIPEDIA) && $roomState.wikipediaUrl}
-					<!-- svelte-ignore a11y-missing-attribute -->
-					<iframe
-						id="wikipedia"
-						src={$roomState.wikipediaUrl}
-					></iframe>
+					<Wikipedia url={$roomState.wikipediaUrl} />
 				{/if}
 			</div>
 
 			<!-- <hr>
 
-			<div
-				class="padded"
-				style="
-					flex-grow: 0;
-					max-height: 100px;
-				"
-			>
-				<div class="section-title">
-					Event log:
-				</div>
-				<div id="log">
-					{#each $uiState.log as entry}
-						<div>{entry}</div>
-					{/each}
-				</div>
+			<div class="padded log">
+				<div class="section-title">Event log:</div>
+				<EventLog log={$uiState.log} />
 			</div> -->
 		</div>
 	</div>

@@ -49,6 +49,10 @@ button:active {
 	top: 2px;
 	left: 2px;
 }
+button.active {
+	background: black;
+	color: white;
+}
 
 #roomaudio {
 	display: none;
