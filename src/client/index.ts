@@ -13,6 +13,10 @@ import { janusRoomId, messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
+import type {
+	JanusInstance,
+	AudioBridgeInstance,
+} from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
 
@@ -223,16 +227,16 @@ async function main() {
 	});
 
 	// -------- audio --------
-	let janus: any;
-	let audioBridge: any;
+	let janus: JanusInstance;
+	let audioBridge: AudioBridgeInstance;
 	let myid: string;
 	let webrtcUp: boolean;
 
 	function joinHandler(msg: any) {
 		// Successfully joined, negotiate WebRTC now
-		if (msg['id']) {
-			myid = msg['id'];
-			console.info('Successfully joined room ' + msg['room'] + ' with ID ' + myid);
+		if (msg.id) {
+			myid = msg.id;
+			console.info('Successfully joined room ' + msg.room + ' with ID ' + myid);
 			if (!webrtcUp) {
 				webrtcUp = true;
 				// Publish our stream
@@ -252,8 +256,8 @@ async function main() {
 		}
 
 		// Any room participant?
-		if (msg['participants']) {
-			// const list = msg['participants'];
+		if (msg.participants) {
+			// const list = msg.participants;
 			// console.info('Got a list of participants:', list);
 			// for (const f in list) {
 			// 	const id = list[f]['id'];
@@ -266,11 +270,11 @@ async function main() {
 	}
 
 	function roomChangedHandler(myid: string, msg: any) {
-		myid = msg['id'];
-		console.info('Moved to room ' + msg['room'] + ', new ID: ' + myid);
+		myid = msg.id;
+		console.info('Moved to room ' + msg.room + ', new ID: ' + myid);
 		// Any room participant?
-		if (msg['participants']) {
-			// const list = msg['participants'];
+		if (msg.participants) {
+			// const list = msg.participants;
 			// console.info('Got a list of participants:', list);
 			// for (const f in list) {
 			// 	const id = list[f]['id'];
@@ -284,8 +288,8 @@ async function main() {
 	}
 
 	function eventHandler(msg: any) {
-		if (msg['participants']) {
-			// const list = msg['participants'];
+		if (msg.participants) {
+			// const list = msg.participants;
 			// console.info('Got a list of participants:', list);
 			// for (const f in list) {
 			// 	const id = list[f]['id'];
@@ -294,19 +298,19 @@ async function main() {
 			// 	const muted = list[f]['muted'];
 			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
 			// }
-		} else if (msg['error']) {
-			if (msg['error_code'] === 485) {
+		} else if (msg.error) {
+			if (msg.error_code === 485) {
 				// 'no such room' error
 			} else {
-				console.error(msg['error']);
+				console.error(msg.error);
 			}
 			return;
 		}
 
 		// Any new feed to attach to?
-		if (msg['leaving']) {
+		if (msg.leaving) {
 			// One of the participants has gone away?
-			const leaving = msg['leaving'];
+			const leaving = msg.leaving;
 			console.info('Participant left: ' + leaving);
 		}
 	}
@@ -328,7 +332,7 @@ async function main() {
 			// If jsep is not null, this involves a WebRTC negotiation
 
 			console.info(' ::: Got a message :::', msg);
-			const event = msg['audiobridge'];
+			const event = msg.audiobridge;
 			console.info('Event: ' + event);
 
 			if (event) {
