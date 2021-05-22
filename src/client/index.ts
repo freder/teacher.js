@@ -17,6 +17,17 @@ import App from './components/App.svelte';
 require('./styles.css');
 
 
+// force https when using the respective port
+if (
+	(location.port === process.env.SERVER_PORT_HTTPS) &&
+	(location.protocol !== 'https')
+) {
+	location.replace(
+		location.href.replace(/^http:/i, 'https')
+	);
+}
+
+
 console.log('environment:', process.env.NODE_ENV);
 console.log('server url:', serverUrl);
 
