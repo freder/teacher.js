@@ -3,7 +3,6 @@ import path from 'path';
 import crypto from 'crypto';
 
 import { Server, Socket } from 'socket.io';
-import debug from 'debug';
 import dotenv from 'dotenv';
 import * as R from 'ramda';
 import { observable, observe } from 'mobx';
@@ -21,6 +20,11 @@ import type {
 	User
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
+import {
+	logSlideCmd,
+	logNetEvent,
+	logInfo
+} from './logging';
 
 
 const dotenvPath = path.resolve(
@@ -31,12 +35,6 @@ dotenv.config({ path: dotenvPath });
 const host = process.env.SERVER_HOST || 'localhost';
 const port = process.env.SERVER_PORT || 3000;
 let io: Server;
-
-const debugPrefix = 'T.S';
-const logSlideCmd = debug(`${debugPrefix}:cmd:slides`);
-const logNetEvent = debug(`${debugPrefix}:net`);
-const logInfo = debug(`${debugPrefix}:info`);
-// const logAuth = debug(`${debugPrefix}:auth`);
 
 
 const initialRoomState: RoomState = {
