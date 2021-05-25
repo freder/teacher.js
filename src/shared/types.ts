@@ -1,5 +1,20 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Payload = any;
+export type Payload = Record<string, unknown>;
+
+export interface RevealStateChangePayload extends Payload {
+	state: RevealState,
+}
+
+export interface PresentationStartPayload extends Payload {
+	url: string,
+}
+
+export interface WikipediaUrlPayload extends Payload {
+	url: string,
+}
+
+export interface ActiveModulePayload extends Payload {
+	activeModule: string,
+}
 
 export type Message = {
 	authToken?: string,
@@ -14,19 +29,10 @@ export type RevealState = {
 	overview: boolean,
 };
 
-export type RevealStateChangePayload = {
-	state: RevealState,
-};
-
-export type PresentationStartPayload = {
-	url: string,
-};
-
 export type User = {
 	socketId: string,
 	name: string,
 };
-
 
 export type RoomState = {
 	adminIds: Array<string>,

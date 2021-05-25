@@ -17,7 +17,9 @@ import type {
 	PresentationState,
 	RevealStateChangePayload,
 	RoomState,
-	User
+	User,
+	ActiveModulePayload,
+	WikipediaUrlPayload
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 import {
@@ -120,13 +122,15 @@ function requireAuth(
 }
 
 
-function handleRevealStateChange(payload: RevealStateChangePayload) {
+function handleRevealStateChange(pl: Payload) {
+	const payload = pl as RevealStateChangePayload;
 	logSlideCmd(JSON.stringify(payload));
 	presentationState.state = payload.state;
 }
 
 
-function handlePresentationStart(payload: PresentationStartPayload) {
+function handlePresentationStart(pl: Payload) {
+	const payload = pl as PresentationStartPayload;
 	roomState.presentationUrl = payload.url;
 }
 
@@ -137,13 +141,15 @@ function handlePresentationEnd() {
 }
 
 
-function handleWikipediaUrl(payload: Record<string, unknown>) {
-	roomState.wikipediaUrl = payload.url as string;
+function handleWikipediaUrl(pl: Payload) {
+	const payload = pl as WikipediaUrlPayload;
+	roomState.wikipediaUrl = payload.url;
 }
 
 
-function handleActiveModule(payload: Record<string, unknown>) {
-	roomState.activeModule = payload.activeModule as string;
+function handleActiveModule(pl: Payload) {
+	const payload = pl as ActiveModulePayload;
+	roomState.activeModule = payload.activeModule;
 }
 
 
