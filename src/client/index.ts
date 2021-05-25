@@ -70,9 +70,12 @@ function setUserName(name: string) {
 
 
 function serverUpdateUser() {
+	const msg: Message = {
+		payload: R.omit(['authToken', 'userId'], get(userState))
+	};
 	socket.emit(
 		messageTypes.USER_INFO,
-		R.omit(['authToken', 'userId'], get(userState))
+		msg
 	);
 }
 
@@ -80,7 +83,11 @@ function serverUpdateUser() {
 function claimAdmin() {
 	const secret = prompt('enter password');
 	if (!secret) { return; }
-	socket.emit(messageTypes.CLAIM_ADMIN_ROLE, { secret });
+	const msg: Message = { payload: { secret } };
+	socket.emit(
+		messageTypes.CLAIM_ADMIN_ROLE,
+		msg
+	);
 }
 
 
@@ -95,22 +102,24 @@ async function main() {
 			claimAdmin,
 
 			setActiveModule: (moduleName: string) => {
+				const msg: Message = {
+					authToken: get(userState).authToken,
+					payload: { activeModule: moduleName }
+				};
 				socket.emit(
 					messageTypes.SET_ACTIVE_MODULE,
-					{
-						authToken: get(userState).authToken,
-						payload: { activeModule: moduleName }
-					}
+					msg
 				);
 			},
 
 			setWikiUrl: (wikipediaUrl: string) => {
+				const msg: Message = {
+					authToken: get(userState).authToken,
+					payload: { url: wikipediaUrl }
+				};
 				socket.emit(
 					messageTypes.SET_WIKIPEDIA_URL,
-					{
-						authToken: get(userState).authToken,
-						payload: { url: wikipediaUrl }
-					}
+					msg
 				);
 			},
 
@@ -118,24 +127,33 @@ async function main() {
 				const payload: PresentationStartPayload = {
 					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
 				};
+				const msg: Message = {
+					authToken: get(userState).authToken,
+					payload,
+				};
 				socket.emit(
 					messageTypes.START_PRESENTATION,
-					{
-						authToken: get(userState).authToken,
-						payload,
-					}
+					msg
 				);
 			},
 
 			stopPres: () => {
+				const msg: Message = {
+					authToken: get(userState).authToken,
+					payload: {}
+				};
 				socket.emit(
 					messageTypes.END_PRESENTATION,
-					{ authToken: get(userState).authToken }
+					msg
 				);
 			},
 
 			onPresentationLoaded: () => {
-				socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
+				const msg: Message = { payload: {} };
+				socket.emit(
+					messageTypes.BRING_ME_UP_TO_SPEED,
+					msg
+				);
 			},
 
 			startAudio: () => startAudio(),
@@ -158,15 +176,15 @@ async function main() {
 	socket.on('connect', () => {
 		userState.update((prev) => ({ ...prev, userId: socket.id }));
 
-		const ua = new UAParser();
-		const [os, br] = [ua.getOS(), ua.getBrowser()];
-		const name = `${os.name}, ${br.name} ${br.major}`;
-		setUserName(name);
+		setUserName(makeNameFromBrowser());
 
 		// in case we're connecting late: request a full state.
-		// server will emit all the necessary messages, such as
-		// ROOM_UPDATE, REVEAL_STATE_CHANGED
-		socket.emit(messageTypes.BRING_ME_UP_TO_SPEED);
+		// server will emit all the necessary messages
+		const msg: Message = { payload: {} };
+		socket.emit(
+			messageTypes.BRING_ME_UP_TO_SPEED,
+			msg
+		);
 
 		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
 			roomState.set(rs);
@@ -191,7 +209,10 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload
 				};
-				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
+				socket.emit(
+					messageTypes.REVEAL_STATE_CHANGED,
+					msg
+				);
 			}
 		});
 

@@ -19,7 +19,8 @@ import type {
 	RoomState,
 	User,
 	ActiveModulePayload,
-	WikipediaUrlPayload
+	WikipediaUrlPayload,
+	ClaimAdminRolePayload
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 import {
@@ -104,16 +105,20 @@ function makeAdmin(socket: Socket) {
 
 function requireAuth(
 	socket: Socket,
-	handler: (payload: Payload) => void
+	requiresAuthentication: boolean,
+	handler: (payload: Payload, socket: Socket) => void
 ) {
 	return (msg: Message) => {
 		if (
-			!msg.authToken ||
-			!checkToken(socket.id, msg.authToken)
+			requiresAuthentication &&
+			(
+				!msg.authToken ||
+				!checkToken(socket.id, msg.authToken)
+			)
 		) {
 			return;
 		}
-		handler(msg.payload);
+		handler(msg.payload, socket);
 	};
 }
 
@@ -147,6 +152,30 @@ function handleActiveModule(pl: Payload) {
 	const payload = pl as ActiveModulePayload;
 	roomState.activeModule = payload.activeModule;
 }
+
+
+const handleAdminRole = (pl: Payload, socket: Socket) => {
+	const { secret } = pl as ClaimAdminRolePayload;
+	if (process.env.SECRET === secret) {
+		makeAdmin(socket);
+	} else {
+		socket.emit(messageTypes.ADMIN_TOKEN, false);
+	}
+};
+
+
+const handleUserInfo = (pl: Payload, socket: Socket) => {
+	const userInfo = pl as User;
+	const i = R.findIndex(
+		R.propEq('socketId', socket.id),
+		roomState.users
+	);
+	roomState.users = R.update(
+		i,
+		R.assoc('name', userInfo.name, roomState.users[i]),
+		roomState.users
+	);
+};
 
 
 function main() {
@@ -187,56 +216,49 @@ function main() {
 			makeAdmin(socket);
 		}
 
-		// whoever knows the secret can claim the room
-		socket.on(messageTypes.CLAIM_ADMIN_ROLE, ({ secret }) => {
-			if (process.env.SECRET === secret) {
-				makeAdmin(socket);
-			} else {
-				socket.emit(messageTypes.ADMIN_TOKEN, false);
-			}
-		});
-
-		socket.on(messageTypes.USER_INFO, (userInfo) => {
-			// console.log(userInfo);
-			const i = R.findIndex(
-				R.propEq('socketId', socket.id),
-				roomState.users
+		const events = [
+			{
+				type: messageTypes.CLAIM_ADMIN_ROLE,
+				args: [false, handleAdminRole]
+			},
+			{
+				type: messageTypes.USER_INFO,
+				args: [false, handleUserInfo]
+			},
+			{
+				type: messageTypes.SET_ACTIVE_MODULE,
+				args: [true, handleActiveModule]
+			},
+			{
+				type: messageTypes.REVEAL_STATE_CHANGED,
+				args: [true, handleRevealStateChange]
+			},
+			{
+				type: messageTypes.START_PRESENTATION,
+				args: [true, handlePresentationStart]
+			},
+			{
+				type: messageTypes.END_PRESENTATION,
+				args: [true, handlePresentationEnd]
+			},
+			{
+				type: messageTypes.SET_WIKIPEDIA_URL,
+				args: [true, handleWikipediaUrl]
+			},
+			{
+				type: messageTypes.BRING_ME_UP_TO_SPEED,
+				args: [true, handleWikipediaUrl]
+			},
+		];
+		events.forEach(({ type, args }) => {
+			socket.on(
+				type,
+				requireAuth(
+					socket,
+					args[0] as boolean,
+					args[1] as (payload: Payload, socket: Socket) => void
+				)
 			);
-			roomState.users = R.update(
-				i,
-				R.assoc('name', userInfo.name, roomState.users[i]),
-				roomState.users
-			);
-		});
-
-		socket.on(
-			messageTypes.SET_ACTIVE_MODULE,
-			requireAuth(socket, handleActiveModule)
-		);
-
-		socket.on(
-			messageTypes.REVEAL_STATE_CHANGED,
-			requireAuth(socket, handleRevealStateChange)
-		);
-
-		socket.on(
-			messageTypes.START_PRESENTATION,
-			requireAuth(socket, handlePresentationStart)
-		);
-
-		socket.on(
-			messageTypes.END_PRESENTATION,
-			requireAuth(socket, handlePresentationEnd)
-		);
-
-		socket.on(
-			messageTypes.SET_WIKIPEDIA_URL,
-			requireAuth(socket, handleWikipediaUrl)
-		);
-
-		socket.on(messageTypes.BRING_ME_UP_TO_SPEED, () => {
-			socket.emit(messageTypes.ROOM_UPDATE, roomState);
-			socket.emit(messageTypes.REVEAL_STATE_CHANGED, presentationState);
 		});
 
 		socket.on('disconnect', () => {
@@ -246,7 +268,9 @@ function main() {
 				roomState.adminIds
 			);
 			roomState.users = R.without(
-				roomState.users.filter((user) => user.socketId === socket.id),
+				roomState.users.filter(
+					(user) => user.socketId === socket.id
+				),
 				roomState.users
 			);
 		});

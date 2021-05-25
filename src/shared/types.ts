@@ -16,6 +16,10 @@ export interface ActiveModulePayload extends Payload {
 	activeModule: string,
 }
 
+export interface ClaimAdminRolePayload extends Payload {
+	secret: string,
+}
+
 export type Message = {
 	authToken?: string,
 	payload: Payload,
