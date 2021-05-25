@@ -1,8 +1,10 @@
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
+import UAParser from 'ua-parser-js';
 
 import type {
 	ActiveModulePayload,
+	AuthTokenPayload,
 	ClaimAdminRolePayload,
 	EmptyPayload,
 	Message,
@@ -17,7 +19,6 @@ import { janusRoomId, messageTypes } from '../shared/constants';
 import { serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
-import { makeNameFromBrowser } from './utils';
 require('./styles.css');
 
 
@@ -64,6 +65,13 @@ function appendToLog(type: string, obj: Record<string, unknown>) {
 		...prev,
 		log: [entry, ...prev.log]
 	}));
+}
+
+
+function makeNameFromBrowser(): string {
+	const ua = new UAParser();
+	const [os, br] = [ua.getOS(), ua.getBrowser()];
+	return `${os.name}, ${br.name} ${br.major}`;
 }
 
 
@@ -116,10 +124,7 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload: { activeModule: moduleName }
 				};
-				socket.emit(
-					messageTypes.SET_ACTIVE_MODULE,
-					msg
-				);
+				socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
 			},
 
 			setWikiUrl: (wikipediaUrl: string) => {
@@ -127,24 +132,19 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload: { url: wikipediaUrl }
 				};
-				socket.emit(
-					messageTypes.SET_WIKIPEDIA_URL,
-					msg
-				);
+				socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
 			},
 
 			startPres: (kastaliaId: string) => {
 				const payload: PresentationStartPayload = {
+					// TODO: make this configurable
 					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
 				};
 				const msg: Message<PresentationStartPayload> = {
 					authToken: get(userState).authToken,
 					payload,
 				};
-				socket.emit(
-					messageTypes.START_PRESENTATION,
-					msg
-				);
+				socket.emit(messageTypes.START_PRESENTATION, msg);
 			},
 
 			stopPres: () => {
@@ -152,20 +152,14 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload: {}
 				};
-				socket.emit(
-					messageTypes.END_PRESENTATION,
-					msg
-				);
+				socket.emit(messageTypes.END_PRESENTATION, msg);
 			},
 
 			onPresentationLoaded: () => {
 				const msg: Message<EmptyPayload> = {
 					payload: {}
 				};
-				socket.emit(
-					messageTypes.BRING_ME_UP_TO_SPEED,
-					msg
-				);
+				socket.emit(messageTypes.BRING_ME_UP_TO_SPEED, msg);
 			},
 
 			startAudio: () => startAudio(),
@@ -200,11 +194,14 @@ async function main() {
 			msg
 		);
 
-		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
+		// TODO: use proper Message<> type
+		socket.on(messageTypes.ROOM_UPDATE, (rs: RoomState) => {
 			roomState.set(rs);
+			appendToLog(messageTypes.ROOM_UPDATE, rs);
 		});
 
-		socket.on(messageTypes.ADMIN_TOKEN, ({ token }) => {
+		socket.on(messageTypes.ADMIN_TOKEN, (msg: Message<AuthTokenPayload>) => {
+			const { token } = msg.payload;
 			if (!token) {
 				return alert('denied');
 			}
@@ -216,24 +213,15 @@ async function main() {
 			const { /* origin, */ data } = msg;
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
 				if (!get(userState).authToken) { return; }
-				const payload: RevealStateChangePayload = {
-					state: data.state,
-				};
 				const msg: Message<RevealStateChangePayload> = {
 					authToken: get(userState).authToken,
-					payload
+					payload: { state: data.state }
 				};
-				socket.emit(
-					messageTypes.REVEAL_STATE_CHANGED,
-					msg
-				);
+				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			}
 		});
 
-		socket.on(messageTypes.ROOM_UPDATE, (msg) => {
-			appendToLog(messageTypes.ROOM_UPDATE, msg);
-		});
-
+		// TODO: use proper Message<> type
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, ({ state }) => {
 			appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 

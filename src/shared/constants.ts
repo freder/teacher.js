@@ -1,14 +1,15 @@
 export const messageTypes = {
 	CLAIM_ADMIN_ROLE: 'CLAIM_ADMIN_ROLE',
 	ADMIN_TOKEN: 'ADMIN_TOKEN',
-	REVEAL_STATE_CHANGED: 'reveal-state-change',
-	ROOM_UPDATE: 'ROOM_UPDATE',
-	USER_INFO: 'USER_INFO',
 	BRING_ME_UP_TO_SPEED: 'BRING_ME_UP_TO_SPEED',
+	USER_INFO: 'USER_INFO',
+	ROOM_UPDATE: 'ROOM_UPDATE',
+
+	SET_ACTIVE_MODULE: 'SET_ACTIVE_MODULE',
+	REVEAL_STATE_CHANGED: 'reveal-state-change',
 	START_PRESENTATION: 'START_PRESENTATION',
 	END_PRESENTATION: 'END_PRESENTATION',
 	SET_WIKIPEDIA_URL: 'SET_WIKIPEDIA_URL',
-	SET_ACTIVE_MODULE: 'SET_ACTIVE_MODULE',
 };
 
 export const moduleTypes = {
@@ -16,6 +17,7 @@ export const moduleTypes = {
 	WIKIPEDIA: 'WIKIPEDIA',
 };
 
+// TODO: does not need to be shared with the server
 // https://janus.conf.meetecho.com/docs/deploy
 export const janusServers = [
 	...(
