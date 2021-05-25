@@ -178,6 +178,12 @@ const handleUserInfo = (pl: Payload, socket: Socket) => {
 };
 
 
+const handleUpToSpeed = (msgType: string, pl: Payload, socket: Socket) => {
+	socket.emit(messageTypes.ROOM_UPDATE, roomState);
+	socket.emit(messageTypes.REVEAL_STATE_CHANGED, presentationState);
+};
+
+
 function main() {
 	const app = express();
 	app.use(cors()); // TODO: remove in production
@@ -247,7 +253,7 @@ function main() {
 			},
 			{
 				type: messageTypes.BRING_ME_UP_TO_SPEED,
-				args: [true, handleWikipediaUrl]
+				args: [false, handleUpToSpeed]
 			},
 		];
 		events.forEach(({ type, args }) => {
