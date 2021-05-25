@@ -1,7 +1,6 @@
 import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
-import UAParser from 'ua-parser-js';
 
 import type {
 	Message,
@@ -14,6 +13,7 @@ import { janusRoomId, messageTypes } from '../shared/constants';
 import { serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
+import { makeNameFromBrowser } from './utils';
 require('./styles.css');
 
 
