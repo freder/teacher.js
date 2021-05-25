@@ -40,6 +40,8 @@ const port = process.env.SERVER_PORT || 3000;
 let io: Server;
 
 
+type HandlerType = (msgType: string, payload: Payload, socket: Socket) => void;
+
 const initialRoomState: RoomState = {
 	adminIds: [],
 	users: [],
@@ -105,8 +107,9 @@ function makeAdmin(socket: Socket) {
 
 function requireAuth(
 	socket: Socket,
+	msgType: string,
 	requiresAuthentication: boolean,
-	handler: (payload: Payload, socket: Socket) => void
+	handler: HandlerType
 ) {
 	return (msg: Message<Payload>) => {
 		if (
@@ -118,19 +121,19 @@ function requireAuth(
 		) {
 			return;
 		}
-		handler(msg.payload, socket);
+		handler(msgType, msg.payload, socket);
 	};
 }
 
 
-function handleRevealStateChange(pl: Payload) {
+function handleRevealStateChange(msgType: string, pl: Payload) {
 	const payload = pl as RevealStateChangePayload;
 	logSlideCmd(JSON.stringify(payload));
 	presentationState.state = payload.state;
 }
 
 
-function handlePresentationStart(pl: Payload) {
+function handlePresentationStart(msgType: string, pl: Payload) {
 	const payload = pl as PresentationStartPayload;
 	roomState.presentationUrl = payload.url;
 }
@@ -142,19 +145,19 @@ function handlePresentationEnd() {
 }
 
 
-function handleWikipediaUrl(pl: Payload) {
+function handleWikipediaUrl(msgType: string, pl: Payload) {
 	const payload = pl as WikipediaUrlPayload;
 	roomState.wikipediaUrl = payload.url;
 }
 
 
-function handleActiveModule(pl: Payload) {
+function handleActiveModule(msgType: string, pl: Payload) {
 	const payload = pl as ActiveModulePayload;
 	roomState.activeModule = payload.activeModule;
 }
 
 
-const handleAdminRole = (pl: Payload, socket: Socket) => {
+const handleAdminRole = (msgType: string, pl: Payload, socket: Socket) => {
 	const { secret } = pl as ClaimAdminRolePayload;
 	if (process.env.SECRET === secret) {
 		makeAdmin(socket);
@@ -164,7 +167,7 @@ const handleAdminRole = (pl: Payload, socket: Socket) => {
 };
 
 
-const handleUserInfo = (pl: Payload, socket: Socket) => {
+const handleUserInfo = (msgType: string, pl: Payload, socket: Socket) => {
 	const userInfo = pl as UserInfo;
 	const i = R.findIndex(
 		R.propEq('socketId', socket.id),
@@ -261,8 +264,9 @@ function main() {
 				type,
 				requireAuth(
 					socket,
+					type,
 					args[0] as boolean,
-					args[1] as (payload: Payload, socket: Socket) => void
+					args[1] as HandlerType,
 				)
 			);
 		});
