@@ -31,6 +31,12 @@ export function attachAudioBridgePlugin(
 				reject(new Error(cause));
 			},
 
+			// TODO: how is this callback not mentioned anywhere in the docs?
+			onremotestream: (stream: MediaStream) => {
+				const audioElement = document.querySelector('audio#roomaudio') as HTMLAudioElement;
+				Janus.attachMediaStream(audioElement, stream);
+			},
+
 			// consentDialog: (on) => {
 			// 	// this callback is triggered just before getUserMedia is called (parameter=true) and after it is completed (parameter=false); this means it can be used to modify the UI accordingly, e.g., to prompt the user about the need to accept the device access consent requests;
 			// },

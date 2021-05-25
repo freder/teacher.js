@@ -358,12 +358,6 @@ async function main() {
 			}
 		},
 
-		// TODO: how is this callback not mentioned anywhere in the docs?
-		onremotestream: (stream: MediaStream) => {
-			const audioElement = document.querySelector('audio#roomaudio') as HTMLAudioElement;
-			Janus.attachMediaStream(audioElement, stream);
-		},
-
 		webrtcState: (on: boolean) => {
 			// this callback is triggered with a true value when the PeerConnection associated to a handle becomes active (so ICE, DTLS and everything else succeeded) from the Janus perspective, while false is triggered when the PeerConnection goes down instead; useful to figure out when WebRTC is actually up and running between you and Janus (e.g., to notify a user they're actually now active in a conference); notice that in case of false a reason string may be present as an optional parameter
 			console.log(
