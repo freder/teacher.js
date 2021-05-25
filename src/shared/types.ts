@@ -1,4 +1,5 @@
 export type Payload = Record<string, unknown>;
+export type EmptyPayload = Payload;
 
 export interface RevealStateChangePayload extends Payload {
 	state: RevealState,
@@ -20,9 +21,9 @@ export interface ClaimAdminRolePayload extends Payload {
 	secret: string,
 }
 
-export type Message = {
+export type Message<PayloadType> = {
 	authToken?: string,
-	payload: Payload,
+	payload: PayloadType,
 };
 
 export type RevealState = {
@@ -33,14 +34,14 @@ export type RevealState = {
 	overview: boolean,
 };
 
-export type User = {
+export type UserInfo = {
 	socketId: string,
 	name: string,
 };
 
 export type RoomState = {
 	adminIds: Array<string>,
-	users: Array<User>,
+	users: Array<UserInfo>,
 	activeModule?: string,
 	presentationUrl?: string,
 	wikipediaUrl?: string,

@@ -1,12 +1,16 @@
-import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 
 import type {
+	ActiveModulePayload,
+	ClaimAdminRolePayload,
+	EmptyPayload,
 	Message,
 	PresentationStartPayload,
 	RevealStateChangePayload,
 	RoomState,
+	UserInfo,
+	WikipediaUrlPayload,
 } from '../shared/types';
 import { janusRoomId, messageTypes } from '../shared/constants';
 
@@ -39,7 +43,7 @@ const initialRoomState: RoomState = {
 };
 const roomState = writable(initialRoomState);
 const userState = writable({
-	userId: undefined,
+	socketId: undefined,
 	name: 'anonymous',
 	authToken: undefined,
 });
@@ -70,8 +74,12 @@ function setUserName(name: string) {
 
 
 function serverUpdateUser() {
-	const msg: Message = {
-		payload: R.omit(['authToken', 'userId'], get(userState))
+	const us = get(userState);
+	const msg: Message<UserInfo> = {
+		payload: {
+			name: us.name,
+			socketId: us.socketId,
+		}
 	};
 	socket.emit(
 		messageTypes.USER_INFO,
@@ -83,7 +91,9 @@ function serverUpdateUser() {
 function claimAdmin() {
 	const secret = prompt('enter password');
 	if (!secret) { return; }
-	const msg: Message = { payload: { secret } };
+	const msg: Message<ClaimAdminRolePayload> = {
+		payload: { secret }
+	};
 	socket.emit(
 		messageTypes.CLAIM_ADMIN_ROLE,
 		msg
@@ -102,7 +112,7 @@ async function main() {
 			claimAdmin,
 
 			setActiveModule: (moduleName: string) => {
-				const msg: Message = {
+				const msg: Message<ActiveModulePayload> = {
 					authToken: get(userState).authToken,
 					payload: { activeModule: moduleName }
 				};
@@ -113,7 +123,7 @@ async function main() {
 			},
 
 			setWikiUrl: (wikipediaUrl: string) => {
-				const msg: Message = {
+				const msg: Message<WikipediaUrlPayload> = {
 					authToken: get(userState).authToken,
 					payload: { url: wikipediaUrl }
 				};
@@ -127,7 +137,7 @@ async function main() {
 				const payload: PresentationStartPayload = {
 					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
 				};
-				const msg: Message = {
+				const msg: Message<PresentationStartPayload> = {
 					authToken: get(userState).authToken,
 					payload,
 				};
@@ -138,7 +148,7 @@ async function main() {
 			},
 
 			stopPres: () => {
-				const msg: Message = {
+				const msg: Message<EmptyPayload> = {
 					authToken: get(userState).authToken,
 					payload: {}
 				};
@@ -149,7 +159,9 @@ async function main() {
 			},
 
 			onPresentationLoaded: () => {
-				const msg: Message = { payload: {} };
+				const msg: Message<EmptyPayload> = {
+					payload: {}
+				};
 				socket.emit(
 					messageTypes.BRING_ME_UP_TO_SPEED,
 					msg
@@ -174,13 +186,15 @@ async function main() {
 	}
 	socket = io(serverUrl, options);
 	socket.on('connect', () => {
-		userState.update((prev) => ({ ...prev, userId: socket.id }));
+		userState.update((prev) => ({ ...prev, socketId: socket.id }));
 
 		setUserName(makeNameFromBrowser());
 
 		// in case we're connecting late: request a full state.
 		// server will emit all the necessary messages
-		const msg: Message = { payload: {} };
+		const msg: Message<EmptyPayload> = {
+			payload: {}
+		};
 		socket.emit(
 			messageTypes.BRING_ME_UP_TO_SPEED,
 			msg
@@ -205,7 +219,7 @@ async function main() {
 				const payload: RevealStateChangePayload = {
 					state: data.state,
 				};
-				const msg: Message = {
+				const msg: Message<RevealStateChangePayload> = {
 					authToken: get(userState).authToken,
 					payload
 				};
@@ -226,8 +240,8 @@ async function main() {
 			// if we're the one who originally caused the event, we will
 			// acknowledge it (see above), but not react to it.
 			const { adminIds } = get(roomState);
-			const { userId } = get(userState);
-			if (adminIds.includes(userId)) {
+			const { socketId } = get(userState);
+			if (adminIds.includes(socketId)) {
 				return;
 			}
 

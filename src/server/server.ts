@@ -17,7 +17,7 @@ import type {
 	PresentationState,
 	RevealStateChangePayload,
 	RoomState,
-	User,
+	UserInfo,
 	ActiveModulePayload,
 	WikipediaUrlPayload,
 	ClaimAdminRolePayload
@@ -108,7 +108,7 @@ function requireAuth(
 	requiresAuthentication: boolean,
 	handler: (payload: Payload, socket: Socket) => void
 ) {
-	return (msg: Message) => {
+	return (msg: Message<Payload>) => {
 		if (
 			requiresAuthentication &&
 			(
@@ -165,7 +165,7 @@ const handleAdminRole = (pl: Payload, socket: Socket) => {
 
 
 const handleUserInfo = (pl: Payload, socket: Socket) => {
-	const userInfo = pl as User;
+	const userInfo = pl as UserInfo;
 	const i = R.findIndex(
 		R.propEq('socketId', socket.id),
 		roomState.users
@@ -204,7 +204,7 @@ function main() {
 
 	io.on('connection', (socket: Socket) => {
 		logNetEvent('client connected:', socket.id);
-		const user: User = {
+		const user: UserInfo = {
 			socketId: socket.id,
 			name: null
 		};
