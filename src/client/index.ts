@@ -12,10 +12,11 @@ import type {
 import { janusRoomId, messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
-import { attachAudioBridgePlugin, initJanus, JanusMessage } from './audio';
+import { attachAudioBridgePlugin, initJanus } from './audio';
 import type {
 	JanusInstance,
 	AudioBridgeInstance,
+	JanusMessage
 } from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
