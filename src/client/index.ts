@@ -51,9 +51,10 @@ const uiState = writable({
 	log: [],
 });
 const audioState = writable({
-	audioStarted: false,
+	audioStarted: false, // TODO: needed?
 	connected: false,
 	muted: false,
+	janusParticipantId: undefined,
 });
 
 
@@ -83,9 +84,14 @@ function setUserName(name: string) {
 
 
 function serverUpdateUser() {
+	// collect the data to share with everyone else:
+	const data = {
+		...R.omit(['authToken', 'userId'], get(userState)),
+		...R.pick(['connected', 'muted'], get(audioState)),
+	};
 	socket.emit(
 		messageTypes.USER_INFO,
-		R.omit(['authToken', 'userId'], get(userState))
+		data
 	);
 }
 
@@ -186,6 +192,7 @@ async function main() {
 	socket = io(serverUrl, options);
 	socket.on('connect', () => {
 		userState.update((prev) => ({ ...prev, userId: socket.id }));
+		serverUpdateUser();
 
 		const name = makeNameFromBrowser();
 		setUserName(name);
@@ -252,13 +259,13 @@ async function main() {
 	// -------- audio --------
 	let janus: JanusInstance;
 	let audioBridge: AudioBridgeInstance;
-	let myid: string;
 
 	function joinHandler(msg: JanusMessage) {
 		// Successfully joined, negotiate WebRTC now
 		if (msg.id) {
-			myid = msg.id;
-			console.info('Successfully joined room ' + msg.room + ' with ID ' + myid);
+			console.info('Successfully joined room ' + msg.room + ' with ID ' + msg.id);
+			audioState.update((prev) => ({ ...prev, janusParticipantId: msg.id }));
+			serverUpdateUser();
 			if (!get(audioState).connected) {
 				audioState.update((prev) => ({ ...prev, connected: true }));
 				// Publish our stream
@@ -282,15 +289,12 @@ async function main() {
 		}
 	}
 
-	function roomChangedHandler(myid: string, msg: JanusMessage) {
-		myid = msg.id;
-		console.info('Moved to room ' + msg.room + ', new ID: ' + myid);
-
+	function roomChangedHandler(msg: JanusMessage) {
+		console.info('Moved to room ' + msg.room + ', new ID: ' + msg.id);
 		if (msg.participants) {
 			logParticipants(msg.participants);
 		}
-
-		return myid;
+		return msg.id;
 	}
 
 	function eventHandler(msg: JanusMessage) {
@@ -314,13 +318,14 @@ async function main() {
 
 	function toggleMute() {
 		const m = !get(audioState).muted;
-		audioState.update((prev) => ({ ...prev, muted: m }));
 		audioBridge.send({
 			message: {
 				request: 'configure',
 				muted: m
 			}
 		});
+		audioState.update((prev) => ({ ...prev, muted: m }));
+		serverUpdateUser();
 	}
 
 	const callbacks = {
@@ -335,7 +340,9 @@ async function main() {
 					joinHandler(msg);
 				} else if (event === 'roomchanged') {
 					// The user switched to a different room
-					myid = roomChangedHandler(myid, msg);
+					const newId = roomChangedHandler(msg);
+					audioState.update((prev) => ({ ...prev, janusParticipantId: newId }));
+					serverUpdateUser();
 				} else if (event === 'destroyed') {
 					// The room has been destroyed
 					console.warn('The room has been destroyed!');
@@ -364,6 +371,7 @@ async function main() {
 				(on ? 'up' : 'down') + ' now'
 			);
 			audioState.update((prev) => ({ ...prev, connected: on }));
+			serverUpdateUser();
 		},
 
 		oncleanup: () => {
@@ -371,7 +379,7 @@ async function main() {
 			// The plugin handle is still valid so we can create a new one
 
 			audioState.update((prev) => ({ ...prev, connected: false }));
-			// console.info(' ::: Got a cleanup notification :::');
+			serverUpdateUser();
 		}
 	};
 
@@ -388,19 +396,21 @@ async function main() {
 		};
 		audioBridge.send({ message: register});
 		audioState.update((prev) => ({ ...prev, audioStarted: true }));
+		// serverUpdateUser();
 	};
 
 	const stopAudio = () => {
 		janus.destroy();
 		janus = null;
-		myid = null;
 		audioBridge = null;
 		audioState.update((prev) => ({
 			...prev,
 			audioStarted: false,
 			connected: false,
 			muted: false,
+			janusParticipantId: null,
 		}));
+		serverUpdateUser();
 	};
 }
 

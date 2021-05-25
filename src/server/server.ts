@@ -218,14 +218,13 @@ function main() {
 		});
 
 		socket.on(messageTypes.USER_INFO, (userInfo) => {
-			// console.log(userInfo);
 			const i = R.findIndex(
 				R.propEq('socketId', socket.id),
 				roomState.users
 			);
 			roomState.users = R.update(
 				i,
-				R.assoc('name', userInfo.name, roomState.users[i]),
+				{ ...roomState.users[i], ...userInfo },
 				roomState.users
 			);
 		});
