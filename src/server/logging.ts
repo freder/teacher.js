@@ -8,7 +8,8 @@ import { messageTypes } from '../shared/constants';
 import { debugPrefix } from './constants';
 
 
-const eventWhitelist = [
+// the types of events we want in the log file
+const whitelist = [
 	messageTypes.SET_ACTIVE_MODULE,
 	messageTypes.REVEAL_STATE_CHANGED,
 	messageTypes.START_PRESENTATION,
@@ -21,7 +22,7 @@ function wrap(debugLogFn: (...args: string[]) => void) {
 	return (msgType: string, s: string) => {
 		const entry = `${msgType} ${s}`;
 		debugLogFn(entry);
-		if (eventWhitelist.includes(msgType)) {
+		if (whitelist.includes(msgType)) {
 			appendToLogFile(entry);
 		}
 	};
@@ -29,7 +30,10 @@ function wrap(debugLogFn: (...args: string[]) => void) {
 
 
 function appendToLogFile(entry: string) {
-	const filePath = path.join(__dirname, 'log.txt');
+	// TODO: make this configurable
+	const filePath = path.join(__dirname, '../../log.txt');
+
+	// create file if it does not exists
 	if (!fs.existsSync(filePath)) {
 		fs.writeFileSync(filePath, '');
 	}
