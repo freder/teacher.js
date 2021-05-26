@@ -1,11 +1,10 @@
 import fs from 'fs';
-import path from 'path';
 
 import debug from 'debug';
 
 import { getISOTimestamp } from '../client/utils';
 import { messageTypes } from '../shared/constants';
-import { debugPrefix } from './constants';
+import { debugPrefix, logFilePath } from './constants';
 
 
 // the types of events we want in the log file
@@ -30,16 +29,13 @@ function wrap(debugLogFn: (...args: string[]) => void) {
 
 
 function appendToLogFile(entry: string) {
-	// TODO: make this configurable
-	const filePath = path.join(__dirname, '../../log.txt');
-
 	// create file if it does not exists
-	if (!fs.existsSync(filePath)) {
-		fs.writeFileSync(filePath, '');
+	if (!fs.existsSync(logFilePath)) {
+		fs.writeFileSync(logFilePath, '');
 	}
 
 	const ts = getISOTimestamp();
-	fs.appendFileSync(filePath, `${ts} ${entry}\n`);
+	fs.appendFileSync(logFilePath, `${ts} ${entry}\n`);
 }
 
 
