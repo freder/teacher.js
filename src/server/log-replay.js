@@ -7,9 +7,9 @@ const R = require('ramda');
 function parseEntry(line) {
 	const parts = line.split(' ');
 	const ts = new Date(parts[0]);
-	const type = parts[1];
-	const data = JSON.parse(parts[2] || 'null');
-	return { ts, type, data };
+	const msgType = parts[1];
+	const payload = JSON.parse(parts[2] || 'null');
+	return { ts, msgType, payload };
 }
 
 
