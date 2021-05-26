@@ -67,9 +67,12 @@ const presentationStateData = { ...initialPresentationState } as PresentationSta
 const roomState = observable(roomStateData);
 observe(roomState, (/* change */) => {
 	// if (change.type === 'update') {
+	const msg: Message<RoomState> = {
+		payload: roomState
+	};
 	io.emit(
 		messageTypes.ROOM_UPDATE,
-		roomState
+		msg
 	);
 	// }
 });
@@ -201,8 +204,14 @@ const handleUserInfo = (msgType: string, pl: Payload, socket: Socket) => {
 
 
 const handleUpToSpeed = (msgType: string, pl: Payload, socket: Socket) => {
-	socket.emit(messageTypes.ROOM_UPDATE, roomState);
-	socket.emit(messageTypes.REVEAL_STATE_CHANGED, presentationState);
+	const roomMsg: Message<RoomState> = {
+		payload: roomState
+	};
+	socket.emit(messageTypes.ROOM_UPDATE, roomMsg);
+	const presMsg: Message<PresentationState> = {
+		payload: presentationState
+	};
+	socket.emit(messageTypes.REVEAL_STATE_CHANGED, presMsg);
 };
 
 

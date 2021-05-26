@@ -9,6 +9,7 @@ import type {
 	EmptyPayload,
 	Message,
 	PresentationStartPayload,
+	PresentationState,
 	RevealStateChangePayload,
 	RoomState,
 	UserInfo,
@@ -194,8 +195,8 @@ async function main() {
 			msg
 		);
 
-		// TODO: use proper Message<> type
-		socket.on(messageTypes.ROOM_UPDATE, (rs: RoomState) => {
+		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
+			const rs = msg.payload;
 			roomState.set(rs);
 			appendToLog(messageTypes.ROOM_UPDATE, rs);
 		});
@@ -222,8 +223,8 @@ async function main() {
 			}
 		});
 
-		// TODO: use proper Message<> type
-		socket.on(messageTypes.REVEAL_STATE_CHANGED, ({ state }) => {
+		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<PresentationState>) => {
+			const { state } = msg.payload;
 			appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
 			// if we're the one who originally caused the event, we will
