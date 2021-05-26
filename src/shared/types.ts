@@ -21,6 +21,13 @@ export interface ClaimAdminRolePayload extends Payload {
 	secret: string,
 }
 
+export interface UserPayload extends Payload {
+	name: string,
+	socketId: string,
+	connected: boolean,
+	muted: boolean,
+}
+
 export type Message<PayloadType> = {
 	authToken?: string,
 	payload: PayloadType,

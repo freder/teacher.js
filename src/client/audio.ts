@@ -2,8 +2,9 @@ import { Janus } from 'janus-gateway';
 import { janusServers } from '../shared/constants';
 
 
-type JanusInstance = Record<string, unknown>;
-type AudioBridgeInstance = Record<string, unknown>;
+export type JanusInstance = Record<string, unknown>;
+export type AudioBridgeInstance = Record<string, unknown>;
+export type JanusMessage = Record<string, unknown>;
 
 
 export function attachAudioBridgePlugin(
@@ -18,10 +19,10 @@ export function attachAudioBridgePlugin(
 
 			success: (pluginHandle: AudioBridgeInstance) => {
 				audioBridge = pluginHandle;
-				console.log(
-					'Plugin attached! (' + audioBridge.getPlugin() +
-					', id=' + audioBridge.getId() + ')'
-				);
+				// console.log(
+				// 	'Plugin attached! (' + audioBridge.getPlugin() +
+				// 	', id=' + audioBridge.getId() + ')'
+				// );
 				resolve(audioBridge);
 			},
 
@@ -30,34 +31,37 @@ export function attachAudioBridgePlugin(
 				reject(new Error(cause));
 			},
 
+			// TODO: how is this callback not mentioned anywhere in the docs?
+			onremotestream: (stream: MediaStream) => {
+				const audioElement = document.querySelector('audio#roomaudio') as HTMLAudioElement;
+				Janus.attachMediaStream(audioElement, stream);
+			},
+
 			// consentDialog: (on) => {
-			// 	// e.g., Darken the screen if on=true (getUserMedia incoming), restore it otherwise
+			// 	// this callback is triggered just before getUserMedia is called (parameter=true) and after it is completed (parameter=false); this means it can be used to modify the UI accordingly, e.g., to prompt the user about the need to accept the device access consent requests;
 			// },
-			iceState: (state) => {
-				console.log('ICE state changed to ' + state);
-			},
-			mediaState: (medium, on: boolean) => {
-				console.log(
-					'Janus ' + (on ? 'started' : 'stopped') +
-					' receiving our ' + medium
-				);
-			},
-			webrtcState: (on: boolean) => {
-				console.log(
-					'Janus says our WebRTC PeerConnection is ' +
-					(on ? 'up' : 'down') + ' now'
-				);
-			},
+
+			// iceState: (state) => {
+			// 	// this callback is triggered when the ICE state for the PeerConnection associated to the handle changes: the argument of the callback is the new state as a string (e.g., "connected" or "failed");
+			// 	console.log('ICE state changed to ' + state);
+			// },
+
+			// mediaState: (medium, on: boolean) => {
+			// 	// this callback is triggered when Janus starts or stops receiving your media: for instance, a mediaState with type=audio and on=true means Janus started receiving your audio stream (or started getting them again after a pause of more than a second); a mediaState with type=video and on=false means Janus hasn't received any video from you in the last second, after a start was detected before; useful to figure out when Janus actually started handling your media, or to detect problems on the media path (e.g., media never started, or stopped at some time);
+			// 	console.log(
+			// 		'Janus ' + (on ? 'started' : 'stopped') +
+			// 		' receiving our ' + medium
+			// 	);
+			// },
+
 			// onlocaltrack: (track, added) => {
 			// 	// A local track to display has just been added (getUserMedia worked!) or removed
 			// },
+
 			// onremotetrack: (track, mid, added) => {
 			// 	// A remote track (working PeerConnection!) with a specific mid has just been added or removed
 			// },
-			// oncleanup: () => {
-			// 	// PeerConnection with the plugin closed, clean the UI
-			// 	// The plugin handle is still valid so we can create a new one
-			// },
+
 			// detached: () => {
 			// 	// Connection with the plugin closed, get rid of its features
 			// 	// The plugin handle is not valid anymore
@@ -67,11 +71,6 @@ export function attachAudioBridgePlugin(
 			// 	console.log(' ::: Got a local stream :::', stream);
 			// 	// We're not going to attach the local audio stream
 			// },
-
-			onremotestream: (stream: MediaStream) => {
-				const audioElement = document.querySelector('audio#roomaudio') as HTMLAudioElement;
-				Janus.attachMediaStream(audioElement, stream);
-			},
 
 			...callbacks
 		});

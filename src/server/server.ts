@@ -172,7 +172,7 @@ const handleUserInfo = (pl: Payload, socket: Socket) => {
 	);
 	roomState.users = R.update(
 		i,
-		R.assoc('name', userInfo.name, roomState.users[i]),
+		{ ...roomState.users[i], ...userInfo },
 		roomState.users
 	);
 };

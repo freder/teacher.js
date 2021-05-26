@@ -22,8 +22,13 @@
 			>
 				{user.name}
 			</span>
+			<span
+				style={`opacity: ${user.connected ? 1 : 0.33};`}
+			>
+				{user.muted ? '🔇' : '🔈'}
+			</span>
 			{#if $roomState.adminIds.includes(user.socketId)}
-				{' (admin)'}
+				{'✳️'}
 			{/if}
 		</li>
 	{/each}

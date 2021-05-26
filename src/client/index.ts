@@ -10,14 +10,19 @@ import type {
 	RevealStateChangePayload,
 	RoomState,
 	UserInfo,
+	UserPayload,
 	WikipediaUrlPayload,
 } from '../shared/types';
 import { janusRoomId, messageTypes } from '../shared/constants';
 
 import { serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
+import type {
+	JanusInstance,
+	AudioBridgeInstance,
+	JanusMessage
+} from './audio';
 import App from './components/App.svelte';
-import { makeNameFromBrowser } from './utils';
 require('./styles.css');
 
 
@@ -51,8 +56,10 @@ const uiState = writable({
 	log: [],
 });
 const audioState = writable({
-	audioStarted: false,
+	audioStarted: false, // TODO: needed?
+	connected: false,
 	muted: false,
+	janusParticipantId: undefined,
 });
 
 
@@ -70,15 +77,26 @@ function appendToLog(type: string, obj: Record<string, unknown>) {
 function setUserName(name: string) {
 	userState.update((prev) => ({ ...prev, name }));
 	serverUpdateUser();
+
+	// TODO: also rename user in janus room
+	// audioBridge.send({
+	// 	message: {
+	// 		request: 'configure',
+	// 		display: name
+	// 	}
+	// });
 }
 
 
 function serverUpdateUser() {
 	const us = get(userState);
-	const msg: Message<UserInfo> = {
+	const as = get(audioState);
+	const msg: Message<UserPayload> = {
 		payload: {
 			name: us.name,
 			socketId: us.socketId,
+			connected: as.connected,
+			muted: as.muted,
 		}
 	};
 	socket.emit(
@@ -98,6 +116,22 @@ function claimAdmin() {
 		messageTypes.CLAIM_ADMIN_ROLE,
 		msg
 	);
+}
+
+
+function makeNameFromBrowser() {
+	const ua = new UAParser();
+	const [os, br] = [ua.getOS(), ua.getBrowser()];
+	return `${os.name}, ${br.name} ${br.major}`;
+}
+
+
+function logParticipants(participants: Array<Record<string, unknown>>) {
+	console.info('Got a list of participants:', participants);
+	for (const f in participants) {
+		const { id, display, setup, muted } = participants[f];
+		console.info('>> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
+	}
 }
 
 
@@ -258,24 +292,23 @@ async function main() {
 	});
 
 	// -------- audio --------
-	let janus: any;
-	let audioBridge: any;
-	let myid: string;
-	let webrtcUp: boolean;
+	let janus: JanusInstance;
+	let audioBridge: AudioBridgeInstance;
 
-	function joinHandler(msg: any) {
+	function joinHandler(msg: JanusMessage) {
 		// Successfully joined, negotiate WebRTC now
-		if (msg['id']) {
-			myid = msg['id'];
-			console.info('Successfully joined room ' + msg['room'] + ' with ID ' + myid);
-			if (!webrtcUp) {
-				webrtcUp = true;
+		if (msg.id) {
+			console.info('Successfully joined room ' + msg.room + ' with ID ' + msg.id);
+			audioState.update((prev) => ({ ...prev, janusParticipantId: msg.id }));
+			serverUpdateUser();
+			if (!get(audioState).connected) {
+				audioState.update((prev) => ({ ...prev, connected: true }));
 				// Publish our stream
 				audioBridge.createOffer({
 					iceRestart: true,
 					media: { video: false }, // This is an audio only room
 					success: (jsep: any) => {
-						console.info('Got SDP!', jsep);
+						// console.info('Got SDP!', jsep);
 						const publish = { request: 'configure', muted: false };
 						audioBridge.send({ message: publish, jsep: jsep });
 					},
@@ -286,84 +319,55 @@ async function main() {
 			}
 		}
 
-		// Any room participant?
-		if (msg['participants']) {
-			// const list = msg['participants'];
-			// console.info('Got a list of participants:', list);
-			// for (const f in list) {
-			// 	const id = list[f]['id'];
-			// 	const display = list[f]['display'];
-			// 	const setup = list[f]['setup'];
-			// 	const muted = list[f]['muted'];
-			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			// }
+		if (msg.participants) {
+			logParticipants(msg.participants);
 		}
 	}
 
-	function roomChangedHandler(myid: string, msg: any) {
-		myid = msg['id'];
-		console.info('Moved to room ' + msg['room'] + ', new ID: ' + myid);
-		// Any room participant?
-		if (msg['participants']) {
-			// const list = msg['participants'];
-			// console.info('Got a list of participants:', list);
-			// for (const f in list) {
-			// 	const id = list[f]['id'];
-			// 	const display = list[f]['display'];
-			// 	const setup = list[f]['setup'];
-			// 	const muted = list[f]['muted'];
-			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			// }
+	function roomChangedHandler(msg: JanusMessage) {
+		console.info('Moved to room ' + msg.room + ', new ID: ' + msg.id);
+		if (msg.participants) {
+			logParticipants(msg.participants);
 		}
-		return myid;
+		return msg.id;
 	}
 
-	function eventHandler(msg: any) {
-		if (msg['participants']) {
-			// const list = msg['participants'];
-			// console.info('Got a list of participants:', list);
-			// for (const f in list) {
-			// 	const id = list[f]['id'];
-			// 	const display = list[f]['display'];
-			// 	const setup = list[f]['setup'];
-			// 	const muted = list[f]['muted'];
-			// 	console.info('  >> [' + id + '] ' + display + ' (setup=' + setup + ', muted=' + muted + ')');
-			// }
-		} else if (msg['error']) {
-			if (msg['error_code'] === 485) {
+	function eventHandler(msg: JanusMessage) {
+		if (msg.participants) {
+			logParticipants(msg.participants);
+		} else if (msg.error) {
+			if (msg.error_code === 485) {
 				// 'no such room' error
 			} else {
-				console.error(msg['error']);
+				console.error(msg.error);
 			}
 			return;
 		}
 
-		// Any new feed to attach to?
-		if (msg['leaving']) {
-			// One of the participants has gone away?
-			const leaving = msg['leaving'];
+		// One of the participants has gone away?
+		if (msg.leaving) {
+			const leaving = msg.leaving;
 			console.info('Participant left: ' + leaving);
 		}
 	}
 
 	function toggleMute() {
 		const m = !get(audioState).muted;
-		audioState.update((prev) => ({ ...prev, muted: m }));
 		audioBridge.send({
 			message: {
 				request: 'configure',
 				muted: m
 			}
 		});
+		audioState.update((prev) => ({ ...prev, muted: m }));
+		serverUpdateUser();
 	}
 
 	const callbacks = {
-		onmessage: (msg: any, jsep: any) => {
-			// We got a message/event (msg) from the plugin
-			// If jsep is not null, this involves a WebRTC negotiation
-
+		onmessage: (msg: JanusMessage, jsep: any) => {
+			// a message/event has been received from the plugin;
 			console.info(' ::: Got a message :::', msg);
-			const event = msg['audiobridge'];
+			const event = msg.audiobridge;
 			console.info('Event: ' + event);
 
 			if (event) {
@@ -371,7 +375,9 @@ async function main() {
 					joinHandler(msg);
 				} else if (event === 'roomchanged') {
 					// The user switched to a different room
-					myid = roomChangedHandler(myid, msg);
+					const newId = roomChangedHandler(msg);
+					audioState.update((prev) => ({ ...prev, janusParticipantId: newId }));
+					serverUpdateUser();
 				} else if (event === 'destroyed') {
 					// The room has been destroyed
 					console.warn('The room has been destroyed!');
@@ -380,15 +386,29 @@ async function main() {
 				}
 			}
 
+			// If jsep is not null, this involves a WebRTC negotiation
 			if (jsep) {
-				console.info('Handling SDP as well...', jsep);
+				// console.info('Handling SDP as well...', jsep);
 				audioBridge.handleRemoteJsep({ jsep: jsep });
 			}
 		},
 
+		webrtcState: (on: boolean) => {
+			// this callback is triggered with a true value when the PeerConnection associated to a handle becomes active (so ICE, DTLS and everything else succeeded) from the Janus perspective, while false is triggered when the PeerConnection goes down instead; useful to figure out when WebRTC is actually up and running between you and Janus (e.g., to notify a user they're actually now active in a conference); notice that in case of false a reason string may be present as an optional parameter
+			console.log(
+				'Janus says our WebRTC PeerConnection is ' +
+				(on ? 'up' : 'down') + ' now'
+			);
+			audioState.update((prev) => ({ ...prev, connected: on }));
+			serverUpdateUser();
+		},
+
 		oncleanup: () => {
-			webrtcUp = false;
-			console.info(' ::: Got a cleanup notification :::');
+			// the WebRTC PeerConnection with the plugin was closed
+			// The plugin handle is still valid so we can create a new one
+
+			audioState.update((prev) => ({ ...prev, connected: false }));
+			serverUpdateUser();
 		}
 	};
 
@@ -405,19 +425,21 @@ async function main() {
 		};
 		audioBridge.send({ message: register});
 		audioState.update((prev) => ({ ...prev, audioStarted: true }));
+		// serverUpdateUser();
 	};
 
 	const stopAudio = () => {
 		janus.destroy();
 		janus = null;
-		myid = null;
-		webrtcUp = false;
 		audioBridge = null;
 		audioState.update((prev) => ({
 			...prev,
 			audioStarted: false,
+			connected: false,
 			muted: false,
+			janusParticipantId: null,
 		}));
+		serverUpdateUser();
 	};
 }
 
