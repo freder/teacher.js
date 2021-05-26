@@ -175,7 +175,13 @@ const handleAdminRole = (msgType: string, pl: Payload, socket: Socket) => {
 	if (process.env.SECRET === secret) {
 		makeAdmin(socket);
 	} else {
-		socket.emit(messageTypes.ADMIN_TOKEN, false);
+		const msg: Message<AuthTokenPayload> = {
+			payload: { token: null }
+		};
+		socket.emit(
+			messageTypes.ADMIN_TOKEN,
+			msg
+		);
 	}
 };
 
