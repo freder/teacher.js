@@ -32,7 +32,7 @@
 
 	const role = derived(
 		roomState,
-		($roomState) => ($roomState.adminIds.includes($userState.userId))
+		($roomState) => ($roomState.adminIds.includes($userState.socketId))
 			? 'admin'
 			: 'user'
 	);
@@ -183,8 +183,8 @@
 			<div class="padded">
 				<div class="section-title">Participants:</div>
 				<ParticipantsList
-					userState={userState}
-					roomState={roomState}
+					userState={$userState}
+					roomState={$roomState}
 				/>
 			</div>
 		</div>

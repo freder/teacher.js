@@ -4,10 +4,12 @@ import UAParser from 'ua-parser-js';
 
 import type {
 	ActiveModulePayload,
+	AuthTokenPayload,
 	ClaimAdminRolePayload,
 	EmptyPayload,
 	Message,
 	PresentationStartPayload,
+	PresentationState,
 	RevealStateChangePayload,
 	RoomState,
 	UserInfo,
@@ -74,6 +76,13 @@ function appendToLog(type: string, obj: Record<string, unknown>) {
 }
 
 
+function makeNameFromBrowser(): string {
+	const ua = new UAParser();
+	const [os, br] = [ua.getOS(), ua.getBrowser()];
+	return `${os.name}, ${br.name} ${br.major}`;
+}
+
+
 function setUserName(name: string) {
 	userState.update((prev) => ({ ...prev, name }));
 	serverUpdateUser();
@@ -119,13 +128,6 @@ function claimAdmin() {
 }
 
 
-function makeNameFromBrowser(): string {
-	const ua = new UAParser();
-	const [os, br] = [ua.getOS(), ua.getBrowser()];
-	return `${os.name}, ${br.name} ${br.major}`;
-}
-
-
 function logParticipants(participants: Array<Record<string, unknown>>) {
 	console.info('Got a list of participants:', participants);
 	for (const f in participants) {
@@ -150,10 +152,7 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload: { activeModule: moduleName }
 				};
-				socket.emit(
-					messageTypes.SET_ACTIVE_MODULE,
-					msg
-				);
+				socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
 			},
 
 			setWikiUrl: (wikipediaUrl: string) => {
@@ -161,24 +160,19 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload: { url: wikipediaUrl }
 				};
-				socket.emit(
-					messageTypes.SET_WIKIPEDIA_URL,
-					msg
-				);
+				socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
 			},
 
 			startPres: (kastaliaId: string) => {
 				const payload: PresentationStartPayload = {
+					// TODO: make this configurable
 					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
 				};
 				const msg: Message<PresentationStartPayload> = {
 					authToken: get(userState).authToken,
 					payload,
 				};
-				socket.emit(
-					messageTypes.START_PRESENTATION,
-					msg
-				);
+				socket.emit(messageTypes.START_PRESENTATION, msg);
 			},
 
 			stopPres: () => {
@@ -186,20 +180,14 @@ async function main() {
 					authToken: get(userState).authToken,
 					payload: {}
 				};
-				socket.emit(
-					messageTypes.END_PRESENTATION,
-					msg
-				);
+				socket.emit(messageTypes.END_PRESENTATION, msg);
 			},
 
 			onPresentationLoaded: () => {
 				const msg: Message<EmptyPayload> = {
 					payload: {}
 				};
-				socket.emit(
-					messageTypes.BRING_ME_UP_TO_SPEED,
-					msg
-				);
+				socket.emit(messageTypes.BRING_ME_UP_TO_SPEED, msg);
 			},
 
 			startAudio: () => startAudio(),
@@ -234,11 +222,14 @@ async function main() {
 			msg
 		);
 
-		socket.on(messageTypes.ROOM_UPDATE, (rs) => {
+		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
+			const rs = msg.payload;
 			roomState.set(rs);
+			appendToLog(messageTypes.ROOM_UPDATE, rs);
 		});
 
-		socket.on(messageTypes.ADMIN_TOKEN, ({ token }) => {
+		socket.on(messageTypes.ADMIN_TOKEN, (msg: Message<AuthTokenPayload>) => {
+			const { token } = msg.payload;
 			if (!token) {
 				return alert('denied');
 			}
@@ -249,26 +240,18 @@ async function main() {
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
-				if (!get(userState).authToken) { return; }
-				const payload: RevealStateChangePayload = {
-					state: data.state,
-				};
+				const { authToken } = get(userState);
+				if (!authToken) { return; }
 				const msg: Message<RevealStateChangePayload> = {
-					authToken: get(userState).authToken,
-					payload
+					authToken,
+					payload: { state: data.state }
 				};
-				socket.emit(
-					messageTypes.REVEAL_STATE_CHANGED,
-					msg
-				);
+				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			}
 		});
 
-		socket.on(messageTypes.ROOM_UPDATE, (msg) => {
-			appendToLog(messageTypes.ROOM_UPDATE, msg);
-		});
-
-		socket.on(messageTypes.REVEAL_STATE_CHANGED, ({ state }) => {
+		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<PresentationState>) => {
+			const { state } = msg.payload;
 			appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
 			// if we're the one who originally caused the event, we will

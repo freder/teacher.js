@@ -20,13 +20,16 @@ import type {
 	UserInfo,
 	ActiveModulePayload,
 	WikipediaUrlPayload,
-	ClaimAdminRolePayload
+	ClaimAdminRolePayload,
+	AuthTokenPayload
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 import {
-	logSlideCmd,
-	logNetEvent,
-	logInfo
+	logPresentationEvent,
+	logConnectionEvent,
+	logInfo,
+	logWikipediaEvent,
+	logModuleEvent
 } from './logging';
 
 
@@ -39,6 +42,8 @@ const host = process.env.SERVER_HOST || 'localhost';
 const port = process.env.SERVER_PORT || 3000;
 let io: Server;
 
+
+type HandlerType = (msgType: string, payload: Payload, socket: Socket) => void;
 
 const initialRoomState: RoomState = {
 	adminIds: [],
@@ -62,9 +67,12 @@ const presentationStateData = { ...initialPresentationState } as PresentationSta
 const roomState = observable(roomStateData);
 observe(roomState, (/* change */) => {
 	// if (change.type === 'update') {
+	const msg: Message<RoomState> = {
+		payload: roomState
+	};
 	io.emit(
 		messageTypes.ROOM_UPDATE,
-		roomState
+		msg
 	);
 	// }
 });
@@ -98,15 +106,22 @@ function checkToken(clientId: string, token: string) {
 
 function makeAdmin(socket: Socket) {
 	const token = createToken(socket.id);
-	socket.emit(messageTypes.ADMIN_TOKEN, { token });
+	const msg: Message<AuthTokenPayload> = {
+		payload: { token }
+	};
+	socket.emit(
+		messageTypes.ADMIN_TOKEN,
+		msg
+	);
 	roomState.adminIds = [socket.id];
 }
 
 
 function requireAuth(
 	socket: Socket,
+	msgType: string,
 	requiresAuthentication: boolean,
-	handler: (payload: Payload, socket: Socket) => void
+	handler: HandlerType
 ) {
 	return (msg: Message<Payload>) => {
 		if (
@@ -118,53 +133,63 @@ function requireAuth(
 		) {
 			return;
 		}
-		handler(msg.payload, socket);
+		handler(msgType, msg.payload, socket);
 	};
 }
 
 
-function handleRevealStateChange(pl: Payload) {
+function handleRevealStateChange(msgType: string, pl: Payload) {
 	const payload = pl as RevealStateChangePayload;
-	logSlideCmd(JSON.stringify(payload));
 	presentationState.state = payload.state;
+	logPresentationEvent(msgType, JSON.stringify(payload));
 }
 
 
-function handlePresentationStart(pl: Payload) {
+function handlePresentationStart(msgType: string, pl: Payload) {
 	const payload = pl as PresentationStartPayload;
 	roomState.presentationUrl = payload.url;
+	logPresentationEvent(msgType, JSON.stringify(payload));
 }
 
 
-function handlePresentationEnd() {
+function handlePresentationEnd(msgType: string, pl: Payload) {
 	roomState.presentationUrl = undefined;
 	presentationState.state = { ...initialPresentationState.state };
+	logPresentationEvent(msgType, '');
 }
 
 
-function handleWikipediaUrl(pl: Payload) {
+function handleWikipediaUrl(msgType: string, pl: Payload) {
 	const payload = pl as WikipediaUrlPayload;
 	roomState.wikipediaUrl = payload.url;
+	logWikipediaEvent(msgType, JSON.stringify(payload));
 }
 
 
-function handleActiveModule(pl: Payload) {
+function handleActiveModule(msgType: string, pl: Payload) {
 	const payload = pl as ActiveModulePayload;
 	roomState.activeModule = payload.activeModule;
+	logModuleEvent(msgType, JSON.stringify(payload));
 }
 
 
-const handleAdminRole = (pl: Payload, socket: Socket) => {
+const handleAdminRole = (msgType: string, pl: Payload, socket: Socket) => {
 	const { secret } = pl as ClaimAdminRolePayload;
 	if (process.env.SECRET === secret) {
 		makeAdmin(socket);
 	} else {
-		socket.emit(messageTypes.ADMIN_TOKEN, false);
+		const msg: Message<AuthTokenPayload> = {
+			payload: { token: null }
+		};
+		socket.emit(
+			messageTypes.ADMIN_TOKEN,
+			msg
+		);
 	}
 };
 
 
-const handleUserInfo = (pl: Payload, socket: Socket) => {
+const handleUserInfo = (msgType: string, pl: Payload, socket: Socket) => {
 	const userInfo = pl as UserInfo;
 	const i = R.findIndex(
 		R.propEq('socketId', socket.id),
@@ -175,6 +200,18 @@ const handleUserInfo = (pl: Payload, socket: Socket) => {
 		{ ...roomState.users[i], ...userInfo },
 		roomState.users
 	);
+};
+
+
+const handleUpToSpeed = (msgType: string, pl: Payload, socket: Socket) => {
+	const roomMsg: Message<RoomState> = {
+		payload: roomState
+	};
+	socket.emit(messageTypes.ROOM_UPDATE, roomMsg);
+	const presMsg: Message<PresentationState> = {
+		payload: presentationState
+	};
+	socket.emit(messageTypes.REVEAL_STATE_CHANGED, presMsg);
 };
 
 
@@ -203,7 +240,7 @@ function main() {
 	);
 
 	io.on('connection', (socket: Socket) => {
-		logNetEvent('client connected:', socket.id);
+		logConnectionEvent('client connected:', socket.id);
 		const user: UserInfo = {
 			socketId: socket.id,
 			name: null
@@ -216,53 +253,20 @@ function main() {
 			makeAdmin(socket);
 		}
 
-		const events = [
-			{
-				type: messageTypes.CLAIM_ADMIN_ROLE,
-				args: [false, handleAdminRole]
-			},
-			{
-				type: messageTypes.USER_INFO,
-				args: [false, handleUserInfo]
-			},
-			{
-				type: messageTypes.SET_ACTIVE_MODULE,
-				args: [true, handleActiveModule]
-			},
-			{
-				type: messageTypes.REVEAL_STATE_CHANGED,
-				args: [true, handleRevealStateChange]
-			},
-			{
-				type: messageTypes.START_PRESENTATION,
-				args: [true, handlePresentationStart]
-			},
-			{
-				type: messageTypes.END_PRESENTATION,
-				args: [true, handlePresentationEnd]
-			},
-			{
-				type: messageTypes.SET_WIKIPEDIA_URL,
-				args: [true, handleWikipediaUrl]
-			},
-			{
-				type: messageTypes.BRING_ME_UP_TO_SPEED,
-				args: [true, handleWikipediaUrl]
-			},
-		];
 		events.forEach(({ type, args }) => {
 			socket.on(
 				type,
 				requireAuth(
 					socket,
+					type,
 					args[0] as boolean,
-					args[1] as (payload: Payload, socket: Socket) => void
+					args[1] as HandlerType,
 				)
 			);
 		});
 
 		socket.on('disconnect', () => {
-			logNetEvent('client disconnected:', socket.id);
+			logConnectionEvent('client disconnected:', socket.id);
 			roomState.adminIds = R.without(
 				[socket.id],
 				roomState.adminIds
@@ -276,9 +280,45 @@ function main() {
 		});
 	});
 
-	logInfo(`http://${host}:${port}`);
+	logInfo('', `http://${host}:${port}`);
 	httpServer.listen(port);
 }
+
+
+const events = [
+	{
+		type: messageTypes.CLAIM_ADMIN_ROLE,
+		args: [false, handleAdminRole]
+	},
+	{
+		type: messageTypes.USER_INFO,
+		args: [false, handleUserInfo]
+	},
+	{
+		type: messageTypes.SET_ACTIVE_MODULE,
+		args: [true, handleActiveModule]
+	},
+	{
+		type: messageTypes.REVEAL_STATE_CHANGED,
+		args: [true, handleRevealStateChange]
+	},
+	{
+		type: messageTypes.START_PRESENTATION,
+		args: [true, handlePresentationStart]
+	},
+	{
+		type: messageTypes.END_PRESENTATION,
+		args: [true, handlePresentationEnd]
+	},
+	{
+		type: messageTypes.SET_WIKIPEDIA_URL,
+		args: [true, handleWikipediaUrl]
+	},
+	{
+		type: messageTypes.BRING_ME_UP_TO_SPEED,
+		args: [false, handleUpToSpeed]
+	},
+];
 
 
 main();
