@@ -212,9 +212,10 @@ async function main() {
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
-				if (!get(userState).authToken) { return; }
+				const { authToken } = get(userState);
+				if (!authToken) { return; }
 				const msg: Message<RevealStateChangePayload> = {
-					authToken: get(userState).authToken,
+					authToken,
 					payload: { state: data.state }
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
