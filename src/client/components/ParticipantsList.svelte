@@ -12,17 +12,17 @@
 </style>
 
 <ul class="participants">
-	{#each $roomState.users as user}
+	{#each roomState.users as user}
 		<li>
 			<span
-				style={(user.socketId === $userState.userId)
+				style={(user.socketId === userState.socketId)
 					? 'background: black; color: white;'
 					: ''
 				}
 			>
 				{user.name}
 			</span>
-			{#if $roomState.adminIds.includes(user.socketId)}
+			{#if roomState.adminIds.includes(user.socketId)}
 				{' (admin)'}
 			{/if}
 		</li>
