@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
+import UAParser from 'ua-parser-js';
 
 import type {
 	ActiveModulePayload,
@@ -118,7 +119,7 @@ function claimAdmin() {
 }
 
 
-function makeNameFromBrowser() {
+function makeNameFromBrowser(): string {
 	const ua = new UAParser();
 	const [os, br] = [ua.getOS(), ua.getBrowser()];
 	return `${os.name}, ${br.name} ${br.major}`;
