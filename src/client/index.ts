@@ -10,7 +10,6 @@ import type {
 	RevealStateChangePayload,
 	RoomState,
 	UserInfo,
-	UserPayload,
 	WikipediaUrlPayload,
 } from '../shared/types';
 import { janusRoomId, messageTypes } from '../shared/constants';
@@ -91,7 +90,7 @@ function setUserName(name: string) {
 function serverUpdateUser() {
 	const us = get(userState);
 	const as = get(audioState);
-	const msg: Message<UserPayload> = {
+	const msg: Message<UserInfo> = {
 		payload: {
 			name: us.name,
 			socketId: us.socketId,
