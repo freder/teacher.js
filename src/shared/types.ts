@@ -13,6 +13,10 @@ export interface WikipediaUrlPayload extends Payload {
 	url: string,
 }
 
+export interface UrlPayload extends Payload {
+	url: string,
+}
+
 export interface ActiveModulePayload extends Payload {
 	activeModule: string,
 }

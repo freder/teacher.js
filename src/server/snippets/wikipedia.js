@@ -3,20 +3,26 @@
 	allLinks.forEach((elem) => {
 		const href = elem.attributes.href.value;
 		const url = new URL(href, document.baseURI).href;
-		// TODO: don't hardcode server url
-		//elem.attributes.href.value = process.env.SERVER_HOST+'/proxy/wikipedia/' + encodeURIComponent(url);
-		elem.attributes.href.value = location.origin+'/proxy/wikipedia/' + encodeURIComponent(url);
+		const encodedUrl = encodeURIComponent(url);
+		elem.attributes.href.value = `${location.origin}/proxy/wikipedia/${encodedUrl}`;
 	});
 
 })();
 
-document.addEventListener("DOMContentLoaded", function(){
-        const data = {
-		type: messageTypes.URL_CHANGED,
-                state: location.href,
-        };
-        // inform parent
-        window.parent.postMessage(data, '*');
+document.addEventListener('DOMContentLoaded', () => {
+	// TODO: use constant for path
+	const origUrl = decodeURIComponent(
+		location.href.split('/proxy/wikipedia/')[1]
+	);
+	const data = {
+		// TODO: shared constants
+		// type: messageTypes.URL_CHANGED,
+		type: 'URL_CHANGED',
+		url: origUrl,
+		// url: location.href,
+	};
+	// inform parent
+	window.parent.postMessage(data, '*');
 });
 
 (() => {

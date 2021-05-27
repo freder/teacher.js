@@ -1,4 +1,3 @@
-import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
@@ -13,6 +12,7 @@ import type {
 	PresentationState,
 	RevealStateChangePayload,
 	RoomState,
+	UrlPayload,
 	UserInfo,
 	WikipediaUrlPayload,
 } from '../shared/types';
@@ -141,8 +141,8 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
 		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
+		console.log(wikipediaUrl);
 		const encodedUrl = encodeURIComponent(wikipediaUrl);
-		console.log(encodedUrl);
 		const url = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
 		const msg: Message<WikipediaUrlPayload> = {
 			authToken: get(userState).authToken,
@@ -264,8 +264,8 @@ async function main() {
 		// iframe messages
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
-
 			const { authToken } = get(userState);
+
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
 				if (!authToken) { return; }
 				const msg: Message<RevealStateChangePayload> = {
@@ -284,23 +284,22 @@ async function main() {
 				// 	url.hash = data.hash;
 				// 	setWikiUrl(url.toString());
 				// }
-			} else if (data.type === 'URL_CHANGED') {
-				const { authToken } = get(userState);
+			} else if (data.type === messageTypes.URL_CHANGED) {
 				if (!authToken) { return; }
-				const msg: string = {
+				const msg: Message<UrlPayload> = {
 					authToken,
-					payload: { state: data.state }
+					payload: { url: data.url }
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
 				console.log(data);
 			}
 		});
 
-		socket.on(messageTypes.REVEAL_URL_CHANGED, (msg: Message<PresentationState>) => {
+		socket.on(messageTypes.URL_CHANGED, (msg: Message<PresentationState>) => {
 			const { state } = msg.payload;
 			appendToLog(messageTypes.URL_CHANGED, state);
 			alert(state);
-		};
+		});
 
 
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<PresentationState>) => {
