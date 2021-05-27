@@ -265,8 +265,8 @@ async function main() {
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
 
+			const { authToken } = get(userState);
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
-				const { authToken } = get(userState);
 				if (!authToken) { return; }
 				const msg: Message<RevealStateChangePayload> = {
 					authToken,
@@ -284,8 +284,24 @@ async function main() {
 				// 	url.hash = data.hash;
 				// 	setWikiUrl(url.toString());
 				// }
+			} else if (data.type === 'URL_CHANGED') {
+				const { authToken } = get(userState);
+				if (!authToken) { return; }
+				const msg: string = {
+					authToken,
+					payload: { state: data.state }
+				};
+				socket.emit(messageTypes.URL_CHANGED, msg);
+				console.log(data);
 			}
 		});
+
+		socket.on(messageTypes.REVEAL_URL_CHANGED, (msg: Message<PresentationState>) => {
+			const { state } = msg.payload;
+			appendToLog(messageTypes.URL_CHANGED, state);
+			alert(state);
+		};
+
 
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<PresentationState>) => {
 			const { state } = msg.payload;

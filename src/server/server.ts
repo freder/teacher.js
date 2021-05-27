@@ -139,7 +139,9 @@ function requireAuth(
 		) {
 			return;
 		}
-		handler(msgType, msg.payload, socket);
+		if (msg) {
+			handler(msgType, msg.payload, socket);
+		}
 	};
 }
 
