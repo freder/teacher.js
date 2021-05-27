@@ -4,14 +4,20 @@
 		const href = elem.attributes.href.value;
 		const url = new URL(href, document.baseURI).href;
 		// TODO: don't hardcode server url
-		elem.attributes.href.value = 'http://localhost:3000/proxy/wikipedia/' + encodeURIComponent(url);
+		//elem.attributes.href.value = process.env.SERVER_HOST+'/proxy/wikipedia/' + encodeURIComponent(url);
+		elem.attributes.href.value = location.origin+'/proxy/wikipedia/' + encodeURIComponent(url);
 	});
 
-	// TODO:
-	// - on load event
-		// .replace('<body', '<body onload="alert(location.href)"')
-	// - postMessage to parent page
 })();
+
+document.addEventListener("DOMContentLoaded", function(){
+        const data = {
+		type: messageTypes.URL_CHANGED,
+                state: location.href,
+        };
+        // inform parent
+        window.parent.postMessage(data, '*');
+});
 
 (() => {
 	const headlines = [...document.querySelectorAll('#firstHeading, .mw-headline')];
