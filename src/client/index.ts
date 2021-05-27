@@ -140,9 +140,13 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
+		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
+		const encodedUrl = encodeURIComponent(wikipediaUrl);
+		console.log(encodedUrl);
+		const url = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
 		const msg: Message<WikipediaUrlPayload> = {
 			authToken: get(userState).authToken,
-			payload: { url: wikipediaUrl }
+			payload: { url }
 		};
 		socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
 	};
