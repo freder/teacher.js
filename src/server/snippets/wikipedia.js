@@ -1,4 +1,19 @@
 (() => {
+	const allLinks = document.querySelectorAll('a[href]');
+	allLinks.forEach((elem) => {
+		const href = elem.attributes.href.value;
+		const url = new URL(href, document.baseURI).href;
+		// TODO: don't hardcode server url
+		elem.attributes.href.value = 'http://localhost:3000/proxy/wikipedia/' + encodeURIComponent(url);
+	});
+
+	// TODO:
+	// - on load event
+		// .replace('<body', '<body onload="alert(location.href)"')
+	// - postMessage to parent page
+})();
+
+(() => {
 	const headlines = [...document.querySelectorAll('#firstHeading, .mw-headline')];
 
 	let currentHash = undefined;
