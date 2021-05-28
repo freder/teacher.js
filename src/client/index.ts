@@ -151,20 +151,6 @@ async function main() {
 		socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
 	};
 
-	// const setWikiUrl = (wikipediaUrl: string) => {
-	// 	// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
-	// 	const encodedUrl = encodeURIComponent(wikipediaUrl);
-	// 	console.log(encodedUrl);
-	// 	const url = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
-	// 	socket.emit(
-	// 		messageTypes.SET_WIKIPEDIA_URL,
-	// 		{
-	// 			authToken: get(authToken),
-	// 			payload: { url }
-	// 		}
-	// 	);
-	// };
-
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
 		props: {
