@@ -142,13 +142,20 @@ async function main() {
 		// receives the actual wiki url à la
 		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
 		// which we then proxy
-		const encodedUrl = encodeURIComponent(wikipediaUrl);
-		const proxiedUrl = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
+
+		const { href, hash } = new URL(wikipediaUrl);
+
+		// encoded url but unencoded hash!
+		const encodedHref = encodeURIComponent(href);
+		const proxiedUrl = `${serverUrl}/proxy/wikipedia/${encodedHref}${hash}`;
+		// TODO: DRY. ↑ this is also used in the wikipedia snippet
+
 		// const msg: Message<UrlPayload> = {
 		// 	authToken: get(userState).authToken,
 		// 	payload: { url: proxiedUrl }
 		// };
 		// socket.emit(messageTypes.URL_CHANGED, msg);
+
 		roomState.update((prev) => ({ ...prev, wikipediaUrl: proxiedUrl }));
 	};
 
