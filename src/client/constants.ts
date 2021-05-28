@@ -6,3 +6,5 @@ const protocol = (process.env.NODE_ENV === 'production')
 	? 'https'
 	: 'http';
 export const serverUrl = `${protocol}://${serverName}:${serverPort}`;
+
+export const kastaliaUrl = 'https://kastalia.medienhaus.udk-berlin.de';

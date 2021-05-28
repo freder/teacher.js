@@ -17,7 +17,7 @@ import type {
 } from '../shared/types';
 import { janusRoomId, messageTypes } from '../shared/constants';
 
-import { serverUrl } from './constants';
+import { kastaliaUrl, serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import type {
 	JanusInstance,
@@ -85,7 +85,7 @@ function makeNameFromBrowser(): string {
 
 function setUserName(name: string) {
 	userState.update((prev) => ({ ...prev, name }));
-	serverUpdateUser();
+	sendUserInfo();
 
 	// TODO: also rename user in janus room
 	// audioBridge.send({
@@ -97,7 +97,7 @@ function setUserName(name: string) {
 }
 
 
-function serverUpdateUser() {
+function sendUserInfo() {
 	const us = get(userState);
 	const as = get(audioState);
 	const msg: Message<UserInfo> = {
@@ -125,6 +125,36 @@ function claimAdmin() {
 		messageTypes.CLAIM_ADMIN_ROLE,
 		msg
 	);
+}
+
+
+function setActiveModule(moduleName: string) {
+	const msg: Message<ActiveModulePayload> = {
+		authToken: get(userState).authToken,
+		payload: { activeModule: moduleName }
+	};
+	socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
+}
+
+
+function startPresentation(kastaliaId: string) {
+	const payload: PresentationStartPayload = {
+		url: `${kastaliaUrl}/${kastaliaId}`
+	};
+	const msg: Message<PresentationStartPayload> = {
+		authToken: get(userState).authToken,
+		payload,
+	};
+	socket.emit(messageTypes.START_PRESENTATION, msg);
+}
+
+
+function stopPresentation() {
+	const msg: Message<EmptyPayload> = {
+		authToken: get(userState).authToken,
+		payload: {}
+	};
+	socket.emit(messageTypes.END_PRESENTATION, msg);
 }
 
 
@@ -167,35 +197,11 @@ async function main() {
 			uiState,
 			audioState,
 			claimAdmin,
-
-			setActiveModule: (moduleName: string) => {
-				const msg: Message<ActiveModulePayload> = {
-					authToken: get(userState).authToken,
-					payload: { activeModule: moduleName }
-				};
-				socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
-			},
+			setUserName,
+			setActiveModule,
 			setWikiUrl,
-
-			startPres: (kastaliaId: string) => {
-				const payload: PresentationStartPayload = {
-					// TODO: make this configurable
-					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
-				};
-				const msg: Message<PresentationStartPayload> = {
-					authToken: get(userState).authToken,
-					payload,
-				};
-				socket.emit(messageTypes.START_PRESENTATION, msg);
-			},
-
-			stopPres: () => {
-				const msg: Message<EmptyPayload> = {
-					authToken: get(userState).authToken,
-					payload: {}
-				};
-				socket.emit(messageTypes.END_PRESENTATION, msg);
-			},
+			startPres: startPresentation,
+			stopPres: stopPresentation,
 
 			onPresentationLoaded: () => {
 				const msg: Message<EmptyPayload> = {
@@ -207,8 +213,6 @@ async function main() {
 			startAudio: () => startAudio(),
 			stopAudio: () => stopAudio(),
 			toggleMute: () => toggleMute(),
-
-			setUserName,
 		}
 	});
 
@@ -315,7 +319,7 @@ async function main() {
 		if (msg.id) {
 			console.info('Successfully joined room ' + msg.room + ' with ID ' + msg.id);
 			audioState.update((prev) => ({ ...prev, janusParticipantId: msg.id }));
-			serverUpdateUser();
+			sendUserInfo();
 			if (!get(audioState).connected) {
 				audioState.update((prev) => ({ ...prev, connected: true }));
 				// Publish our stream
@@ -375,7 +379,7 @@ async function main() {
 			}
 		});
 		audioState.update((prev) => ({ ...prev, muted: m }));
-		serverUpdateUser();
+		sendUserInfo();
 	}
 
 	const callbacks = {
@@ -392,7 +396,7 @@ async function main() {
 					// The user switched to a different room
 					const newId = roomChangedHandler(msg);
 					audioState.update((prev) => ({ ...prev, janusParticipantId: newId }));
-					serverUpdateUser();
+					sendUserInfo();
 				} else if (event === 'destroyed') {
 					// The room has been destroyed
 					console.warn('The room has been destroyed!');
@@ -415,7 +419,7 @@ async function main() {
 				(on ? 'up' : 'down') + ' now'
 			);
 			audioState.update((prev) => ({ ...prev, connected: on }));
-			serverUpdateUser();
+			sendUserInfo();
 		},
 
 		oncleanup: () => {
@@ -423,7 +427,7 @@ async function main() {
 			// The plugin handle is still valid so we can create a new one
 
 			audioState.update((prev) => ({ ...prev, connected: false }));
-			serverUpdateUser();
+			sendUserInfo();
 		}
 	};
 
@@ -454,7 +458,7 @@ async function main() {
 			muted: false,
 			janusParticipantId: null,
 		}));
-		serverUpdateUser();
+		sendUserInfo();
 	};
 }
 
