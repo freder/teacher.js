@@ -1,12 +1,12 @@
 (() => {
 	const allLinks = document.querySelectorAll('a[href]');
 	allLinks.forEach((elem) => {
-		const href = elem.attributes.href.value;
-		const url = new URL(href, document.baseURI).href;
+		let href = elem.attributes.href.value;
+		const { href: url, hash } = new URL(href);
 		const encodedUrl = encodeURIComponent(url);
-		elem.attributes.href.value = `${location.origin}/proxy/wikipedia/${encodedUrl}`;
+		// encoded url but unencoded hash!
+		elem.attributes.href.value = `${location.origin}/proxy/wikipedia/${encodedUrl}${hash}`;
 	});
-
 })();
 
 document.addEventListener('DOMContentLoaded', () => {

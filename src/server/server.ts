@@ -242,16 +242,22 @@ function main() {
 	app.get('/proxy/wikipedia/:url', (req, res) => {
 		const urlStr = decodeURIComponent(req.params.url);
 		const url = new URL(urlStr);
+		url.hash = '';
 		fetch(urlStr)
 			.then((res) => res.text())
 			.then((htmlStr) => {
 				const output = htmlStr
+					// this makes `srcset` attributes work...
 					.replace(
 						'</head>',
 						`<base href="${url.origin}"></head>`
 					)
+					// ... anything else should end up being rewritten
+					// as absolute / complete URL:
 					.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
 					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
+					.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
+					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
 					.replace('</body>', `<script>${wikipediaSnippet}</script></body>`);
 				res.send(output);
 			});
