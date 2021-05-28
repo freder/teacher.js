@@ -1,25 +1,20 @@
 (() => {
 	const allLinks = document.querySelectorAll('a[href]');
 	allLinks.forEach((elem) => {
-		let href = elem.attributes.href.value;
-		const { href: url, hash } = new URL(href);
-		const encodedUrl = encodeURIComponent(url);
+		let wikipediaUrl = elem.attributes.href.value;
+		const { href, hash } = new URL(wikipediaUrl);
+		const encodedHref = encodeURIComponent(href);
 		// encoded url but unencoded hash!
-		elem.attributes.href.value = `${location.origin}/proxy/wikipedia/${encodedUrl}${hash}`;
+		elem.attributes.href.value = `${location.origin}/proxy/wikipedia/${encodedHref}${hash}`;
 	});
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
-	// TODO: use constant for path
-	const origUrl = decodeURIComponent(
-		location.href.split('/proxy/wikipedia/')[1]
-	);
 	const data = {
 		// TODO: shared constants
 		// type: messageTypes.URL_CHANGED,
 		type: 'URL_CHANGED',
-		url: origUrl,
-		// url: location.href,
+		url: location.href,
 	};
 	// inform parent
 	window.parent.postMessage(data, '*');

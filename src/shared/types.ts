@@ -9,10 +9,6 @@ export interface PresentationStartPayload extends Payload {
 	url: string,
 }
 
-export interface WikipediaUrlPayload extends Payload {
-	url: string,
-}
-
 export interface UrlPayload extends Payload {
 	url: string,
 }

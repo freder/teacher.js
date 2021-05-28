@@ -14,7 +14,6 @@ import type {
 	RoomState,
 	UrlPayload,
 	UserInfo,
-	WikipediaUrlPayload,
 } from '../shared/types';
 import { janusRoomId, messageTypes } from '../shared/constants';
 
@@ -140,15 +139,17 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
+		// receives the actual wiki url à la
 		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
-		console.log(wikipediaUrl);
+		// which we then proxy
 		const encodedUrl = encodeURIComponent(wikipediaUrl);
-		const url = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
-		const msg: Message<WikipediaUrlPayload> = {
-			authToken: get(userState).authToken,
-			payload: { url }
-		};
-		socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
+		const proxiedUrl = `${serverUrl}/proxy/wikipedia/${encodedUrl}`;
+		// const msg: Message<UrlPayload> = {
+		// 	authToken: get(userState).authToken,
+		// 	payload: { url: proxiedUrl }
+		// };
+		// socket.emit(messageTypes.URL_CHANGED, msg);
+		roomState.update((prev) => ({ ...prev, wikipediaUrl: proxiedUrl }));
 	};
 
 	/* const app = */ new App({
@@ -229,14 +230,9 @@ async function main() {
 		);
 
 		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
-			const rs = msg.payload;
-			// if (get(authToken)) {
-			// 	if (get(roomState).wikipediaUrl !== rs.wikipediaUrl) {
-			// 		return;
-			// 	}
-			// }
-			roomState.set(rs);
-			appendToLog(messageTypes.ROOM_UPDATE, rs);
+			const newState = msg.payload;
+			roomState.update((prev) => ({ ...prev, ...newState }));
+			appendToLog(messageTypes.ROOM_UPDATE, newState);
 		});
 
 		socket.on(messageTypes.ADMIN_TOKEN, (msg: Message<AuthTokenPayload>) => {
@@ -260,7 +256,6 @@ async function main() {
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			} else if (data.type === 'WIKIPEDIA_SECTION_CHANGED') {
-				console.log(data);
 				// if (get(authToken)) {
 				// 	const current = get(roomState).wikipediaUrl;
 				// 	const encodedWikiUrl = R.last(current.split('/'));
@@ -277,16 +272,8 @@ async function main() {
 					payload: { url: data.url }
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
-				console.log(data);
 			}
 		});
-
-		socket.on(messageTypes.URL_CHANGED, (msg: Message<PresentationState>) => {
-			const { state } = msg.payload;
-			appendToLog(messageTypes.URL_CHANGED, state);
-			alert(state);
-		});
-
 
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<PresentationState>) => {
 			const { state } = msg.payload;

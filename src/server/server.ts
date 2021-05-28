@@ -20,9 +20,9 @@ import type {
 	RoomState,
 	UserInfo,
 	ActiveModulePayload,
-	WikipediaUrlPayload,
 	ClaimAdminRolePayload,
-	AuthTokenPayload
+	AuthTokenPayload,
+	UrlPayload
 } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 import {
@@ -167,8 +167,8 @@ function handlePresentationEnd(msgType: string, pl: Payload) {
 }
 
 
-function handleWikipediaUrl(msgType: string, pl: Payload) {
-	const payload = pl as WikipediaUrlPayload;
+function handleUrlChange(msgType: string, pl: Payload) {
+	const payload = pl as UrlPayload;
 	roomState.wikipediaUrl = payload.url;
 	logWikipediaEvent(msgType, JSON.stringify(payload));
 }
@@ -346,8 +346,8 @@ const events = [
 		args: [true, handlePresentationEnd]
 	},
 	{
-		type: messageTypes.SET_WIKIPEDIA_URL,
-		args: [true, handleWikipediaUrl]
+		type: messageTypes.URL_CHANGED,
+		args: [true, handleUrlChange]
 	},
 	{
 		type: messageTypes.BRING_ME_UP_TO_SPEED,

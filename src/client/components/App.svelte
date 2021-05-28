@@ -46,7 +46,11 @@
 
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
-		const url = new URL($roomState.wikipediaUrl);
+		const proxiedUrl = $roomState.wikipediaUrl;
+		const wikipediaUrl = decodeURIComponent(
+			proxiedUrl.split('/proxy/wikipedia/')[1]
+		);
+		const url = new URL(wikipediaUrl);
 		url.hash = `#${anchor}`;
 		setWikiUrl(url.toString());
 		event.target.value = '';
