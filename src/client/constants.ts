@@ -8,3 +8,5 @@ const protocol = (process.env.NODE_ENV === 'production')
 export const serverUrl = `${protocol}://${serverName}:${serverPort}`;
 
 export const kastaliaUrl = 'https://kastalia.medienhaus.udk-berlin.de';
+
+export const presentationIframeId = 'presentation-iframe';

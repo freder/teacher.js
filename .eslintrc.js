@@ -26,5 +26,6 @@ module.exports = {
 		semi: ['error', 'always'],
 
 		'@typescript-eslint/no-var-requires': 0,
+		'@typescript-eslint/no-empty-function': 0,
 	}
 };

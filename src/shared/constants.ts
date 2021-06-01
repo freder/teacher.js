@@ -1,11 +1,14 @@
+import type { ModuleState, RoomState } from './types';
+
 export const messageTypes = {
 	CLAIM_ADMIN_ROLE: 'CLAIM_ADMIN_ROLE',
 	ADMIN_TOKEN: 'ADMIN_TOKEN',
-	BRING_ME_UP_TO_SPEED: 'BRING_ME_UP_TO_SPEED',
+	GET_FULL_STATE: 'GET_FULL_STATE',
 	USER_INFO: 'USER_INFO',
 	ROOM_UPDATE: 'ROOM_UPDATE',
+	MODULE_UPDATE: 'MODULE_UPDATE',
 	SET_ACTIVE_MODULE: 'SET_ACTIVE_MODULE',
-	REVEAL_STATE_CHANGED: 'REVEAL_STATE_CHANGE',
+	REVEAL_STATE_CHANGED: 'reveal-state-change',
 	START_PRESENTATION: 'START_PRESENTATION',
 	END_PRESENTATION: 'END_PRESENTATION',
 	URL_CHANGED: 'URL_CHANGED',
@@ -14,6 +17,19 @@ export const messageTypes = {
 export const moduleTypes = {
 	PRESENTATION: 'PRESENTATION',
 	WIKIPEDIA: 'WIKIPEDIA',
+};
+
+export const initialRoomState: RoomState = {
+	adminIds: [],
+	users: [],
+};
+
+export const initialModuleState: ModuleState = {
+	activeModule: null,
+	url: null,
+	presentationState: {
+		state: null
+	},
 };
 
 // TODO: does not need to be shared with the server

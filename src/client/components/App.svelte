@@ -16,6 +16,7 @@
 	export let userState;
 	// export let uiState;
 	export let roomState;
+	export let moduleState;
 	export let audioState;
 	export let claimAdmin;
 	export let setWikiUrl;
@@ -46,7 +47,7 @@
 
 	const wikiJumpToSection = (event) => {
 		const anchor = event.target.value;
-		const proxiedUrl = $roomState.wikipediaUrl;
+		const proxiedUrl = $moduleState.url;
 		const wikipediaUrl = decodeURIComponent(
 			proxiedUrl.split('/proxy/wikipedia/')[1]
 		);
@@ -137,26 +138,26 @@
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
-					class:active={$roomState.activeModule === moduleTypes.PRESENTATION}
+					class:active={$moduleState.activeModule === moduleTypes.PRESENTATION}
 					on:click={activatePresentation}
 				>
 					Presentation
 				</button>
 				<button
-					class:active={$roomState.activeModule === moduleTypes.WIKIPEDIA}
+					class:active={$moduleState.activeModule === moduleTypes.WIKIPEDIA}
 					on:click={activateWikipedia}
 				>
 					Wikipedia
 				</button>
 
 				<!-- CONTEXTUAL OPTIONS -->
-				{#if $roomState.activeModule === moduleTypes.PRESENTATION}
+				{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
 					<PresentationControls
 						kastaliaId={kastaliaId}
 						startPres={startPres}
 						stopPres={stopPres}
 					/>
-				{:else if $roomState.activeModule === moduleTypes.WIKIPEDIA}
+				{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
 					<WikipediaControls
 						setWikiUrl={setWikiUrl}
 						getWikipediaTocUrl={getWikipediaTocUrl}
@@ -195,13 +196,13 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if ($roomState.activeModule === moduleTypes.PRESENTATION) && $roomState.presentationUrl}
+				{#if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
-						url={$roomState.presentationUrl}
+						url={$moduleState.url}
 						onPresentationLoaded={onPresentationLoaded}
 					/>
-				{:else if ($roomState.activeModule === moduleTypes.WIKIPEDIA) && $roomState.wikipediaUrl}
-					<Wikipedia url={$roomState.wikipediaUrl} />
+				{:else if ($moduleState.activeModule === moduleTypes.WIKIPEDIA) && $moduleState.url}
+					<Wikipedia url={$moduleState.url} />
 				{/if}
 			</div>
 
