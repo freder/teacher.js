@@ -4,7 +4,7 @@ import debug from 'debug';
 
 import { getISOTimestamp } from '../client/utils';
 import { messageTypes } from '../shared/constants';
-import { debugPrefix, logFilePath } from './constants';
+import { debugPrefix as prfx, logFilePath } from './constants';
 
 
 // the types of events we want in the log file
@@ -39,8 +39,13 @@ function appendToLogFile(entry: string) {
 }
 
 
-export const logPresentationEvent = wrap(debug(`${debugPrefix}:presentation`));
-export const logWikipediaEvent = wrap(debug(`${debugPrefix}:wiki`));
-export const logConnectionEvent = wrap(debug(`${debugPrefix}:net`));
-export const logModuleEvent = wrap(debug(`${debugPrefix}:module`));
-export const logInfo = wrap(debug(`${debugPrefix}:info`));
+export const logPresentationEvent = wrap(debug(`${prfx}:presentation`));
+export const logWikipediaEvent = wrap(debug(`${prfx}:wiki`));
+export const logConnectionEvent = wrap(debug(`${prfx}:net`));
+export const logModuleEvent = wrap(debug(`${prfx}:module`));
+export const logRoomEvent = wrap(debug(`${prfx}:room`));
+
+export const logBroadcast = wrap(debug(`${prfx}:broadcast`));
+
+export const logInfo = debug(`${prfx}:info`);
+export const logRedux = debug(`${prfx}:redux`);
