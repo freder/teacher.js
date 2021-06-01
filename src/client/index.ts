@@ -168,7 +168,6 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 
 function handleExternalRevealStateChange(state: RevealState) {
 	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
-	console.log(state);
 
 	// if we're the one who originally caused the event, we will
 	// acknowledge it (see above), but not react to it.
