@@ -53,6 +53,7 @@ export type RoomState = {
 export type ModuleState = {
 	activeModule: string,
 	url?: string,
+	activeSectionHash?: string,
 	presentationState: {
 		state: RevealState
 	},

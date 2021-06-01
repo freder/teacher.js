@@ -162,6 +162,7 @@
 						setWikiUrl={setWikiUrl}
 						getWikipediaTocUrl={getWikipediaTocUrl}
 						wikiJumpToSection={wikiJumpToSection}
+						activeSectionHash={$moduleState.activeSectionHash}
 					/>
 				{/if}
 			{/if}

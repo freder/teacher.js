@@ -4,6 +4,7 @@
 	export let setWikiUrl;
 	export let getWikipediaTocUrl;
 	export let wikiJumpToSection;
+	export let activeSectionHash;
 
 	let wikipediaToc;
 
@@ -27,11 +28,12 @@
 		}
 	}}
 >
+
 {#if wikipediaToc}
-	<span>jump to: </span>
+	<span>section: </span>
 	<!-- svelte-ignore a11y-no-onchange -->
 	<select on:change={wikiJumpToSection}>
-		<option value="">[select section]</option>
+		<option value="">[select to jump]</option>
 		{#each wikipediaToc as section}
 			<option value={section.anchor}>
 				{'–'.repeat(section.toclevel - 1)} {section.line}
@@ -39,3 +41,18 @@
 		{/each}
 	</select>
 {/if}
+
+<button
+	on:click={() => {
+		wikiJumpToSection({
+			// send fake event
+			// TODO: clean this up
+			target: {
+				value: activeSectionHash.replace(/^#/ig, '')
+			}
+		});
+	}}
+	style={`display: ${activeSectionHash === '' ? 'none' : 'unset'};`}
+>
+	broadcast {activeSectionHash}
+</button>

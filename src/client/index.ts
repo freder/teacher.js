@@ -47,12 +47,16 @@ console.log('server url:', serverUrl);
 let socket: Socket;
 
 const roomState = writable(initialRoomState);
-const moduleState = writable(initialModuleState);
+const moduleState = writable({
+	...initialModuleState,
+	activeSectionHash: '',
+});
 const userState = writable({
 	socketId: undefined,
 	name: 'anonymous',
 	authToken: undefined,
 });
+// TODO: remove log, use console instead
 const uiState = writable({
 	log: [],
 });
@@ -308,6 +312,10 @@ async function main() {
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			} else if (data.type === 'WIKIPEDIA_SECTION_CHANGED') {
 				// TODO: use constant ↑
+				moduleState.update((prev) => ({
+					...prev,
+					activeSectionHash: data.hash,
+				}));
 
 				// if (get(authToken)) {
 				// 	const current = get(moduleState).url;
