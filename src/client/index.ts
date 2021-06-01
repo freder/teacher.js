@@ -197,7 +197,10 @@ async function main() {
 		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
 		// which we then proxy
 
-		const { href, hash } = new URL(wikipediaUrl);
+		const url = new URL(wikipediaUrl);
+		const { hash } = url;
+		url.hash = '';
+		const { href } = url;
 
 		// encoded url but unencoded hash!
 		const encodedHref = encodeURIComponent(href);
