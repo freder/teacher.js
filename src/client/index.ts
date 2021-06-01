@@ -17,7 +17,13 @@ import type {
 	RevealStateChangePayload,
 	RevealState,
 } from '../shared/types';
-import { initialModuleState, initialRoomState, janusRoomId, messageTypes } from '../shared/constants';
+import {
+	initialModuleState,
+	initialRoomState,
+	janusRoomId,
+	messageTypes,
+	moduleTypes
+} from '../shared/constants';
 
 import { kastaliaUrl, presentationIframeId, serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
@@ -132,6 +138,11 @@ function claimAdmin() {
 
 
 function setActiveModule(moduleName: string) {
+	// TODO: find a better way to reset pieces of local state
+	if (moduleName !== moduleTypes.WIKIPEDIA) {
+		moduleState.update((prev) => ({ ...prev, activeSectionHash: '' }));
+	}
+
 	const msg: Message<ActiveModulePayload> = {
 		authToken: get(userState).authToken,
 		payload: { activeModule: moduleName }
