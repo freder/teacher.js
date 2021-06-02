@@ -1,23 +1,32 @@
+import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
 
 import type {
+	Message,
+	ModuleState,
+	RoomState,
+	UrlPayload,
+	UserInfo,
 	ActiveModulePayload,
 	AuthTokenPayload,
 	ClaimAdminRolePayload,
 	EmptyPayload,
-	Message,
 	PresentationStartPayload,
-	PresentationState,
 	RevealStateChangePayload,
-	RoomState,
-	UserInfo,
-	WikipediaUrlPayload,
+	RevealState,
 } from '../shared/types';
-import { janusRoomId, messageTypes } from '../shared/constants';
+import {
+	initialModuleState,
+	initialRoomState,
+	janusRoomId,
+	messageTypes,
+	moduleTypes,
+	proxyPathWikipedia
+} from '../shared/constants';
 
-import { serverUrl } from './constants';
+import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import type {
 	JanusInstance,
@@ -44,16 +53,17 @@ console.log('server url:', serverUrl);
 
 let socket: Socket;
 
-const initialRoomState: RoomState = {
-	adminIds: [],
-	users: [],
-};
 const roomState = writable(initialRoomState);
+const moduleState = writable({
+	...initialModuleState,
+	activeSectionHash: '',
+});
 const userState = writable({
 	socketId: undefined,
 	name: 'anonymous',
 	authToken: undefined,
 });
+// TODO: remove log, use console instead
 const uiState = writable({
 	log: [],
 });
@@ -85,7 +95,7 @@ function makeNameFromBrowser(): string {
 
 function setUserName(name: string) {
 	userState.update((prev) => ({ ...prev, name }));
-	serverUpdateUser();
+	sendUserInfo();
 
 	// TODO: also rename user in janus room
 	// audioBridge.send({
@@ -97,7 +107,7 @@ function setUserName(name: string) {
 }
 
 
-function serverUpdateUser() {
+function sendUserInfo() {
 	const us = get(userState);
 	const as = get(audioState);
 	const msg: Message<UserInfo> = {
@@ -128,6 +138,41 @@ function claimAdmin() {
 }
 
 
+function setActiveModule(moduleName: string) {
+	// TODO: find a better way to reset pieces of local state
+	if (moduleName !== moduleTypes.WIKIPEDIA) {
+		moduleState.update((prev) => ({ ...prev, activeSectionHash: '' }));
+	}
+
+	const msg: Message<ActiveModulePayload> = {
+		authToken: get(userState).authToken,
+		payload: { activeModule: moduleName }
+	};
+	socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
+}
+
+
+function startPresentation(kastaliaId: string) {
+	const payload: PresentationStartPayload = {
+		url: `${kastaliaBaseUrl}/${kastaliaId}`
+	};
+	const msg: Message<PresentationStartPayload> = {
+		authToken: get(userState).authToken,
+		payload,
+	};
+	socket.emit(messageTypes.START_PRESENTATION, msg);
+}
+
+
+function stopPresentation() {
+	const msg: Message<EmptyPayload> = {
+		authToken: get(userState).authToken,
+		payload: {}
+	};
+	socket.emit(messageTypes.END_PRESENTATION, msg);
+}
+
+
 function logParticipants(participants: Array<Record<string, unknown>>) {
 	console.info('Got a list of participants:', participants);
 	for (const f in participants) {
@@ -137,64 +182,82 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 }
 
 
+function handleExternalRevealStateChange(state: RevealState) {
+	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
+
+	// if we're the one who originally caused the event, we will
+	// acknowledge it (see above), but not react to it.
+	const { adminIds } = get(roomState);
+	const { socketId } = get(userState);
+	if (adminIds.includes(socketId)) {
+		return;
+	}
+
+	// inform iframe
+	const iframe = document.querySelector(
+		`iframe#${presentationIframeId}`
+	) as HTMLIFrameElement;
+	if (iframe) {
+		const data = {
+			type: messageTypes.REVEAL_STATE_CHANGED,
+			state,
+		};
+		iframe.contentWindow.postMessage(data, '*');
+	}
+}
+
+
 async function main() {
+	const setWikiUrl = (wikipediaUrl: string) => {
+		// receives the actual wiki url à la
+		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
+		// which we then proxy
+
+		const url = new URL(wikipediaUrl);
+		const { hash } = url;
+		url.hash = '';
+		const { href } = url;
+
+		// encoded url but unencoded hash!
+		const encodedHref = encodeURIComponent(href);
+		const proxiedUrl = `${serverUrl}/${proxyPathWikipedia}/${encodedHref}${hash}`;
+		// TODO: DRY. ↑ this is also used in the wikipedia snippet
+
+		const msg: Message<UrlPayload> = {
+			authToken: get(userState).authToken,
+			payload: { url: proxiedUrl }
+		};
+		socket.emit(messageTypes.URL_CHANGED, msg);
+
+		moduleState.update((prev) => ({ ...prev, url: proxiedUrl }));
+	};
+
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
 		props: {
 			userState,
 			roomState,
+			moduleState,
 			uiState,
 			audioState,
 			claimAdmin,
+			setUserName,
+			setActiveModule,
+			setWikiUrl,
+			startPres: startPresentation,
+			stopPres: stopPresentation,
 
-			setActiveModule: (moduleName: string) => {
-				const msg: Message<ActiveModulePayload> = {
-					authToken: get(userState).authToken,
-					payload: { activeModule: moduleName }
-				};
-				socket.emit(messageTypes.SET_ACTIVE_MODULE, msg);
-			},
-
-			setWikiUrl: (wikipediaUrl: string) => {
-				const msg: Message<WikipediaUrlPayload> = {
-					authToken: get(userState).authToken,
-					payload: { url: wikipediaUrl }
-				};
-				socket.emit(messageTypes.SET_WIKIPEDIA_URL, msg);
-			},
-
-			startPres: (kastaliaId: string) => {
-				const payload: PresentationStartPayload = {
-					// TODO: make this configurable
-					url: `https://kastalia.medienhaus.udk-berlin.de/${kastaliaId}`
-				};
-				const msg: Message<PresentationStartPayload> = {
-					authToken: get(userState).authToken,
-					payload,
-				};
-				socket.emit(messageTypes.START_PRESENTATION, msg);
-			},
-
-			stopPres: () => {
-				const msg: Message<EmptyPayload> = {
-					authToken: get(userState).authToken,
-					payload: {}
-				};
-				socket.emit(messageTypes.END_PRESENTATION, msg);
-			},
-
+			// TODO: needed?
 			onPresentationLoaded: () => {
 				const msg: Message<EmptyPayload> = {
 					payload: {}
 				};
-				socket.emit(messageTypes.BRING_ME_UP_TO_SPEED, msg);
+				socket.emit(messageTypes.GET_FULL_STATE, msg);
 			},
 
 			startAudio: () => startAudio(),
 			stopAudio: () => stopAudio(),
 			toggleMute: () => toggleMute(),
-
-			setUserName,
 		}
 	});
 
@@ -214,19 +277,8 @@ async function main() {
 
 		// in case we're connecting late: request a full state.
 		// server will emit all the necessary messages
-		const msg: Message<EmptyPayload> = {
-			payload: {}
-		};
-		socket.emit(
-			messageTypes.BRING_ME_UP_TO_SPEED,
-			msg
-		);
-
-		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
-			const rs = msg.payload;
-			roomState.set(rs);
-			appendToLog(messageTypes.ROOM_UPDATE, rs);
-		});
+		const msg: Message<EmptyPayload> = { payload: {} };
+		socket.emit(messageTypes.GET_FULL_STATE, msg);
 
 		socket.on(messageTypes.ADMIN_TOKEN, (msg: Message<AuthTokenPayload>) => {
 			const { token } = msg.payload;
@@ -236,40 +288,68 @@ async function main() {
 			userState.update((prev) => ({ ...prev, authToken: token }));
 		});
 
+		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
+			const newState = msg.payload;
+			roomState.update((prev) => ({ ...prev, ...newState }));
+			appendToLog(messageTypes.ROOM_UPDATE, newState);
+		});
+
+		socket.on(messageTypes.MODULE_UPDATE, (msg: Message<ModuleState>) => {
+			const newState = msg.payload;
+			moduleState.update((prev) => {
+				// if (!R.equals(newState.presentationState, prev.presentationState)) {
+				handleExternalRevealStateChange(newState.presentationState.state);
+				// }
+				return { ...prev, ...newState };
+			});
+			appendToLog(messageTypes.MODULE_UPDATE, newState);
+		});
+
+		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<RevealStateChangePayload>) => {
+			const { state } = msg.payload;
+			handleExternalRevealStateChange(state);
+		});
+
 		// iframe messages
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
+			const { authToken } = get(userState);
+
 			if (data.type === messageTypes.REVEAL_STATE_CHANGED) {
-				const { authToken } = get(userState);
 				if (!authToken) { return; }
 				const msg: Message<RevealStateChangePayload> = {
 					authToken,
 					payload: { state: data.state }
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
-			}
-		});
+			} else if (data.type === messageTypes.WIKIPEDIA_SECTION_CHANGED) {
+				// TODO: use constant ↑
+				moduleState.update((prev) => ({
+					...prev,
+					activeSectionHash: data.hash,
+				}));
 
-		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<PresentationState>) => {
-			const { state } = msg.payload;
-			appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
-
-			// if we're the one who originally caused the event, we will
-			// acknowledge it (see above), but not react to it.
-			const { adminIds } = get(roomState);
-			const { socketId } = get(userState);
-			if (adminIds.includes(socketId)) {
-				return;
-			}
-
-			// inform iframe
-			const data = {
-				type: messageTypes.REVEAL_STATE_CHANGED,
-				state,
-			};
-			const iframe = document.querySelector('iframe#presentation') as HTMLIFrameElement;
-			if (iframe) {
-				iframe.contentWindow.postMessage(data, '*');
+				// if (get(authToken)) {
+				// 	const current = get(moduleState).url;
+				// 	const encodedWikiUrl = R.last(current.split('/'));
+				// 	const url = new URL(
+				// 		decodeURIComponent(encodedWikiUrl)
+				// 	);
+				// 	url.hash = data.hash;
+				// 	setWikiUrl(url.toString());
+				// }
+			} else if (data.type === messageTypes.URL_CHANGED) {
+				if (!authToken) {
+					return;
+				}
+				if (data.url === get(moduleState).url) {
+					return;
+				}
+				const msg: Message<UrlPayload> = {
+					authToken,
+					payload: { url: data.url }
+				};
+				socket.emit(messageTypes.URL_CHANGED, msg);
 			}
 		});
 	});
@@ -283,7 +363,7 @@ async function main() {
 		if (msg.id) {
 			console.info('Successfully joined room ' + msg.room + ' with ID ' + msg.id);
 			audioState.update((prev) => ({ ...prev, janusParticipantId: msg.id }));
-			serverUpdateUser();
+			sendUserInfo();
 			if (!get(audioState).connected) {
 				audioState.update((prev) => ({ ...prev, connected: true }));
 				// Publish our stream
@@ -343,7 +423,7 @@ async function main() {
 			}
 		});
 		audioState.update((prev) => ({ ...prev, muted: m }));
-		serverUpdateUser();
+		sendUserInfo();
 	}
 
 	const callbacks = {
@@ -360,7 +440,7 @@ async function main() {
 					// The user switched to a different room
 					const newId = roomChangedHandler(msg);
 					audioState.update((prev) => ({ ...prev, janusParticipantId: newId }));
-					serverUpdateUser();
+					sendUserInfo();
 				} else if (event === 'destroyed') {
 					// The room has been destroyed
 					console.warn('The room has been destroyed!');
@@ -383,7 +463,7 @@ async function main() {
 				(on ? 'up' : 'down') + ' now'
 			);
 			audioState.update((prev) => ({ ...prev, connected: on }));
-			serverUpdateUser();
+			sendUserInfo();
 		},
 
 		oncleanup: () => {
@@ -391,7 +471,7 @@ async function main() {
 			// The plugin handle is still valid so we can create a new one
 
 			audioState.update((prev) => ({ ...prev, connected: false }));
-			serverUpdateUser();
+			sendUserInfo();
 		}
 	};
 
@@ -422,7 +502,7 @@ async function main() {
 			muted: false,
 			janusParticipantId: null,
 		}));
-		serverUpdateUser();
+		sendUserInfo();
 	};
 }
 

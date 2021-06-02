@@ -11,8 +11,6 @@
 	{$audioState.audioStarted ? 'stop' : 'start'} audio
 </button>
 
-<div>connected: {($audioState.connected ? '✔' : '🚫')}</div>
-
 <button
 	on:click={toggleMute}
 	disabled={!$audioState.audioStarted}

@@ -1,5 +1,5 @@
 import { Janus } from 'janus-gateway';
-import { janusServers } from '../shared/constants';
+import { janusServers } from './constants';
 
 
 export type JanusInstance = Record<string, unknown>;

@@ -1,4 +1,6 @@
 <script>
+	import { presentationIframeId } from '../constants';
+
 	export let url;
 	export let onPresentationLoaded;
 </script>
@@ -13,6 +15,7 @@
 
 <!-- svelte-ignore a11y-missing-attribute -->
 <iframe
+	id={presentationIframeId}
 	src={url}
 	on:load={onPresentationLoaded}
 ></iframe>

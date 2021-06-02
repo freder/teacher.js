@@ -1,36 +1,25 @@
 import { createServer } from 'http';
 import path from 'path';
-import crypto from 'crypto';
 
-import { Server, Socket } from 'socket.io';
+import type { Server, Socket } from 'socket.io';
 import dotenv from 'dotenv';
-import * as R from 'ramda';
-import { observable, observe } from 'mobx';
 import express from 'express';
-import fetch from 'node-fetch';
 import cors from 'cors';
 
-import type {
-	Message,
-	Payload,
-	PresentationStartPayload,
-	PresentationState,
-	RevealStateChangePayload,
-	RoomState,
-	UserInfo,
-	ActiveModulePayload,
-	WikipediaUrlPayload,
-	ClaimAdminRolePayload,
-	AuthTokenPayload
-} from '../shared/types';
+import type { Message, AnyPayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
+import { logInfo, logModuleEvent, logPresentationEvent, logRoomEvent } from './logging';
+import { createIoServer } from './socket';
+import { initProxy } from './proxy';
+import { createToken, makeAdmin } from './utils';
+import { moduleStore, roomStore } from './stores';
 import {
-	logPresentationEvent,
-	logConnectionEvent,
-	logInfo,
-	logWikipediaEvent,
-	logModuleEvent
-} from './logging';
+	handleAdminRole,
+	handleFullStateRequest,
+	defaultHandler,
+} from './message-handlers';
+import type { AnyAction } from 'redux';
+import { actionTypes } from './constants';
 
 
 const dotenvPath = path.resolve(
@@ -40,179 +29,46 @@ dotenv.config({ path: dotenvPath });
 
 const host = process.env.SERVER_HOST || 'localhost';
 const port = process.env.SERVER_PORT || 3000;
-let io: Server;
 
-
-type HandlerType = (msgType: string, payload: Payload, socket: Socket) => void;
-
-const initialRoomState: RoomState = {
-	adminIds: [],
-	users: [],
-	activeModule: undefined,
-	presentationUrl: undefined,
-	wikipediaUrl: undefined,
-};
-const roomStateData = { ...initialRoomState } as RoomState;
-
-const initialPresentationState: PresentationState = {
-	state: {
-		indexh: 0,
-		indexv: 0,
-		paused: false,
-		overview: false,
-	}
-};
-const presentationStateData = { ...initialPresentationState } as PresentationState;
-
-const roomState = observable(roomStateData);
-observe(roomState, (/* change */) => {
-	// if (change.type === 'update') {
-	const msg: Message<RoomState> = {
-		payload: roomState
-	};
-	io.emit(
-		messageTypes.ROOM_UPDATE,
-		msg
-	);
-	// }
-});
-
-const presentationState = observable(presentationStateData);
-observe(presentationState, (/* change */) => {
-	// if (change.type === 'update') {
-	io.emit(
-		messageTypes.REVEAL_STATE_CHANGED,
-		presentationState
-	);
-	// }
-});
-
-
-// adapted from https://github.com/reveal/multiplex/blob/master/index.js
-function createToken(clientId: string) {
-	const hash = crypto.createHash('sha256');
-	hash.update(`${process.env.SECRET}${clientId}`);
-	return hash.digest('hex');
-}
+type HandlerType = (action: AnyAction, socket: Socket, io: Server) => void;
 
 
 function checkToken(clientId: string, token: string) {
 	return (
 		createToken(clientId) === token
-		&& roomState.adminIds.includes(clientId)
+		&& roomStore.getState().adminIds.includes(clientId)
 	);
 }
 
 
-function makeAdmin(socket: Socket) {
-	const token = createToken(socket.id);
-	const msg: Message<AuthTokenPayload> = {
-		payload: { token }
-	};
-	socket.emit(
-		messageTypes.ADMIN_TOKEN,
-		msg
-	);
-	roomState.adminIds = [socket.id];
-}
-
-
-function requireAuth(
-	socket: Socket,
+function wrapHandler(
 	msgType: string,
 	requiresAuthentication: boolean,
-	handler: HandlerType
+	handler: HandlerType,
+	socket: Socket,
+	io: Server,
+	logFn: (...args: string[]) => void
 ) {
-	return (msg: Message<Payload>) => {
+	return (msg: Message<AnyPayload>) => {
+		// check if authentication is needed and valid
 		if (
-			requiresAuthentication &&
-			(
+			requiresAuthentication && (
 				!msg.authToken ||
 				!checkToken(socket.id, msg.authToken)
 			)
 		) {
 			return;
 		}
-		handler(msgType, msg.payload, socket);
+		if (msg) {
+			const action: AnyAction = {
+				...msg,
+				type: msgType,
+			};
+			logFn(action.type, JSON.stringify(action.payload));
+			handler(action, socket, io);
+		}
 	};
 }
-
-
-function handleRevealStateChange(msgType: string, pl: Payload) {
-	const payload = pl as RevealStateChangePayload;
-	presentationState.state = payload.state;
-	logPresentationEvent(msgType, JSON.stringify(payload));
-}
-
-
-function handlePresentationStart(msgType: string, pl: Payload) {
-	const payload = pl as PresentationStartPayload;
-	roomState.presentationUrl = payload.url;
-	logPresentationEvent(msgType, JSON.stringify(payload));
-}
-
-
-function handlePresentationEnd(msgType: string, pl: Payload) {
-	roomState.presentationUrl = undefined;
-	presentationState.state = { ...initialPresentationState.state };
-	logPresentationEvent(msgType, '');
-}
-
-
-function handleWikipediaUrl(msgType: string, pl: Payload) {
-	const payload = pl as WikipediaUrlPayload;
-	roomState.wikipediaUrl = payload.url;
-	logWikipediaEvent(msgType, JSON.stringify(payload));
-}
-
-
-function handleActiveModule(msgType: string, pl: Payload) {
-	const payload = pl as ActiveModulePayload;
-	roomState.activeModule = payload.activeModule;
-	logModuleEvent(msgType, JSON.stringify(payload));
-}
-
-
-const handleAdminRole = (msgType: string, pl: Payload, socket: Socket) => {
-	const { secret } = pl as ClaimAdminRolePayload;
-	if (process.env.SECRET === secret) {
-		makeAdmin(socket);
-	} else {
-		const msg: Message<AuthTokenPayload> = {
-			payload: { token: null }
-		};
-		socket.emit(
-			messageTypes.ADMIN_TOKEN,
-			msg
-		);
-	}
-};
-
-
-const handleUserInfo = (msgType: string, pl: Payload, socket: Socket) => {
-	const userInfo = pl as UserInfo;
-	const i = R.findIndex(
-		R.propEq('socketId', socket.id),
-		roomState.users
-	);
-	roomState.users = R.update(
-		i,
-		{ ...roomState.users[i], ...userInfo },
-		roomState.users
-	);
-};
-
-
-const handleUpToSpeed = (msgType: string, pl: Payload, socket: Socket) => {
-	const roomMsg: Message<RoomState> = {
-		payload: roomState
-	};
-	socket.emit(messageTypes.ROOM_UPDATE, roomMsg);
-	const presMsg: Message<PresentationState> = {
-		payload: presentationState
-	};
-	socket.emit(messageTypes.REVEAL_STATE_CHANGED, presMsg);
-};
 
 
 function main() {
@@ -220,103 +76,102 @@ function main() {
 	app.use(cors()); // TODO: remove in production
 	const httpServer = createServer(app);
 
-	// generic proxy to avoid CORS, etc.
-	app.get('/proxy/:url', (req, res) => {
-		const urlStr = decodeURIComponent(req.params.url);
-		fetch(urlStr)
-			.then((res) => res.text())
-			.then((txt) => res.send(txt));
-	});
+	initProxy(app);
 
-	io = new Server(
-		httpServer,
-		{
-			serveClient: false,
-			cors: {
-				origin: '*', // TODO: tighten security
-				methods: ['GET', 'POST'],
-			}
-		}
-	);
+	const io = createIoServer(httpServer);
 
 	io.on('connection', (socket: Socket) => {
-		logConnectionEvent('client connected:', socket.id);
-		const user: UserInfo = {
-			socketId: socket.id,
-			name: null
-		};
-		roomState.users = [...roomState.users, user];
+		roomStore.dispatch({
+			type: actionTypes.CLIENT_CONNECTED,
+			payload: { socketId: socket.id }
+		});
 
 		// first client to connect automatically becomes admin:
 		const clientIds = [...io.sockets.sockets.keys()];
 		if (clientIds.length === 1) {
-			makeAdmin(socket);
+			makeAdmin(socket, roomStore);
 		}
 
-		events.forEach(({ type, args }) => {
+		wsMessages.forEach(({ type, requiresAuthentication, handler, logFn }) => {
 			socket.on(
 				type,
-				requireAuth(
-					socket,
+				wrapHandler(
 					type,
-					args[0] as boolean,
-					args[1] as HandlerType,
+					requiresAuthentication as boolean,
+					handler as HandlerType,
+					socket,
+					io,
+					logFn as (...args: string[]) => void,
 				)
 			);
 		});
 
 		socket.on('disconnect', () => {
-			logConnectionEvent('client disconnected:', socket.id);
-			roomState.adminIds = R.without(
-				[socket.id],
-				roomState.adminIds
-			);
-			roomState.users = R.without(
-				roomState.users.filter(
-					(user) => user.socketId === socket.id
-				),
-				roomState.users
-			);
+			roomStore.dispatch({
+				type: actionTypes.CLIENT_DISCONNECTED,
+				payload: { socketId: socket.id }
+			});
 		});
 	});
 
-	logInfo('', `http://${host}:${port}`);
+	logInfo(`http://${host}:${port}`);
 	httpServer.listen(port);
 }
 
 
-const events = [
+const wsMessages = [
+	// these ones (potentially) change one or multiple of the state
+	// slices, which cases the respective updated pieces of state to
+	// be broadcast to all the clients.
 	{
 		type: messageTypes.CLAIM_ADMIN_ROLE,
-		args: [false, handleAdminRole]
+		requiresAuthentication: false,
+		handler: handleAdminRole,
+		logFn: () => {},
 	},
 	{
 		type: messageTypes.USER_INFO,
-		args: [false, handleUserInfo]
+		requiresAuthentication: false,
+		handler: defaultHandler(roomStore),
+		logFn: logRoomEvent,
 	},
 	{
 		type: messageTypes.SET_ACTIVE_MODULE,
-		args: [true, handleActiveModule]
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logModuleEvent,
 	},
 	{
 		type: messageTypes.REVEAL_STATE_CHANGED,
-		args: [true, handleRevealStateChange]
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logPresentationEvent,
 	},
 	{
 		type: messageTypes.START_PRESENTATION,
-		args: [true, handlePresentationStart]
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logPresentationEvent,
 	},
 	{
 		type: messageTypes.END_PRESENTATION,
-		args: [true, handlePresentationEnd]
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logPresentationEvent,
 	},
 	{
-		type: messageTypes.SET_WIKIPEDIA_URL,
-		args: [true, handleWikipediaUrl]
+		type: messageTypes.URL_CHANGED,
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logRoomEvent,
 	},
+
+	// these ones are only between client and server
 	{
-		type: messageTypes.BRING_ME_UP_TO_SPEED,
-		args: [false, handleUpToSpeed]
+		type: messageTypes.GET_FULL_STATE,
+		requiresAuthentication: false,
+		handler: handleFullStateRequest,
+		logFn: () => {},
 	},
 ];
 

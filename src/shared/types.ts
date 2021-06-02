@@ -1,27 +1,27 @@
-export type Payload = Record<string, unknown>;
-export type EmptyPayload = Payload;
+export type AnyPayload = Record<string, unknown>;
+export type EmptyPayload = Record<string, never>;
 
-export interface RevealStateChangePayload extends Payload {
+export interface RevealStateChangePayload extends AnyPayload {
 	state: RevealState,
 }
 
-export interface PresentationStartPayload extends Payload {
+export interface PresentationStartPayload extends AnyPayload {
 	url: string,
 }
 
-export interface WikipediaUrlPayload extends Payload {
+export interface UrlPayload extends AnyPayload {
 	url: string,
 }
 
-export interface ActiveModulePayload extends Payload {
+export interface ActiveModulePayload extends AnyPayload {
 	activeModule: string,
 }
 
-export interface ClaimAdminRolePayload extends Payload {
+export interface ClaimAdminRolePayload extends AnyPayload {
 	secret: string,
 }
 
-export interface AuthTokenPayload extends Payload {
+export interface AuthTokenPayload extends AnyPayload {
 	token: string,
 }
 
@@ -48,11 +48,13 @@ export type UserInfo = {
 export type RoomState = {
 	adminIds: Array<string>,
 	users: Array<UserInfo>,
-	activeModule?: string,
-	presentationUrl?: string,
-	wikipediaUrl?: string,
 };
 
-export type PresentationState = {
-	state: RevealState,
+export type ModuleState = {
+	activeModule: string,
+	url?: string,
+	activeSectionHash?: string,
+	presentationState: {
+		state: RevealState
+	},
 };
