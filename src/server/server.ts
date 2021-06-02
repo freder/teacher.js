@@ -1,8 +1,13 @@
-import { createServer } from 'http';
 import path from 'path';
+import dotenv from 'dotenv';
+const dotenvPath = path.resolve(
+	path.join(__dirname, '../.env')
+);
+dotenv.config({ path: dotenvPath });
+
+import { createServer } from 'http';
 
 import type { Server, Socket } from 'socket.io';
-import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 
@@ -22,10 +27,6 @@ import type { AnyAction } from 'redux';
 import { actionTypes } from './constants';
 
 
-const dotenvPath = path.resolve(
-	path.join(__dirname, '../.env')
-);
-dotenv.config({ path: dotenvPath });
 
 const host = process.env.SERVER_HOST || 'localhost';
 const port = process.env.SERVER_PORT || 3000;
