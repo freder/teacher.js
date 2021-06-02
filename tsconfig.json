@@ -29,5 +29,9 @@
 
 	"include": [
 		"src"
+	],
+	"typeRoots": [
+		"src",
+		"node_modules/@types"
 	]
 }

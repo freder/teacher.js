@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
+import type { Janus, JSEP, PluginHandle, PluginMessage } from 'janus-gateway';
 
 import type {
 	Message,
@@ -28,11 +29,6 @@ import {
 
 import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
-import type {
-	JanusInstance,
-	AudioBridgeInstance,
-	JanusMessage
-} from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
 
@@ -355,10 +351,10 @@ async function main() {
 	});
 
 	// -------- audio --------
-	let janus: JanusInstance;
-	let audioBridge: AudioBridgeInstance;
+	let janus: Janus;
+	let audioBridge: PluginHandle;
 
-	function joinHandler(msg: JanusMessage) {
+	function joinHandler(msg: PluginMessage) {
 		// Successfully joined, negotiate WebRTC now
 		if (msg.id) {
 			console.info('Successfully joined room ' + msg.room + ' with ID ' + msg.id);
@@ -370,12 +366,12 @@ async function main() {
 				audioBridge.createOffer({
 					iceRestart: true,
 					media: { video: false }, // This is an audio only room
-					success: (jsep: any) => {
+					success: (jsep: JSEP) => {
 						// console.info('Got SDP!', jsep);
 						const publish = { request: 'configure', muted: false };
 						audioBridge.send({ message: publish, jsep: jsep });
 					},
-					error: (error: any) => {
+					error: (error: unknown) => {
 						console.error('WebRTC error:', error);
 					}
 				});
@@ -387,7 +383,7 @@ async function main() {
 		}
 	}
 
-	function roomChangedHandler(msg: JanusMessage) {
+	function roomChangedHandler(msg: PluginMessage) {
 		console.info('Moved to room ' + msg.room + ', new ID: ' + msg.id);
 		if (msg.participants) {
 			logParticipants(msg.participants);
@@ -395,7 +391,7 @@ async function main() {
 		return msg.id;
 	}
 
-	function eventHandler(msg: JanusMessage) {
+	function eventHandler(msg: PluginMessage) {
 		if (msg.participants) {
 			logParticipants(msg.participants);
 		} else if (msg.error) {
@@ -427,7 +423,7 @@ async function main() {
 	}
 
 	const callbacks = {
-		onmessage: (msg: JanusMessage, jsep: any) => {
+		onmessage: (msg: PluginMessage, jsep: JSEP) => {
 			// a message/event has been received from the plugin;
 			console.info(' ::: Got a message :::', msg);
 			const event = msg.audiobridge;

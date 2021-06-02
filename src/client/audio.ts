@@ -1,23 +1,19 @@
-import { Janus } from 'janus-gateway';
+import { Janus, PluginHandle } from 'janus-gateway';
 import { janusServers } from './constants';
 
 
-export type JanusInstance = Record<string, unknown>;
-export type AudioBridgeInstance = Record<string, unknown>;
-export type JanusMessage = Record<string, unknown>;
-
-
 export function attachAudioBridgePlugin(
-	janus: JanusInstance,
-	callbacks: Record<string, (...args: unknown[]) => void>
-): Promise<AudioBridgeInstance> {
+	janus: Janus,
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	callbacks: Record<string, Function>
+): Promise<PluginHandle> {
 	return new Promise((resolve, reject) => {
-		let audioBridge: AudioBridgeInstance;
+		let audioBridge: PluginHandle;
 
 		janus.attach({
 			plugin: 'janus.plugin.audiobridge',
 
-			success: (pluginHandle: AudioBridgeInstance) => {
+			success: (pluginHandle) => {
 				audioBridge = pluginHandle;
 				// console.log(
 				// 	'Plugin attached! (' + audioBridge.getPlugin() +
@@ -78,16 +74,16 @@ export function attachAudioBridgePlugin(
 }
 
 
-export async function initJanus(): Promise<JanusInstance> {
+export async function initJanus(): Promise<Janus> {
 	await new Promise<void>((resolve) => {
 		Janus.init({
 			debug: process.env.NODE_ENV === 'development',
-			dependencies: Janus.useDefaultDependencies(),
+			dependencies: Janus.useDefaultDependencies({}),
 			callback: () => resolve(),
 		});
 	});
 
-	const janus = await new Promise<JanusInstance>((resolve, reject) => {
+	const janus = await new Promise((resolve, reject) => {
 		const instance = new Janus({
 			server: janusServers,
 			// iceServers: [], // TODO: needed?
@@ -99,5 +95,5 @@ export async function initJanus(): Promise<JanusInstance> {
 			}
 		});
 	});
-	return janus;
+	return janus as Janus;
 }
