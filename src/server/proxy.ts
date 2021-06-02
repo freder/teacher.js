@@ -4,9 +4,11 @@ import path from 'path';
 import fetch from 'node-fetch';
 import type express from 'express';
 
+import { proxyPathWikipedia } from '../shared/constants';
+
 
 export function initProxy(app: express.Application): void {
-	// generic proxy to avoid CORS, etc.
+	// generic proxy to bypass CORS, etc.
 	app.get('/proxy/:url', (req, res) => {
 		const urlStr = decodeURIComponent(req.params.url);
 		fetch(urlStr)
@@ -20,7 +22,7 @@ export function initProxy(app: express.Application): void {
 	).toString();
 	// http://.../proxy/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
 	// TODO: cache the output / response
-	app.get('/proxy/wikipedia/:url', (req, res) => {
+	app.get(`/${proxyPathWikipedia}/:url`, (req, res) => {
 		const urlStr = decodeURIComponent(req.params.url);
 		const url = new URL(urlStr);
 		url.hash = '';

@@ -49,7 +49,7 @@
 		const anchor = event.target.value;
 		const proxiedUrl = $moduleState.url;
 		const wikipediaUrl = decodeURIComponent(
-			proxiedUrl.split('/proxy/wikipedia/')[1]
+			proxiedUrl.split(`/${proxyPathWikipedia}/`)[1]
 		);
 		const url = new URL(wikipediaUrl);
 		url.hash = `#${anchor}`;

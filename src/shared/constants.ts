@@ -35,3 +35,5 @@ export const initialModuleState: ModuleState = {
 
 // TODO: make configurable
 export const janusRoomId = 1234;
+
+export const proxyPathWikipedia = 'proxy/wikipedia';

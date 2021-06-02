@@ -22,7 +22,8 @@ import {
 	initialRoomState,
 	janusRoomId,
 	messageTypes,
-	moduleTypes
+	moduleTypes,
+	proxyPathWikipedia
 } from '../shared/constants';
 
 import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
@@ -219,7 +220,7 @@ async function main() {
 
 		// encoded url but unencoded hash!
 		const encodedHref = encodeURIComponent(href);
-		const proxiedUrl = `${serverUrl}/proxy/wikipedia/${encodedHref}${hash}`;
+		const proxiedUrl = `${serverUrl}/${proxyPathWikipedia}/${encodedHref}${hash}`;
 		// TODO: DRY. ↑ this is also used in the wikipedia snippet
 
 		const msg: Message<UrlPayload> = {

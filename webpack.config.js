@@ -13,6 +13,7 @@ const { StatsWriterPlugin } = require('webpack-stats-plugin');
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const ouputDirName = 'dist';
 const clientPath = './src/client';
+const serverPath = './src/server';
 
 
 const plugins = [
@@ -66,7 +67,8 @@ module.exports = {
 
 	entry: {
 		main: `${clientPath}/index.ts`,
-		'reveal-hooks': `${clientPath}/reveal-hooks.ts`
+		'reveal-hooks': `${clientPath}/reveal-hooks.ts`,
+		'wikipedia-snippet': `${serverPath}/snippets/wikipedia.ts`,
 	},
 	output: {
 		clean: true,
