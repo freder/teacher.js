@@ -16,8 +16,10 @@ const frontendUrl = `${FRONTEND_PROTOCOL}://${FRONTEND_HOST}:${FRONTEND_PORT}/${
 export function initProxy(app: express.Application): void {
 	// generic proxy to bypass CORS, etc.
 	app.get('/proxy/:url', (req, res) => {
-		const urlStr = decodeURIComponent(req.params.url);
-		fetch(urlStr)
+		const url = new URL(
+			decodeURIComponent(req.params.url)
+		);
+		fetch(url.toString())
 			.then((res) => res.text())
 			.then((txt) => res.send(txt));
 	});
@@ -25,10 +27,12 @@ export function initProxy(app: express.Application): void {
 	// http://.../proxy/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
 	// TODO: cache the output / response
 	app.get(`/${proxyPathWikipedia}/:url`, (req, res) => {
-		const urlStr = decodeURIComponent(req.params.url);
-		const url = new URL(urlStr);
+		// decode url and remove hash
+		const url = new URL(
+			decodeURIComponent(req.params.url)
+		);
 		url.hash = '';
-		fetch(urlStr)
+		fetch(url.toString())
 			.then((res) => res.text())
 			.then((htmlStr) => {
 				const output = htmlStr

@@ -6,7 +6,14 @@ export function getProxiedUrl(
 	// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
 	// and returns a proxied URL
 
-	const url = new URL(wikipediaUrl);
+	// the URL object will apparently automatically encode special
+	// characters for you. so
+	// https://en.wikipedia.org/wiki/Diogenes_Laërtius
+	// becomes
+	// https://en.wikipedia.org/wiki/Diogenes_La%C3%ABrtius
+	const url = new URL(
+		decodeURIComponent(wikipediaUrl)
+	);
 
 	// store the original hash
 	const { hash } = url;
