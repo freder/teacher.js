@@ -3,7 +3,7 @@
 	import * as R from 'ramda';
 
 	import { getWikipediaTocUrl } from '../utils';
-	import { moduleTypes } from '../../shared/constants';
+	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
 
 	import AudioControls from './AudioControls.svelte';
 	import ParticipantsList from './ParticipantsList.svelte';
