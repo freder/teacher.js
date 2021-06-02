@@ -12,6 +12,7 @@ export const messageTypes = {
 	START_PRESENTATION: 'START_PRESENTATION',
 	END_PRESENTATION: 'END_PRESENTATION',
 	URL_CHANGED: 'URL_CHANGED',
+	WIKIPEDIA_SECTION_CHANGED: 'WIKIPEDIA_SECTION_CHANGED',
 };
 
 export const moduleTypes = {
@@ -32,20 +33,5 @@ export const initialModuleState: ModuleState = {
 	},
 };
 
-// TODO: does not need to be shared with the server
-// https://janus.conf.meetecho.com/docs/deploy
-export const janusServers = [
-	...(
-		(process.env.NODE_ENV === 'production')
-			? [
-				process.env.JANUS_URL_WSS,
-				process.env.JANUS_URL_HTTPS,
-			]
-			: [
-				process.env.JANUS_URL_WS,
-				process.env.JANUS_URL_HTTP,
-			]
-	)
-];
 // TODO: make configurable
 export const janusRoomId = 1234;

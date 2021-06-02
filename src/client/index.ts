@@ -25,7 +25,7 @@ import {
 	moduleTypes
 } from '../shared/constants';
 
-import { kastaliaUrl, presentationIframeId, serverUrl } from './constants';
+import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import type {
 	JanusInstance,
@@ -153,7 +153,7 @@ function setActiveModule(moduleName: string) {
 
 function startPresentation(kastaliaId: string) {
 	const payload: PresentationStartPayload = {
-		url: `${kastaliaUrl}/${kastaliaId}`
+		url: `${kastaliaBaseUrl}/${kastaliaId}`
 	};
 	const msg: Message<PresentationStartPayload> = {
 		authToken: get(userState).authToken,
@@ -321,7 +321,7 @@ async function main() {
 					payload: { state: data.state }
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
-			} else if (data.type === 'WIKIPEDIA_SECTION_CHANGED') {
+			} else if (data.type === messageTypes.WIKIPEDIA_SECTION_CHANGED) {
 				// TODO: use constant ↑
 				moduleState.update((prev) => ({
 					...prev,
