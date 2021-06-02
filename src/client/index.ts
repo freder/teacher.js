@@ -209,13 +209,10 @@ function handleExternalRevealStateChange(state: RevealState) {
 
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
-		// receives the actual wiki url à la
-		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
+		// receives the actual url of the wikipedia page,
 		// which we then proxy
-
 		const proxyUrl = `${serverUrl}/${proxyPathWikipedia}`;
 		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
-		// TODO: DRY. ↑ this is also used in the wikipedia snippet
 
 		const msg: Message<UrlPayload> = {
 			authToken: get(userState).authToken,
