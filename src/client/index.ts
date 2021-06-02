@@ -1,4 +1,3 @@
-import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
@@ -26,8 +25,13 @@ import {
 	moduleTypes,
 	proxyPathWikipedia
 } from '../shared/constants';
+import { getProxiedUrl } from '../shared/utils';
 
-import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
+import {
+	serverUrl,
+	kastaliaBaseUrl,
+	presentationIframeId,
+} from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
@@ -209,14 +213,8 @@ async function main() {
 		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
 		// which we then proxy
 
-		const url = new URL(wikipediaUrl);
-		const { hash } = url;
-		url.hash = '';
-		const { href } = url;
-
-		// encoded url but unencoded hash!
-		const encodedHref = encodeURIComponent(href);
-		const proxiedUrl = `${serverUrl}/${proxyPathWikipedia}/${encodedHref}${hash}`;
+		const proxyUrl = `${serverUrl}/${proxyPathWikipedia}`;
+		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
 		// TODO: DRY. ↑ this is also used in the wikipedia snippet
 
 		const msg: Message<UrlPayload> = {

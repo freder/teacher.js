@@ -1,17 +1,14 @@
 import { messageTypes, proxyPathWikipedia } from '../../shared/constants';
+import { getProxiedUrl } from '../../shared/utils';
 
 
 function updateLinks() {
 	const allLinks = document.querySelectorAll('a[href]');
 	allLinks.forEach((elem) => {
 		const wikipediaUrl = elem.getAttribute('href');
-		const { href, hash } = new URL(wikipediaUrl);
-		const encodedHref = encodeURIComponent(href);
-		// encoded url but unencoded hash!
-		elem.setAttribute(
-			'href',
-			`${location.origin}/${proxyPathWikipedia}/${encodedHref}${hash}`
-		);
+		const proxyUrl = `${location.origin}/${proxyPathWikipedia}`;
+		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
+		elem.setAttribute('href', proxiedUrl);
 	});
 }
 
