@@ -360,7 +360,7 @@ async function main() {
 				iframe.contentWindow.postMessage(
 					{
 						type: 'HYDROGEN_LOAD_ROOM',
-						payload: { matrixRoomId }
+						payload: { roomId: matrixRoomId }
 					},
 					'*'
 				);
