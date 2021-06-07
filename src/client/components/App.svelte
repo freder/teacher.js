@@ -3,6 +3,7 @@
 	import * as R from 'ramda';
 
 	import { getWikipediaTocUrl } from '../utils';
+	import { hydrogenBaseUrl } from '../constants';
 	import { moduleTypes } from '../../shared/constants';
 
 	import AudioControls from './AudioControls.svelte';
@@ -215,4 +216,17 @@
 			</div> -->
 		</div>
 	</div>
+
+	<iframe
+		src={`${hydrogenBaseUrl}/`}
+		frameborder="0"
+		style={`
+			position: fixed;
+			bottom: 20px;
+			left: 20px;
+			width: calc(100vw - 40px);
+			height: calc(100vh / 3);
+			border: solid 2px black;
+		`}
+	/>
 </div>
