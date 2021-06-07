@@ -20,7 +20,7 @@ function initSectionScrollHandler() {
 	// get section headlines
 	const headlines = [...document.querySelectorAll('#firstHeading, .mw-headline')];
 
-	let currentHash = undefined;
+	let currentHash: string = undefined;
 
 	// TODO: throttle
 	const scrollHandler = () => {
