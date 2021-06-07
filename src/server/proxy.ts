@@ -18,7 +18,7 @@ export function initProxy(app: express.Application): void {
 
 	// inject custom code snippet
 	const wikipediaSnippet = fs.readFileSync(
-		path.join(__dirname, 'snippets/wikipedia.js')
+		path.join(__dirname, 'snippets/wikipedia.ts')
 	).toString();
 	// http://.../proxy/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
 	// TODO: cache the output / response

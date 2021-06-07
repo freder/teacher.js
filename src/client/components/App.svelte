@@ -218,7 +218,8 @@
 	</div>
 
 	<iframe
-		src={`${hydrogenBaseUrl}/`}
+	id="hydrogen"
+		src={hydrogenBaseUrl}
 		frameborder="0"
 		style={`
 			position: fixed;

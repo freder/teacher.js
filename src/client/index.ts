@@ -26,7 +26,12 @@ import {
 	proxyPathWikipedia
 } from '../shared/constants';
 
-import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
+import {
+	kastaliaBaseUrl,
+	presentationIframeId,
+	serverUrl,
+	matrixRoomId,
+} from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import type {
 	JanusInstance,
@@ -350,6 +355,16 @@ async function main() {
 					payload: { url: data.url }
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
+			} else if (data.type === 'HYDROGEN_READY') {
+				const iframe = document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+				iframe.contentWindow.postMessage(
+					{
+						type: 'HYDROGEN_LOAD_ROOM',
+						payload: { matrixRoomId }
+					},
+					'*'
+				);
+				setUserName(data.payload.displayName);
 			}
 		});
 	});

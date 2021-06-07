@@ -27,5 +27,6 @@ export const wikipediaBaseUrl = 'https://en.wikipedia.org';
 
 // TODO: move this to .env file
 export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
+export const matrixRoomId = '!MnnWYJyaHwOLoMoWZV:m3x.baumhaus.digital';
 
 export const presentationIframeId = 'presentation-iframe';
