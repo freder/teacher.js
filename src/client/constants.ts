@@ -26,6 +26,6 @@ export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
 export const wikipediaBaseUrl = 'https://en.wikipedia.org';
 
 // TODO: move this to .env file
-export const hydrogenBaseUrl = 'https://0.teacher.solar:777/hydrogen';
+export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
 
 export const presentationIframeId = 'presentation-iframe';

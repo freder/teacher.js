@@ -37,7 +37,8 @@ const plugins = [
 		'JANUS_URL_WS',
 		'JANUS_URL_HTTP',
 		'JANUS_URL_WSS',
-		'JANUS_URL_HTTPS'
+		'JANUS_URL_HTTPS',
+		'HYDROGEN_URL',
 	]),
 ];
 if (NODE_ENV === 'production') {
