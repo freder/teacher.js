@@ -165,7 +165,9 @@
 						activeSectionHash={$moduleState.activeSectionHash}
 						url={
 							decodeURIComponent(
-								R.last($moduleState.url.split('/'))
+								R.last((
+									$moduleState.url || ''
+								).split('/'))
 							)
 						}
 					/>
