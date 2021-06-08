@@ -340,6 +340,10 @@ async function main() {
 				if (data.url === get(moduleState).url) {
 					return;
 				}
+				moduleState.update((prev) => ({
+					...prev,
+					url: data.url
+				}));
 				const msg: Message<UrlPayload> = {
 					authToken,
 					payload: { url: data.url }

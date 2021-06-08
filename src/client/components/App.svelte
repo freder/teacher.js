@@ -163,6 +163,11 @@
 						getWikipediaTocUrl={getWikipediaTocUrl}
 						wikiJumpToSection={wikiJumpToSection}
 						activeSectionHash={$moduleState.activeSectionHash}
+						url={
+							decodeURIComponent(
+								R.last($moduleState.url.split('/'))
+							)
+						}
 					/>
 				{/if}
 			{/if}

@@ -5,6 +5,7 @@
 	export let getWikipediaTocUrl;
 	export let wikiJumpToSection;
 	export let activeSectionHash;
+	export let url;
 
 	let wikipediaToc;
 
@@ -20,8 +21,10 @@
 </script>
 
 <input
+	style="min-width: 500px;"
 	type="text"
 	placeholder="Wikipedia URL"
+	bind:value={url}
 	on:keydown={(event) => {
 		if (event.key === 'Enter') {
 			handleUrl(event);
