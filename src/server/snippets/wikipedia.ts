@@ -12,6 +12,16 @@ function updateLinks() {
 	});
 }
 
+/*
+function removeNavigation() {
+	document.getElementById('mw-navigation').style.display='none';
+	document.getElementById('mw-page-base').style.display='none';
+	document.getElementById('mw-head-base').style.display='none';
+	document.getElementById('content').style.margin='0';
+}
+
+removeNavigation();
+*/
 
 function initSectionScrollHandler() {
 	// get section headlines
@@ -77,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const init = () => {
 	updateLinks();
+	//removeNavigation();
 	initSectionScrollHandler();
 };
 
