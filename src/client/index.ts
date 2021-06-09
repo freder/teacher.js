@@ -185,14 +185,6 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 function handleExternalRevealStateChange(state: RevealState) {
 	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
-	// if we're the one who originally caused the event, we will
-	// acknowledge it (see above), but not react to it.
-	const { adminIds } = get(roomState);
-	const { socketId } = get(userState);
-	if (adminIds.includes(socketId)) {
-		return;
-	}
-
 	// inform iframe
 	const iframe = document.querySelector(
 		`iframe#${presentationIframeId}`
