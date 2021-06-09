@@ -221,6 +221,17 @@ function setHydrogenRoom(roomId: string) {
 		},
 		'*'
 	);
+
+	const msg: Message<MatrixRoomPayload> = {
+		authToken: get(userState).authToken,
+		payload: { roomId }
+	};
+	socket.emit(messageTypes.MATRIX_ROOM_CHANGE, msg);
+
+	moduleState.update((prev) => ({
+		...prev,
+		matrixRoomId: roomId
+	}));
 }
 
 

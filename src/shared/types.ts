@@ -13,6 +13,10 @@ export interface UrlPayload extends AnyPayload {
 	url: string,
 }
 
+export interface MatrixRoomPayload extends AnyPayload {
+	roomId: string,
+}
+
 export interface ActiveModulePayload extends AnyPayload {
 	activeModule: string,
 }
@@ -57,4 +61,5 @@ export type ModuleState = {
 	presentationState: {
 		state: RevealState
 	},
+	matrixRoomId: string,
 };
