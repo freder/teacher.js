@@ -57,5 +57,5 @@
 	}}
 	style={`display: ${activeSectionHash === '' ? 'none' : 'unset'};`}
 >
-	broadcast {activeSectionHash}
+	↳ {activeSectionHash}
 </button>
