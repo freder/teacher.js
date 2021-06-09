@@ -41,6 +41,13 @@ then open `http://localhost:8080`.
 npm run build:prod
 ```
 
+building hydrogen:
+
+```shell
+cd src/hydrogen
+npm run build # output will be in src/hydrogen/target
+```
+
 
 ## deploy
 
