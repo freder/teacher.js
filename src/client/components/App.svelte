@@ -2,7 +2,6 @@
 	import { derived } from 'svelte/store';
 	import * as R from 'ramda';
 
-	import { getWikipediaTocUrl } from '../utils';
 	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
 
 	import AudioControls from './AudioControls.svelte';
@@ -160,7 +159,6 @@
 				{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
 					<WikipediaControls
 						setWikiUrl={setWikiUrl}
-						getWikipediaTocUrl={getWikipediaTocUrl}
 						wikiJumpToSection={wikiJumpToSection}
 						activeSectionHash={$moduleState.activeSectionHash}
 						url={

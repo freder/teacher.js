@@ -2,7 +2,7 @@
 	import { serverUrl } from '../constants';
 
 	export let setWikiUrl;
-	export let getWikipediaTocUrl;
+	// export let getWikipediaTocUrl;
 	export let wikiJumpToSection;
 	export let activeSectionHash;
 	export let url;
@@ -13,10 +13,10 @@
 		const wikipediaUrl = event.target.value;
 		setWikiUrl(wikipediaUrl);
 		event.target.blur();
-		const url = getWikipediaTocUrl(wikipediaUrl);
-		fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
-			.then((res) => res.json())
-			.then((toc) => { wikipediaToc = toc.parse.sections; });
+		// const url = getWikipediaTocUrl(wikipediaUrl);
+		// fetch(`${serverUrl}/proxy/${encodeURIComponent(url)}`)
+		// 	.then((res) => res.json())
+		// 	.then((toc) => { wikipediaToc = toc.parse.sections; });
 	};
 </script>
 
