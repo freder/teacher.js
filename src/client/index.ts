@@ -352,7 +352,6 @@ async function main() {
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			} else if (data.type === messageTypes.WIKIPEDIA_SECTION_CHANGED) {
-				// TODO: use constant ↑
 				moduleState.update((prev) => ({
 					...prev,
 					activeSectionHash: data.hash,

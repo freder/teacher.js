@@ -2,7 +2,7 @@ export type AnyPayload = Record<string, unknown>;
 export type EmptyPayload = Record<string, never>;
 
 export interface RevealStateChangePayload extends AnyPayload {
-	state: RevealState,
+	state: Partial<RevealState>,
 }
 
 export interface PresentationStartPayload extends AnyPayload {
@@ -59,7 +59,7 @@ export type ModuleState = {
 	url?: string,
 	activeSectionHash?: string,
 	presentationState: {
-		state: RevealState
+		state: Partial<RevealState>
 	},
 	matrixRoomId: string,
 };

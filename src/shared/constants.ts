@@ -32,7 +32,7 @@ export const initialModuleState: ModuleState = {
 	url: null,
 	matrixRoomId: null,
 	presentationState: {
-		state: null
+		state: {}
 	},
 };
 
