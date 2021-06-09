@@ -43,14 +43,15 @@ export function initProxy(app: express.Application): void {
 					)
 					// ... anything else should end up being rewritten
 					// as absolute / complete URL:
-					.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display:none;"')
-					.replace(/id="content"/,'id="content" style="margin:0;"')
 					.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
 					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
 					.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
 					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
 					// inject custom code snippet
-					.replace('</body>', `<script src="${frontendUrl}/wikipedia-snippet.js"></script></body>`);
+					.replace('</body>', `<script src="${frontendUrl}/wikipedia-snippet.js"></script></body>`)
+					// remove navigation
+					.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display:none;"')
+					.replace(/id="content"/,'id="content" style="margin:0;"');
 				res.send(output);
 			});
 	});
