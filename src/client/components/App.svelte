@@ -30,7 +30,7 @@
 	export let startAudio;
 	export let stopAudio;
 	export let toggleMute;
-	export let setUserName;
+	// export let setUserName;
 	export let setHydrogenRoom;
 
 	let kastaliaId;
@@ -64,20 +64,20 @@
 		event.target.value = '';
 	}
 
-	const updateName = () => {
-		const name = prompt();
-		// can't be empty
-		if (!name || name.trim() === '') {
-			return;
-		}
-		// force unique
-		const names = $roomState.users.map(({ name }) => name);
-		if (names.includes(name)) {
-			alert('name is already taken');
-			return;
-		}
-		setUserName(name);
-	};
+	// const updateName = () => {
+	// 	const name = prompt();
+	// 	// can't be empty
+	// 	if (!name || name.trim() === '') {
+	// 		return;
+	// 	}
+	// 	// force unique
+	// 	const names = $roomState.users.map(({ name }) => name);
+	// 	if (names.includes(name)) {
+	// 		alert('name is already taken');
+	// 		return;
+	// 	}
+	// 	setUserName(name);
+	// };
 </script>
 
 <style>
@@ -190,10 +190,6 @@
 	<div id="main">
 		<div id="panel">
 			<div class="padded">
-				<button on:click={updateName}>
-					set user name
-				</button>
-
 				<AudioControls
 					audioState={audioState}
 					startAudio={startAudio}
