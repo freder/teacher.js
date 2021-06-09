@@ -35,7 +35,12 @@
 {#if wikipediaToc}
 	<span>section: </span>
 	<!-- svelte-ignore a11y-no-onchange -->
-	<select on:change={wikiJumpToSection}>
+	<select
+		on:change={(event) => {
+			wikiJumpToSection('#' + event.target.value);
+			event.target.value = '';
+		}}
+	>
 		<option value="">[select to jump]</option>
 		{#each wikipediaToc as section}
 			<option value={section.anchor}>
@@ -46,15 +51,7 @@
 {/if}
 
 <button
-	on:click={() => {
-		wikiJumpToSection({
-			// send fake event
-			// TODO: clean this up
-			target: {
-				value: activeSectionHash.replace(/^#/ig, '')
-			}
-		});
-	}}
+	on:click={() => wikiJumpToSection(activeSectionHash)}
 	style={`display: ${activeSectionHash === '' ? 'none' : 'unset'};`}
 >
 	↳ {activeSectionHash}

@@ -44,16 +44,14 @@
 		setActiveModule, [moduleTypes.WIKIPEDIA]
 	);
 
-	const wikiJumpToSection = (event) => {
-		const anchor = event.target.value;
+	const wikiJumpToSection = (hash) => {
 		const proxiedUrl = $moduleState.url;
 		const wikipediaUrl = decodeURIComponent(
 			proxiedUrl.split(`/${proxyPathWikipedia}/`)[1]
 		);
 		const url = new URL(wikipediaUrl);
-		url.hash = `#${anchor}`;
+		url.hash = hash;
 		setWikiUrl(url.toString());
-		event.target.value = '';
 	}
 
 	const updateName = () => {
