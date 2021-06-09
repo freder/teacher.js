@@ -212,6 +212,18 @@ function handleExternalRevealStateChange(state: RevealState) {
 }
 
 
+function setHydrogenRoom(roomId: string) {
+	const iframe = document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+	iframe.contentWindow.postMessage(
+		{
+			type: 'HYDROGEN_LOAD_ROOM',
+			payload: { roomId }
+		},
+		'*'
+	);
+}
+
+
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
 		// receives the actual wiki url à la
@@ -248,6 +260,7 @@ async function main() {
 			claimAdmin,
 			setUserName,
 			setActiveModule,
+			setHydrogenRoom,
 			setWikiUrl,
 			startPres: startPresentation,
 			stopPres: stopPresentation,
@@ -356,14 +369,7 @@ async function main() {
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
 			} else if (data.type === 'HYDROGEN_READY') {
-				const iframe = document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
-				iframe.contentWindow.postMessage(
-					{
-						type: 'HYDROGEN_LOAD_ROOM',
-						payload: { roomId: matrixRoomId }
-					},
-					'*'
-				);
+				setHydrogenRoom(matrixRoomId);
 				setUserName(data.payload.displayName);
 			}
 		});

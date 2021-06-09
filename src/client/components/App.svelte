@@ -31,6 +31,7 @@
 	export let stopAudio;
 	export let toggleMute;
 	export let setUserName;
+	export let setHydrogenRoom;
 
 	let kastaliaId;
 
@@ -177,7 +178,10 @@
 						activeSectionHash={$moduleState.activeSectionHash}
 					/>
 				{:else if $moduleState.activeModule === moduleTypes.CHAT}
-					<ChatControls />
+					<ChatControls
+						roomId={$moduleState.matrixRoomId}
+						setHydrogenRoom={setHydrogenRoom}
+					/>
 				{/if}
 			{/if}
 		</div>
