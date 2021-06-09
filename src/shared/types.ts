@@ -45,6 +45,7 @@ export type RevealState = {
 export type UserInfo = {
 	name: string,
 	socketId: string,
+	matrixUserId?: string,
 	connected?: boolean,
 	muted?: boolean,
 };

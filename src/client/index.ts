@@ -117,9 +117,7 @@ function sendUserInfo() {
 	const as = get(audioState);
 	const msg: Message<UserInfo> = {
 		payload: {
-			name: us.name,
-			socketId: us.socketId,
-			connected: as.connected,
+			...R.omit(['authToken'], us),
 			muted: as.muted,
 		}
 	};
@@ -379,8 +377,13 @@ async function main() {
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
 			} else if (data.type === 'HYDROGEN_READY') {
+				const { userId, displayName } = data.payload;
+				userState.update((prev) => ({
+					...prev,
+					matrixUserId: userId
+				}));
 				setHydrogenRoom(matrixRoomId);
-				setUserName(data.payload.displayName);
+				setUserName(displayName);
 			}
 		});
 	});

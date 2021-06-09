@@ -215,15 +215,18 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
+				{#if (
+					!$userState.matrixUserId ||
+					$moduleState.activeModule === moduleTypes.CHAT
+				)}
+					<Chat login={!$userState.matrixUserId} />
+				{:else if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
 						url={$moduleState.url}
 						onPresentationLoaded={onPresentationLoaded}
 					/>
 				{:else if ($moduleState.activeModule === moduleTypes.WIKIPEDIA) && $moduleState.url}
 					<Wikipedia url={$moduleState.url} />
-				{:else if ($moduleState.activeModule === moduleTypes.CHAT)}
-					<Chat />
 				{/if}
 			</div>
 
