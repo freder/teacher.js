@@ -10,6 +10,11 @@
 ## setup
 
 ```shell
+git clone -recursive <this-repo> teacher.solar
+cd teacher.solar
+npm install
+
+cd src/hydrogen
 npm install
 ```
 
@@ -24,8 +29,10 @@ rename `src/.env-example` to `src/.env` (and edit, if necessary).
 - run server: `DEBUG='T.S:*' npm run server`
 	- uses https://github.com/visionmedia/debug#readme for logging
 - run dev server (client): `npm run dev`
+- run hydrogen dev server: `cd src/hydrogen ; npm run start`
+	- runs on port 3001 by default
 
-then open `http://localhost:8080`. to assume the teacher role, open `http://localhost:8080/#admin`.
+then open `http://localhost:8080`.
 
 
 ## build
