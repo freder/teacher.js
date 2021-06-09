@@ -10,6 +10,8 @@
 	import ParticipantsList from './ParticipantsList.svelte';
 	import Wikipedia from './Wikipedia.svelte';
 	import WikipediaControls from './WikipediaControls.svelte';
+	import Chat from './Chat.svelte';
+	import ChatControls from './ChatControls.svelte';
 	import Presentation from './Presentation.svelte';
 	import PresentationControls from './PresentationControls.svelte';
 	// import EventLog from './EventLog.svelte';
@@ -44,6 +46,9 @@
 	);
 	const activateWikipedia = R.partial(
 		setActiveModule, [moduleTypes.WIKIPEDIA]
+	);
+	const activateChat = R.partial(
+		setActiveModule, [moduleTypes.CHAT]
 	);
 
 	const wikiJumpToSection = (event) => {
@@ -150,6 +155,12 @@
 				>
 					Wikipedia
 				</button>
+				<button
+					class:active={$moduleState.activeModule === moduleTypes.CHAT}
+					on:click={activateChat}
+				>
+					Chat
+				</button>
 
 				<!-- CONTEXTUAL OPTIONS -->
 				{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
@@ -165,6 +176,8 @@
 						wikiJumpToSection={wikiJumpToSection}
 						activeSectionHash={$moduleState.activeSectionHash}
 					/>
+				{:else if $moduleState.activeModule === moduleTypes.CHAT}
+					<ChatControls />
 				{/if}
 			{/if}
 		</div>
@@ -205,6 +218,8 @@
 					/>
 				{:else if ($moduleState.activeModule === moduleTypes.WIKIPEDIA) && $moduleState.url}
 					<Wikipedia url={$moduleState.url} />
+				{:else if ($moduleState.activeModule === moduleTypes.CHAT)}
+					<Chat />
 				{/if}
 			</div>
 
@@ -216,18 +231,4 @@
 			</div> -->
 		</div>
 	</div>
-
-	<iframe
-	id="hydrogen"
-		src={hydrogenBaseUrl}
-		frameborder="0"
-		style={`
-			position: fixed;
-			bottom: 20px;
-			left: 20px;
-			width: calc(100vw - 40px);
-			height: calc(100vh / 3);
-			border: solid 2px black;
-		`}
-	/>
 </div>

@@ -18,6 +18,7 @@ export const messageTypes = {
 export const moduleTypes = {
 	PRESENTATION: 'PRESENTATION',
 	WIKIPEDIA: 'WIKIPEDIA',
+	CHAT: 'CHAT',
 };
 
 export const initialRoomState: RoomState = {
