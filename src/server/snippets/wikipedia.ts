@@ -1,20 +1,41 @@
 import { messageTypes, proxyPathWikipedia } from '../../shared/constants';
+import { getProxiedUrl } from '../../shared/utils';
 
 
 function updateLinks() {
 	const allLinks = document.querySelectorAll('a[href]');
 	allLinks.forEach((elem) => {
 		const wikipediaUrl = elem.getAttribute('href');
-		const { href, hash } = new URL(wikipediaUrl);
-		const encodedHref = encodeURIComponent(href);
-		// encoded url but unencoded hash!
-		elem.setAttribute(
-			'href',
-			`${location.origin}/${proxyPathWikipedia}/${encodedHref}${hash}`
-		);
+		const proxyUrl = `${location.origin}/${proxyPathWikipedia}`;
+		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
+		elem.setAttribute('href', proxiedUrl);
+
+		// instead of sending an URL change event on 'DOMContentLoaded',
+		// we send it right as the link is being clicked:
+		elem.addEventListener('click', (event) => {
+			// don't actually go there
+			event.preventDefault();
+
+			// let parent take care of it instead
+			const data = {
+				type: messageTypes.URL_CHANGED,
+				url: proxiedUrl,
+			};
+			window.parent.postMessage(data, '*');
+		});
 	});
 }
 
+/*
+function removeNavigation() {
+	document.getElementById('mw-navigation').style.display='none';
+	document.getElementById('mw-page-base').style.display='none';
+	document.getElementById('mw-head-base').style.display='none';
+	document.getElementById('content').style.margin='0';
+}
+
+removeNavigation();
+*/
 
 function initSectionScrollHandler() {
 	// get section headlines
@@ -68,18 +89,9 @@ function initSectionScrollHandler() {
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
-	// on page load (e.g. after cliking a link inside the iframe):
-	// notify parent about the current URL, as it is not observable from the outside
-	const data = {
-		type: messageTypes.URL_CHANGED,
-		url: location.href,
-	};
-	window.parent.postMessage(data, '*');
-});
-
 const init = () => {
 	updateLinks();
+	//removeNavigation();
 	initSectionScrollHandler();
 };
 

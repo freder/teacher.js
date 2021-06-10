@@ -1,32 +1,38 @@
-import fs from 'fs';
-import path from 'path';
-
 import fetch from 'node-fetch';
 import type express from 'express';
 
 import { proxyPathWikipedia } from '../shared/constants';
 
 
+const {
+	FRONTEND_PROTOCOL,
+	FRONTEND_HOST,
+	FRONTEND_PORT,
+	FRONTEND_PATH,
+} = process.env;
+const frontendUrl = `${FRONTEND_PROTOCOL}://${FRONTEND_HOST}:${FRONTEND_PORT}/${FRONTEND_PATH}`;
+
+
 export function initProxy(app: express.Application): void {
 	// generic proxy to bypass CORS, etc.
 	app.get('/proxy/:url', (req, res) => {
-		const urlStr = decodeURIComponent(req.params.url);
-		fetch(urlStr)
+		const url = new URL(
+			decodeURIComponent(req.params.url)
+		);
+		fetch(url.toString())
 			.then((res) => res.text())
 			.then((txt) => res.send(txt));
 	});
 
-	// inject custom code snippet
-	const wikipediaSnippet = fs.readFileSync(
-		path.join(__dirname, 'snippets/wikipedia.ts')
-	).toString();
 	// http://.../proxy/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
 	// TODO: cache the output / response
 	app.get(`/${proxyPathWikipedia}/:url`, (req, res) => {
-		const urlStr = decodeURIComponent(req.params.url);
-		const url = new URL(urlStr);
+		// decode url and remove hash
+		const url = new URL(
+			decodeURIComponent(req.params.url)
+		);
 		url.hash = '';
-		fetch(urlStr)
+		fetch(url.toString())
 			.then((res) => res.text())
 			.then((htmlStr) => {
 				const output = htmlStr
@@ -41,7 +47,11 @@ export function initProxy(app: express.Application): void {
 					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
 					.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
 					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
-					.replace('</body>', `<script>${wikipediaSnippet}</script></body>`);
+					// inject custom code snippet
+					.replace('</body>', `<script src="${frontendUrl}/wikipedia-snippet.js"></script></body>`)
+					// remove navigation
+					.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display:none;"')
+					.replace(/id="content"/,'id="content" style="margin:0;"');
 				res.send(output);
 			});
 	});

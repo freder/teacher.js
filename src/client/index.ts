@@ -1,4 +1,3 @@
-import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
@@ -26,8 +25,13 @@ import {
 	moduleTypes,
 	proxyPathWikipedia
 } from '../shared/constants';
+import { getProxiedUrl } from '../shared/utils';
 
-import { kastaliaBaseUrl, presentationIframeId, serverUrl } from './constants';
+import {
+	serverUrl,
+	kastaliaBaseUrl,
+	presentationIframeId,
+} from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
 require('./styles.css');
@@ -181,14 +185,6 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 function handleExternalRevealStateChange(state: RevealState) {
 	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
-	// if we're the one who originally caused the event, we will
-	// acknowledge it (see above), but not react to it.
-	const { adminIds } = get(roomState);
-	const { socketId } = get(userState);
-	if (adminIds.includes(socketId)) {
-		return;
-	}
-
 	// inform iframe
 	const iframe = document.querySelector(
 		`iframe#${presentationIframeId}`
@@ -205,19 +201,14 @@ function handleExternalRevealStateChange(state: RevealState) {
 
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
-		// receives the actual wiki url à la
-		// https://en.wikipedia.org/wiki/Documentary_Now!#Episodes
+		// receives the actual url of the wikipedia page,
 		// which we then proxy
-
-		const url = new URL(wikipediaUrl);
-		const { hash } = url;
-		url.hash = '';
-		const { href } = url;
-
-		// encoded url but unencoded hash!
-		const encodedHref = encodeURIComponent(href);
-		const proxiedUrl = `${serverUrl}/${proxyPathWikipedia}/${encodedHref}${hash}`;
-		// TODO: DRY. ↑ this is also used in the wikipedia snippet
+		const regex=/https?:/;
+		if (!regex.test(wikipediaUrl)) {
+			wikipediaUrl='https://en.wikipedia.org/wiki/'+wikipediaUrl;
+		}
+		const proxyUrl = `${serverUrl}/${proxyPathWikipedia}`;
+		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
 
 		const msg: Message<UrlPayload> = {
 			authToken: get(userState).authToken,
@@ -341,6 +332,10 @@ async function main() {
 				if (data.url === get(moduleState).url) {
 					return;
 				}
+				moduleState.update((prev) => ({
+					...prev,
+					url: data.url
+				}));
 				const msg: Message<UrlPayload> = {
 					authToken,
 					payload: { url: data.url }

@@ -2,8 +2,7 @@
 	import { derived } from 'svelte/store';
 	import * as R from 'ramda';
 
-	import { getWikipediaTocUrl } from '../utils';
-	import { moduleTypes } from '../../shared/constants';
+	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
 
 	import AudioControls from './AudioControls.svelte';
 	import ParticipantsList from './ParticipantsList.svelte';
@@ -45,16 +44,14 @@
 		setActiveModule, [moduleTypes.WIKIPEDIA]
 	);
 
-	const wikiJumpToSection = (event) => {
-		const anchor = event.target.value;
+	const wikiJumpToSection = (hash) => {
 		const proxiedUrl = $moduleState.url;
 		const wikipediaUrl = decodeURIComponent(
 			proxiedUrl.split(`/${proxyPathWikipedia}/`)[1]
 		);
 		const url = new URL(wikipediaUrl);
-		url.hash = `#${anchor}`;
+		url.hash = hash;
 		setWikiUrl(url.toString());
-		event.target.value = '';
 	}
 
 	const updateName = () => {
@@ -160,9 +157,15 @@
 				{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
 					<WikipediaControls
 						setWikiUrl={setWikiUrl}
-						getWikipediaTocUrl={getWikipediaTocUrl}
 						wikiJumpToSection={wikiJumpToSection}
 						activeSectionHash={$moduleState.activeSectionHash}
+						url={
+							decodeURIComponent(
+								R.last((
+									$moduleState.url || ''
+								).split('/'))
+							)
+						}
 					/>
 				{/if}
 			{/if}
