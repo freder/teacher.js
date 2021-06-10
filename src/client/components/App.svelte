@@ -31,7 +31,10 @@
 	// export let setUserName;
 	export let setHydrogenRoom;
 
+	// TODO: needed?
 	let kastaliaId;
+	let headerIsOpen = true;
+	let panelIsOpen = true;
 
 	const role = derived(
 		roomState,
@@ -92,6 +95,14 @@
 		background: var(--header-color);
 		border-bottom: solid 2px black;
 	}
+	#header.open {
+		padding: var(--padding);
+	}
+	#header.closed {
+		padding: 0;
+		height: 0;
+		overflow: hidden;
+	}
 
 	#main {
 		flex: 1;
@@ -101,8 +112,13 @@
 	#panel {
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: var(--panel-width);
 		border-right: solid 2px black;
+	}
+	#panel.open {
+		width: var(--panel-width);
+	}
+	#panel.closed {
+		width: 0;
 	}
 
 	#content-container {
@@ -127,20 +143,53 @@
 	.hidden-during-login {
 		visibility: hidden;
 	}
+
+	.toggle-button-container {
+		position: fixed;
+		z-index: 999;
+	}
 </style>
+
+<div
+	class={`
+		toggle-button-container
+		${$isLoggedIn ? '' : 'hidden-during-login'}
+	`}
+	style={`
+		right: var(--padding);
+		top: var(--padding);
+		${($role === 'admin') ? '' : 'display: none'}
+	`}
+>
+	<button
+		on:click={() => { headerIsOpen = !headerIsOpen; }}
+	>toggle</button>
+</div>
+<div
+	class={`
+		toggle-button-container
+		${$isLoggedIn ? '' : 'hidden-during-login'}
+	`}
+	style={`
+		left: var(--padding);
+		bottom: var(--padding);
+	`}
+>
+	<button
+		on:click={() => { panelIsOpen = !panelIsOpen; }}
+	>toggle</button>
+</div>
 
 <div id="container">
 	<div
 		id="header"
 		class={`
-			${($role === 'admin') ? 'padded' : '' }
+			${(headerIsOpen)
+				? ($role === 'admin') ? 'open' : 'closed'
+				: 'closed'
+			}
 			${$isLoggedIn ? '' : 'hidden-during-login'}
 		`}
-		style={
-			($role !== 'admin')
-				? 'padding: 0; height: 0;'
-				: ''
-		}
 	>
 		{#if $role === 'admin'}
 			<!-- TABS -->
@@ -196,6 +245,7 @@
 		<div
 			id="panel"
 			class={`
+				${panelIsOpen ? 'open' : 'closed'}
 				${$isLoggedIn ? '' : 'hidden-during-login'}
 			`}
 		>
