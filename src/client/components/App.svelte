@@ -42,6 +42,11 @@
 			: 'user'
 	);
 
+	const isLoggedIn = derived(
+		userState,
+		($userState) => Boolean($userState.matrixUserId)
+	);
+
 	const activatePresentation = R.partial(
 		setActiveModule, [moduleTypes.PRESENTATION]
 	);
@@ -129,10 +134,20 @@
 		flex-grow: 0;
 		max-height: 100px;
 	} */
+
+	.hidden-during-login {
+		visibility: hidden;
+	}
 </style>
 
 <div id="container">
-	<div id="header" class="padded">
+	<div
+		id="header"
+		class={`
+			padded
+			${$isLoggedIn ? '' : 'hidden-during-login'}
+		`}
+	>
 		<div>
 			{#if $role !== 'admin'}
 				<button on:click={claimAdmin}>
@@ -188,7 +203,12 @@
 	</div>
 
 	<div id="main">
-		<div id="panel">
+		<div
+			id="panel"
+			class={`
+				${$isLoggedIn ? '' : 'hidden-during-login'}
+			`}
+		>
 			<div class="padded">
 				<AudioControls
 					audioState={audioState}
@@ -212,10 +232,10 @@
 		<div id="content-container">
 			<div style="flex: 1;">
 				{#if (
-					!$userState.matrixUserId ||
+					!$isLoggedIn ||
 					$moduleState.activeModule === moduleTypes.CHAT
 				)}
-					<Chat login={!$userState.matrixUserId} />
+					<Chat login={!$isLoggedIn} />
 				{:else if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
 						url={$moduleState.url}
