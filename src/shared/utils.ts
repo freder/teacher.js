@@ -1,4 +1,4 @@
-import * as R from 'ramda';
+// import * as R from 'ramda';
 
 
 export function getProxiedUrl(
@@ -33,7 +33,12 @@ export function getProxiedUrl(
 
 
 export function urlFromProxiedUrl(proxiedUrl: string): string {
+	// TODO: why on earth does R.last cause problems?!
+	// looks like as soon as we use a ramda function, wikipedia-snippet.js
+	// will not execute anymore!
+	const parts = (proxiedUrl || '').split('/');
 	return decodeURIComponent(
-		R.last((proxiedUrl || '').split('/'))
+		parts[parts.length - 1]
+		// R.last(parts)
 	);
 }
