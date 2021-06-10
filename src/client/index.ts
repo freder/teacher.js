@@ -34,6 +34,7 @@ import {
 	kastaliaBaseUrl,
 	presentationIframeId,
 	matrixRoomId,
+	wikipediaBaseUrl,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
@@ -227,10 +228,13 @@ async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
 		// receives the actual url of the wikipedia page,
 		// which we then proxy
-		const regex=/https?:/;
+
+		// wikipediaUrl can be a URL or just one or more words
+		const regex = /https?:/;
 		if (!regex.test(wikipediaUrl)) {
-			wikipediaUrl='https://en.wikipedia.org/wiki/'+wikipediaUrl;
+			wikipediaUrl = `${wikipediaBaseUrl}/wiki/${wikipediaUrl}`;
 		}
+
 		const proxyUrl = `${serverUrl}/${proxyPathWikipedia}`;
 		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
 
