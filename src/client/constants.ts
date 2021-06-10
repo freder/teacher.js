@@ -25,4 +25,7 @@ export const janusServers = [
 export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
 export const wikipediaBaseUrl = 'https://en.wikipedia.org';
 
+export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
+export const matrixRoomId = '!MnnWYJyaHwOLoMoWZV:m3x.baumhaus.digital';
+
 export const presentationIframeId = 'presentation-iframe';

@@ -1,0 +1,4 @@
+[submodule "src/hydrogen"]
+	path = src/hydrogen
+	url = https://scm.medienhaus.udk-berlin.de/freder/hydrogen-embed
+	branch = teacher-solar

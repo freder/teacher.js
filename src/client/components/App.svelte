@@ -8,6 +8,8 @@
 	import ParticipantsList from './ParticipantsList.svelte';
 	import Wikipedia from './Wikipedia.svelte';
 	import WikipediaControls from './WikipediaControls.svelte';
+	import Chat from './Chat.svelte';
+	import ChatControls from './ChatControls.svelte';
 	import Presentation from './Presentation.svelte';
 	import PresentationControls from './PresentationControls.svelte';
 	// import EventLog from './EventLog.svelte';
@@ -26,7 +28,8 @@
 	export let startAudio;
 	export let stopAudio;
 	export let toggleMute;
-	export let setUserName;
+	// export let setUserName;
+	export let setHydrogenRoom;
 
 	let kastaliaId;
 
@@ -37,11 +40,19 @@
 			: 'user'
 	);
 
+	const isLoggedIn = derived(
+		userState,
+		($userState) => Boolean($userState.matrixUserId)
+	);
+
 	const activatePresentation = R.partial(
 		setActiveModule, [moduleTypes.PRESENTATION]
 	);
 	const activateWikipedia = R.partial(
 		setActiveModule, [moduleTypes.WIKIPEDIA]
+	);
+	const activateChat = R.partial(
+		setActiveModule, [moduleTypes.CHAT]
 	);
 
 	const wikiJumpToSection = (hash) => {
@@ -54,20 +65,20 @@
 		setWikiUrl(url.toString());
 	}
 
-	const updateName = () => {
-		const name = prompt();
-		// can't be empty
-		if (!name || name.trim() === '') {
-			return;
-		}
-		// force unique
-		const names = $roomState.users.map(({ name }) => name);
-		if (names.includes(name)) {
-			alert('name is already taken');
-			return;
-		}
-		setUserName(name);
-	};
+	// const updateName = () => {
+	// 	const name = prompt();
+	// 	// can't be empty
+	// 	if (!name || name.trim() === '') {
+	// 		return;
+	// 	}
+	// 	// force unique
+	// 	const names = $roomState.users.map(({ name }) => name);
+	// 	if (names.includes(name)) {
+	// 		alert('name is already taken');
+	// 		return;
+	// 	}
+	// 	setUserName(name);
+	// };
 </script>
 
 <style>
@@ -119,10 +130,20 @@
 		flex-grow: 0;
 		max-height: 100px;
 	} */
+
+	.hidden-during-login {
+		visibility: hidden;
+	}
 </style>
 
 <div id="container">
-	<div id="header" class="padded">
+	<div
+		id="header"
+		class={`
+			padded
+			${$isLoggedIn ? '' : 'hidden-during-login'}
+		`}
+	>
 		<div>
 			{#if $role !== 'admin'}
 				<button on:click={claimAdmin}>
@@ -146,6 +167,12 @@
 				>
 					Wikipedia
 				</button>
+				<button
+					class:active={$moduleState.activeModule === moduleTypes.CHAT}
+					on:click={activateChat}
+				>
+					Chat
+				</button>
 
 				<!-- CONTEXTUAL OPTIONS -->
 				{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
@@ -167,18 +194,24 @@
 							)
 						}
 					/>
+				{:else if $moduleState.activeModule === moduleTypes.CHAT}
+					<ChatControls
+						roomId={$moduleState.matrixRoomId}
+						setHydrogenRoom={setHydrogenRoom}
+					/>
 				{/if}
 			{/if}
 		</div>
 	</div>
 
 	<div id="main">
-		<div id="panel">
+		<div
+			id="panel"
+			class={`
+				${$isLoggedIn ? '' : 'hidden-during-login'}
+			`}
+		>
 			<div class="padded">
-				<button on:click={updateName}>
-					set user name
-				</button>
-
 				<AudioControls
 					audioState={audioState}
 					startAudio={startAudio}
@@ -200,7 +233,12 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
+				{#if (
+					!$isLoggedIn ||
+					$moduleState.activeModule === moduleTypes.CHAT
+				)}
+					<Chat login={!$isLoggedIn} />
+				{:else if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
 						url={$moduleState.url}
 						onPresentationLoaded={onPresentationLoaded}

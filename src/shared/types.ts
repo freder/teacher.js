@@ -2,7 +2,7 @@ export type AnyPayload = Record<string, unknown>;
 export type EmptyPayload = Record<string, never>;
 
 export interface RevealStateChangePayload extends AnyPayload {
-	state: RevealState,
+	state: Partial<RevealState>,
 }
 
 export interface PresentationStartPayload extends AnyPayload {
@@ -11,6 +11,10 @@ export interface PresentationStartPayload extends AnyPayload {
 
 export interface UrlPayload extends AnyPayload {
 	url: string,
+}
+
+export interface MatrixRoomPayload extends AnyPayload {
+	roomId: string,
 }
 
 export interface ActiveModulePayload extends AnyPayload {
@@ -41,6 +45,7 @@ export type RevealState = {
 export type UserInfo = {
 	name: string,
 	socketId: string,
+	matrixUserId?: string,
 	connected?: boolean,
 	muted?: boolean,
 };
@@ -55,6 +60,7 @@ export type ModuleState = {
 	url?: string,
 	activeSectionHash?: string,
 	presentationState: {
-		state: RevealState
+		state: Partial<RevealState>
 	},
+	matrixRoomId: string,
 };

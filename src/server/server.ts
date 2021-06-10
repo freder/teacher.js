@@ -166,6 +166,12 @@ const wsMessages = [
 		handler: defaultHandler(moduleStore),
 		logFn: logRoomEvent,
 	},
+	{
+		type: messageTypes.MATRIX_ROOM_CHANGE,
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logRoomEvent,
+	},
 
 	// these ones are only between client and server
 	{

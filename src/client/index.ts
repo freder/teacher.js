@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
@@ -31,6 +32,7 @@ import {
 	serverUrl,
 	kastaliaBaseUrl,
 	presentationIframeId,
+	matrixRoomId,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
@@ -112,9 +114,7 @@ function sendUserInfo() {
 	const as = get(audioState);
 	const msg: Message<UserInfo> = {
 		payload: {
-			name: us.name,
-			socketId: us.socketId,
-			connected: as.connected,
+			...R.omit(['authToken'], us),
 			muted: as.muted,
 		}
 	};
@@ -199,6 +199,29 @@ function handleExternalRevealStateChange(state: RevealState) {
 }
 
 
+function setHydrogenRoom(roomId: string) {
+	const iframe = document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+	iframe.contentWindow.postMessage(
+		{
+			type: 'HYDROGEN_LOAD_ROOM',
+			payload: { roomId }
+		},
+		'*'
+	);
+
+	const msg: Message<MatrixRoomPayload> = {
+		authToken: get(userState).authToken,
+		payload: { roomId }
+	};
+	socket.emit(messageTypes.MATRIX_ROOM_CHANGE, msg);
+
+	moduleState.update((prev) => ({
+		...prev,
+		matrixRoomId: roomId
+	}));
+}
+
+
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
 		// receives the actual url of the wikipedia page,
@@ -225,11 +248,12 @@ async function main() {
 			userState,
 			roomState,
 			moduleState,
-			uiState,
+			// uiState,
 			audioState,
 			claimAdmin,
-			setUserName,
+			// setUserName,
 			setActiveModule,
+			setHydrogenRoom,
 			setWikiUrl,
 			startPres: startPresentation,
 			stopPres: stopPresentation,
@@ -310,7 +334,6 @@ async function main() {
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
 			} else if (data.type === messageTypes.WIKIPEDIA_SECTION_CHANGED) {
-				// TODO: use constant ↑
 				moduleState.update((prev) => ({
 					...prev,
 					activeSectionHash: data.hash,
@@ -341,6 +364,14 @@ async function main() {
 					payload: { url: data.url }
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
+			} else if (data.type === 'HYDROGEN_READY') {
+				const { userId, displayName } = data.payload;
+				userState.update((prev) => ({
+					...prev,
+					matrixUserId: userId
+				}));
+				setHydrogenRoom(matrixRoomId);
+				setUserName(displayName);
 			}
 		});
 	});

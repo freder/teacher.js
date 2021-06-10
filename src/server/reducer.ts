@@ -8,6 +8,7 @@ import {
 } from '../shared/constants';
 import type {
 	ActiveModulePayload,
+	MatrixRoomPayload,
 	Message,
 	ModuleState,
 	PresentationStartPayload,
@@ -149,6 +150,12 @@ export function moduleReducer(
 		case messageTypes.URL_CHANGED: {
 			const { url } = action.payload as UrlPayload;
 			newState = { ...state, url };
+			break;
+		}
+
+		case messageTypes.MATRIX_ROOM_CHANGE: {
+			const { roomId: matrixRoomId } = action.payload as MatrixRoomPayload;
+			newState = { ...state, matrixRoomId };
 			break;
 		}
 

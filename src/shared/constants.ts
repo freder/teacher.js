@@ -13,11 +13,13 @@ export const messageTypes = {
 	END_PRESENTATION: 'END_PRESENTATION',
 	URL_CHANGED: 'URL_CHANGED',
 	WIKIPEDIA_SECTION_CHANGED: 'WIKIPEDIA_SECTION_CHANGED',
+	MATRIX_ROOM_CHANGE: 'MATRIX_ROOM_CHANGE',
 };
 
 export const moduleTypes = {
 	PRESENTATION: 'PRESENTATION',
 	WIKIPEDIA: 'WIKIPEDIA',
+	CHAT: 'CHAT',
 };
 
 export const initialRoomState: RoomState = {
@@ -28,8 +30,9 @@ export const initialRoomState: RoomState = {
 export const initialModuleState: ModuleState = {
 	activeModule: null,
 	url: null,
+	matrixRoomId: null,
 	presentationState: {
-		state: null
+		state: {}
 	},
 };
 
