@@ -3,6 +3,7 @@
 	import * as R from 'ramda';
 
 	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
+	import { urlFromProxiedUrl } from '../../shared/utils';
 
 	import AudioControls from './AudioControls.svelte';
 	import ParticipantsList from './ParticipantsList.svelte';
@@ -186,13 +187,7 @@
 						setWikiUrl={setWikiUrl}
 						wikiJumpToSection={wikiJumpToSection}
 						activeSectionHash={$moduleState.activeSectionHash}
-						url={
-							decodeURIComponent(
-								R.last((
-									$moduleState.url || ''
-								).split('/'))
-							)
-						}
+						url={urlFromProxiedUrl($moduleState.url)}
 					/>
 				{:else if $moduleState.activeModule === moduleTypes.CHAT}
 					<ChatControls

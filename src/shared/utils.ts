@@ -1,3 +1,6 @@
+import * as R from 'ramda';
+
+
 export function getProxiedUrl(
 	proxyUrl: string,
 	wikipediaUrl: string
@@ -26,4 +29,11 @@ export function getProxiedUrl(
 	// tack on the original hash again
 	const proxiedUrl = `${proxyUrl}/${encodedHref}${hash}`;
 	return proxiedUrl;
+}
+
+
+export function urlFromProxiedUrl(proxiedUrl: string): string {
+	return decodeURIComponent(
+		R.last((proxiedUrl || '').split('/'))
+	);
 }
