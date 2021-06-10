@@ -343,16 +343,6 @@ async function main() {
 					...prev,
 					activeSectionHash: data.hash,
 				}));
-
-				// if (get(authToken)) {
-				// 	const current = get(moduleState).url;
-				// 	const encodedWikiUrl = R.last(current.split('/'));
-				// 	const url = new URL(
-				// 		decodeURIComponent(encodedWikiUrl)
-				// 	);
-				// 	url.hash = data.hash;
-				// 	setWikiUrl(url.toString());
-				// }
 			} else if (data.type === messageTypes.URL_CHANGED) {
 				if (!authToken) {
 					return;
