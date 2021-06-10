@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import type express from 'express';
+import LRU from 'lru-cache';
 
 import { proxyPathWikipedia } from '../shared/constants';
 
@@ -11,6 +12,11 @@ const {
 	FRONTEND_PATH,
 } = process.env;
 const frontendUrl = `${FRONTEND_PROTOCOL}://${FRONTEND_HOST}:${FRONTEND_PORT}/${FRONTEND_PATH}`;
+
+const cache = new LRU({
+	max: 100,
+	maxAge: 5 * 60 * 1000,
+});
 
 
 export function initProxy(app: express.Application): void {
@@ -25,34 +31,41 @@ export function initProxy(app: express.Application): void {
 	});
 
 	// http://.../proxy/wikipedia/https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDocumentary_Now!
-	// TODO: cache the output / response
 	app.get(`/${proxyPathWikipedia}/:url`, (req, res) => {
 		// decode url and remove hash
 		const url = new URL(
 			decodeURIComponent(req.params.url)
 		);
 		url.hash = '';
-		fetch(url.toString())
-			.then((res) => res.text())
-			.then((htmlStr) => {
-				const output = htmlStr
-					// this makes `srcset` attributes work...
-					.replace(
-						'</head>',
-						`<base href="${url.origin}"></head>`
-					)
-					// ... anything else should end up being rewritten
-					// as absolute / complete URL:
-					.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
-					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
-					.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
-					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
-					// inject custom code snippet
-					.replace('</body>', `<script src="${frontendUrl}/wikipedia-snippet.js"></script></body>`)
-					// remove navigation
-					.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display:none;"')
-					.replace(/id="content"/,'id="content" style="margin:0;"');
-				res.send(output);
-			});
+		const urlStr = url.toString();
+
+		// we may or may not have this cached:
+		let promise = cache.get(urlStr) as Promise<string> | undefined;
+		if (!promise) {
+			promise = fetch(urlStr)
+				.then((res) => res.text())
+				.then((htmlStr) => {
+					const output = htmlStr
+						// this makes `srcset` attributes work...
+						.replace(
+							'</head>',
+							`<base href="${url.origin}"></head>`
+						)
+						// ... anything else should end up being rewritten
+						// as absolute / complete URL:
+						.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
+						.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
+						.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
+						.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
+						// inject custom code snippet
+						.replace('</body>', `<script src="${frontendUrl}/wikipedia-snippet.js"></script></body>`)
+						// remove navigation
+						.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display:none;"')
+						.replace(/id="content"/,'id="content" style="margin:0;"');
+					return output;
+				});
+			cache.set(urlStr, promise);
+		}
+		promise.then((output) => res.send(output));
 	});
 }
