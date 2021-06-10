@@ -508,7 +508,7 @@ async function main() {
 			room: janusRoomId,
 			display: get(userState).name,
 		};
-		audioBridge.send({ message: register});
+		audioBridge.send({ message: register });
 		audioState.update((prev) => ({ ...prev, audioStarted: true }));
 		// serverUpdateUser();
 	};
