@@ -93,13 +93,6 @@
 		border-bottom: solid 2px black;
 	}
 
-	#header > div {
-		display: inline-block;
-	}
-	#header > div:first-child {
-		width: var(--panel-width);
-	}
-
 	#main {
 		flex: 1;
 		display: flex;
@@ -149,56 +142,54 @@
 				: ''
 		}
 	>
-		<div>
-			{#if $role === 'admin'}
-				<!-- TABS -->
-				<button
-					class:active={$moduleState.activeModule === moduleTypes.PRESENTATION}
-					on:click={activatePresentation}
-				>
-					Presentation
-				</button>
-				<button
-					class:active={$moduleState.activeModule === moduleTypes.WIKIPEDIA}
-					on:click={activateWikipedia}
-				>
-					Wikipedia
-				</button>
-				<button
-					class:active={$moduleState.activeModule === moduleTypes.CHAT}
-					on:click={activateChat}
-				>
-					Chat
-				</button>
+		{#if $role === 'admin'}
+			<!-- TABS -->
+			<button
+				class:active={$moduleState.activeModule === moduleTypes.PRESENTATION}
+				on:click={activatePresentation}
+			>
+				Presentation
+			</button>
+			<button
+				class:active={$moduleState.activeModule === moduleTypes.WIKIPEDIA}
+				on:click={activateWikipedia}
+			>
+				Wikipedia
+			</button>
+			<button
+				class:active={$moduleState.activeModule === moduleTypes.CHAT}
+				on:click={activateChat}
+			>
+				Chat
+			</button>
 
-				<!-- CONTEXTUAL OPTIONS -->
-				{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
-					<PresentationControls
-						kastaliaId={kastaliaId}
-						startPres={startPres}
-						stopPres={stopPres}
-					/>
-				{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
-					<WikipediaControls
-						setWikiUrl={setWikiUrl}
-						wikiJumpToSection={wikiJumpToSection}
-						activeSectionHash={$moduleState.activeSectionHash}
-						url={
-							decodeURIComponent(
-								R.last((
-									$moduleState.url || ''
-								).split('/'))
-							)
-						}
-					/>
-				{:else if $moduleState.activeModule === moduleTypes.CHAT}
-					<ChatControls
-						roomId={$moduleState.matrixRoomId}
-						setHydrogenRoom={setHydrogenRoom}
-					/>
-				{/if}
+			<!-- CONTEXTUAL OPTIONS -->
+			{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
+				<PresentationControls
+					kastaliaId={kastaliaId}
+					startPres={startPres}
+					stopPres={stopPres}
+				/>
+			{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
+				<WikipediaControls
+					setWikiUrl={setWikiUrl}
+					wikiJumpToSection={wikiJumpToSection}
+					activeSectionHash={$moduleState.activeSectionHash}
+					url={
+						decodeURIComponent(
+							R.last((
+								$moduleState.url || ''
+							).split('/'))
+						)
+					}
+				/>
+			{:else if $moduleState.activeModule === moduleTypes.CHAT}
+				<ChatControls
+					roomId={$moduleState.matrixRoomId}
+					setHydrogenRoom={setHydrogenRoom}
+				/>
 			{/if}
-		</div>
+		{/if}
 	</div>
 
 	<div id="main">
