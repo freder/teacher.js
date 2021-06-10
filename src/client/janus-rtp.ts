@@ -22,7 +22,7 @@ const defaultMsg = {
 };
 
 
-const send = async () => {
+const send = () => {
 	const message = JSON.parse(input.innerText);
 	console.log(message);
 	audioBridge.send({ message });
