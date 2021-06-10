@@ -17,6 +17,7 @@ import type {
 	PresentationStartPayload,
 	RevealStateChangePayload,
 	RevealState,
+	MatrixRoomPayload,
 } from '../shared/types';
 import {
 	initialModuleState,
