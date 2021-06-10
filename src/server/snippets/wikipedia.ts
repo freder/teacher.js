@@ -80,7 +80,6 @@ function initSectionScrollHandler() {
 
 
 function init() {
-	console.log('here');
 	updateLinks();
 	initSectionScrollHandler();
 }

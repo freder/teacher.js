@@ -228,12 +228,14 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if (
-					!$isLoggedIn ||
-					$moduleState.activeModule === moduleTypes.CHAT
-				)}
-					<Chat login={!$isLoggedIn} />
-				{:else if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
+				<!-- we need the hydrogen iframe to always be there, which
+				means we need to hide it rather than unmount it -->
+				<Chat
+					login={!$isLoggedIn}
+					hidden={$moduleState.activeModule !== moduleTypes.CHAT}
+				/>
+
+				{#if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
 						url={$moduleState.url}
 						onPresentationLoaded={onPresentationLoaded}

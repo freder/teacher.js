@@ -2,6 +2,14 @@
 	import { hydrogenBaseUrl } from '../constants';
 
 	export let login;
+	export let hidden;
+
+	const loginStyle = `
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 9999;
+	`;
 </script>
 
 <style>
@@ -16,13 +24,8 @@
 <iframe
 	id="hydrogen"
 	src={hydrogenBaseUrl}
-	style={(login)
-		? `
-			position: fixed;
-			top: 0;
-			left: 0;
-			z-index: 9999;
-		`
-		: ''
-	}
+	style={`
+		${(login) ? loginStyle : ''}
+		${(hidden) ? 'display: none;' : ''}
+	`}
 />

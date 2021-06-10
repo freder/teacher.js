@@ -27,7 +27,7 @@ import {
 	moduleTypes,
 	proxyPathWikipedia
 } from '../shared/constants';
-import { getProxiedUrl } from '../shared/utils';
+import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 
 import {
 	serverUrl,
@@ -202,7 +202,7 @@ function handleExternalRevealStateChange(state: RevealState) {
 
 
 function setHydrogenRoom(roomId: string) {
-	const iframe = document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+	const iframe = getHydrogenIframe();
 	iframe.contentWindow.postMessage(
 		{
 			type: 'HYDROGEN_LOAD_ROOM',
@@ -221,6 +221,27 @@ function setHydrogenRoom(roomId: string) {
 		...prev,
 		matrixRoomId: roomId
 	}));
+}
+
+
+function getHydrogenIframe() {
+	return document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+}
+
+
+function chatSendUrl(roomId: string, proxiedUrl: string) {
+	const url = urlFromProxiedUrl(proxiedUrl);
+	const iframe = getHydrogenIframe();
+	iframe.contentWindow.postMessage(
+		{
+			type: 'HYDROGEN_SEND_MESSAGE',
+			payload: {
+				roomId,
+				content: `navigated to: ${url}`
+			}
+		},
+		'*'
+	);
 }
 
 
@@ -243,6 +264,7 @@ async function main() {
 			payload: { url: proxiedUrl }
 		};
 		socket.emit(messageTypes.URL_CHANGED, msg);
+		chatSendUrl(get(moduleState).matrixRoomId, proxiedUrl);
 
 		moduleState.update((prev) => ({ ...prev, url: proxiedUrl }));
 	};
@@ -359,6 +381,7 @@ async function main() {
 					payload: { url: data.url }
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
+				chatSendUrl(get(moduleState).matrixRoomId, data.url);
 			} else if (data.type === 'HYDROGEN_READY') {
 				const { userId, displayName } = data.payload;
 				userState.update((prev) => ({
