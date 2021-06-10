@@ -145,14 +145,6 @@
 		`}
 	>
 		<div>
-			{#if $role !== 'admin'}
-				<button on:click={claimAdmin}>
-					claim admin role
-				</button>
-			{/if}
-		</div>
-
-		<div>
 			{#if $role === 'admin'}
 				<!-- TABS -->
 				<button
@@ -212,6 +204,12 @@
 			`}
 		>
 			<div class="padded">
+				{#if $role !== 'admin'}
+					<button on:click={claimAdmin}>
+						claim admin role
+					</button>
+				{/if}
+
 				<AudioControls
 					audioState={audioState}
 					startAudio={startAudio}
