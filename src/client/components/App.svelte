@@ -140,9 +140,14 @@
 	<div
 		id="header"
 		class={`
-			padded
+			${($role === 'admin') ? 'padded' : '' }
 			${$isLoggedIn ? '' : 'hidden-during-login'}
 		`}
+		style={
+			($role !== 'admin')
+				? 'padding: 0; height: 0;'
+				: ''
+		}
 	>
 		<div>
 			{#if $role === 'admin'}
