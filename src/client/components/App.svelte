@@ -31,7 +31,10 @@
 	// export let setUserName;
 	export let setHydrogenRoom;
 
+	// TODO: needed?
 	let kastaliaId;
+	let headerIsOpen = true;
+	let panelIsOpen = true;
 
 	const role = derived(
 		roomState,
@@ -92,12 +95,13 @@
 		background: var(--header-color);
 		border-bottom: solid 2px black;
 	}
-
-	#header > div {
-		display: inline-block;
+	#header.open {
+		padding: var(--padding);
 	}
-	#header > div:first-child {
-		width: var(--panel-width);
+	#header.closed {
+		padding: 0;
+		height: 0;
+		overflow: hidden;
 	}
 
 	#main {
@@ -108,8 +112,13 @@
 	#panel {
 		flex-grow: 0;
 		flex-shrink: 0;
-		width: var(--panel-width);
 		border-right: solid 2px black;
+	}
+	#panel.open {
+		width: var(--panel-width);
+	}
+	#panel.closed {
+		width: 0;
 	}
 
 	#content-container {
@@ -134,84 +143,119 @@
 	.hidden-during-login {
 		visibility: hidden;
 	}
+
+	.toggle-button-container {
+		position: fixed;
+		z-index: 999;
+	}
 </style>
+
+<div
+	class={`
+		toggle-button-container
+		${$isLoggedIn ? '' : 'hidden-during-login'}
+	`}
+	style={`
+		right: var(--padding);
+		top: var(--padding);
+		${($role === 'admin') ? '' : 'display: none'}
+	`}
+>
+	<button
+		on:click={() => { headerIsOpen = !headerIsOpen; }}
+	>toggle</button>
+</div>
+<div
+	class={`
+		toggle-button-container
+		${$isLoggedIn ? '' : 'hidden-during-login'}
+	`}
+	style={`
+		left: var(--padding);
+		bottom: var(--padding);
+	`}
+>
+	<button
+		on:click={() => { panelIsOpen = !panelIsOpen; }}
+	>toggle</button>
+</div>
 
 <div id="container">
 	<div
 		id="header"
 		class={`
-			padded
+			${(headerIsOpen)
+				? ($role === 'admin') ? 'open' : 'closed'
+				: 'closed'
+			}
 			${$isLoggedIn ? '' : 'hidden-during-login'}
 		`}
 	>
-		<div>
-			{#if $role !== 'admin'}
-				<button on:click={claimAdmin}>
-					claim admin role
-				</button>
-			{/if}
-		</div>
+		{#if $role === 'admin'}
+			<!-- TABS -->
+			<button
+				class:active={$moduleState.activeModule === moduleTypes.PRESENTATION}
+				on:click={activatePresentation}
+			>
+				Presentation
+			</button>
+			<button
+				class:active={$moduleState.activeModule === moduleTypes.WIKIPEDIA}
+				on:click={activateWikipedia}
+			>
+				Wikipedia
+			</button>
+			<button
+				class:active={$moduleState.activeModule === moduleTypes.CHAT}
+				on:click={activateChat}
+			>
+				Chat
+			</button>
 
-		<div>
-			{#if $role === 'admin'}
-				<!-- TABS -->
-				<button
-					class:active={$moduleState.activeModule === moduleTypes.PRESENTATION}
-					on:click={activatePresentation}
-				>
-					Presentation
-				</button>
-				<button
-					class:active={$moduleState.activeModule === moduleTypes.WIKIPEDIA}
-					on:click={activateWikipedia}
-				>
-					Wikipedia
-				</button>
-				<button
-					class:active={$moduleState.activeModule === moduleTypes.CHAT}
-					on:click={activateChat}
-				>
-					Chat
-				</button>
-
-				<!-- CONTEXTUAL OPTIONS -->
-				{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
-					<PresentationControls
-						kastaliaId={kastaliaId}
-						startPres={startPres}
-						stopPres={stopPres}
-					/>
-				{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
-					<WikipediaControls
-						setWikiUrl={setWikiUrl}
-						wikiJumpToSection={wikiJumpToSection}
-						activeSectionHash={$moduleState.activeSectionHash}
-						url={
-							decodeURIComponent(
-								R.last((
-									$moduleState.url || ''
-								).split('/'))
-							)
-						}
-					/>
-				{:else if $moduleState.activeModule === moduleTypes.CHAT}
-					<ChatControls
-						roomId={$moduleState.matrixRoomId}
-						setHydrogenRoom={setHydrogenRoom}
-					/>
-				{/if}
+			<!-- CONTEXTUAL OPTIONS -->
+			{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
+				<PresentationControls
+					kastaliaId={kastaliaId}
+					startPres={startPres}
+					stopPres={stopPres}
+				/>
+			{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
+				<WikipediaControls
+					setWikiUrl={setWikiUrl}
+					wikiJumpToSection={wikiJumpToSection}
+					activeSectionHash={$moduleState.activeSectionHash}
+					url={
+						decodeURIComponent(
+							R.last((
+								$moduleState.url || ''
+							).split('/'))
+						)
+					}
+				/>
+			{:else if $moduleState.activeModule === moduleTypes.CHAT}
+				<ChatControls
+					roomId={$moduleState.matrixRoomId}
+					setHydrogenRoom={setHydrogenRoom}
+				/>
 			{/if}
-		</div>
+		{/if}
 	</div>
 
 	<div id="main">
 		<div
 			id="panel"
 			class={`
+				${panelIsOpen ? 'open' : 'closed'}
 				${$isLoggedIn ? '' : 'hidden-during-login'}
 			`}
 		>
 			<div class="padded">
+				{#if $role !== 'admin'}
+					<button on:click={claimAdmin}>
+						claim admin role
+					</button>
+				{/if}
+
 				<AudioControls
 					audioState={audioState}
 					startAudio={startAudio}
