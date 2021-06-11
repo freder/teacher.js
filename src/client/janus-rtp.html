@@ -8,6 +8,13 @@
 			#input {
 				font-family: monospace;
 			}
+			#label {
+				background-color: lightgreen;
+				border-radius: 0.6em;
+				font-family: sans-serif;
+				padding: 0.25em;
+				display: none;
+			}
 		</style>
 	</head>
 	<body>
@@ -15,5 +22,10 @@
 			<pre id="input" contenteditable="true"></pre>
 		</div>
 		<button>send</button>
+		<hr />
+		<div>
+			<pre id="output"></pre>
+		</div>
+		<span id="label">JOINED</span>
 	</body>
 </html>

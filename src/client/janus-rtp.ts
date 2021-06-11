@@ -5,7 +5,9 @@ import { attachAudioBridgePlugin, initJanus } from './audio';
 let janus: Janus;
 let audioBridge: PluginHandle;
 const input = document.querySelector('#input') as HTMLPreElement;
+const output = document.querySelector('#output') as HTMLPreElement;
 const button = document.querySelector('button');
+const label = document.querySelector('#label') as HTMLSpanElement;
 
 // https://github.com/meetecho/janus-gateway/pull/2464
 const defaultMsg = {
@@ -24,15 +26,26 @@ const defaultMsg = {
 
 const send = () => {
 	const message = JSON.parse(input.innerText);
-	console.log(message);
 	audioBridge.send({ message });
-	// {audiobridge: "event", error_code: 489, error: "Plain RTP participants not allowed in this room"}
 };
 
 
 async function main() {
 	janus = await initJanus();
-	const callbacks = {};
+	const callbacks = {
+		onmessage: (msg: PluginMessage) => {
+			const event = msg.audiobridge;
+			if (event) {
+				// show last received message
+				output.innerText = JSON.stringify(msg, null, '    ');
+
+				// once we receive joined event, show label
+				if (event === 'joined') {
+					label.style.display = 'inline';
+				}
+			}
+		},
+	};
 	audioBridge = await attachAudioBridgePlugin(janus, callbacks);
 
 	input.innerText = JSON.stringify(defaultMsg, null, '    ');
