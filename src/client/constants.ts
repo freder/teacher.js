@@ -22,10 +22,15 @@ export const janusServers = [
 	)
 ];
 
-export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
+// TODO: use env var
 export const wikipediaBaseUrl = 'https://en.wikipedia.org';
 
+// TODO: use env var
+export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
+
 export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
+
+// TODO: use env var
 export const matrixRoomId = '!MnnWYJyaHwOLoMoWZV:m3x.baumhaus.digital';
 
 export const presentationIframeId = 'presentation-iframe';
