@@ -1,5 +1,5 @@
 <script>
-	import { serverUrl } from '../constants';
+	// import { serverUrl } from '../constants';
 
 	export let setWikiUrl;
 	// export let getWikipediaTocUrl;

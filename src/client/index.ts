@@ -17,6 +17,7 @@ import type {
 	PresentationStartPayload,
 	RevealStateChangePayload,
 	RevealState,
+	MatrixRoomPayload,
 } from '../shared/types';
 import {
 	initialModuleState,
@@ -26,13 +27,14 @@ import {
 	moduleTypes,
 	proxyPathWikipedia
 } from '../shared/constants';
-import { getProxiedUrl } from '../shared/utils';
+import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 
 import {
 	serverUrl,
 	kastaliaBaseUrl,
 	presentationIframeId,
 	matrixRoomId,
+	wikipediaBaseUrl,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
@@ -200,7 +202,7 @@ function handleExternalRevealStateChange(state: RevealState) {
 
 
 function setHydrogenRoom(roomId: string) {
-	const iframe = document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+	const iframe = getHydrogenIframe();
 	iframe.contentWindow.postMessage(
 		{
 			type: 'HYDROGEN_LOAD_ROOM',
@@ -222,14 +224,38 @@ function setHydrogenRoom(roomId: string) {
 }
 
 
+function getHydrogenIframe() {
+	return document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+}
+
+
+function chatSendUrl(roomId: string, proxiedUrl: string) {
+	const url = urlFromProxiedUrl(proxiedUrl);
+	const iframe = getHydrogenIframe();
+	iframe.contentWindow.postMessage(
+		{
+			type: 'HYDROGEN_SEND_MESSAGE',
+			payload: {
+				roomId,
+				content: `navigated to: ${url}`
+			}
+		},
+		'*'
+	);
+}
+
+
 async function main() {
 	const setWikiUrl = (wikipediaUrl: string) => {
 		// receives the actual url of the wikipedia page,
 		// which we then proxy
-		const regex=/https?:/;
+
+		// wikipediaUrl can be a URL or just one or more words
+		const regex = /https?:/;
 		if (!regex.test(wikipediaUrl)) {
-			wikipediaUrl='https://en.wikipedia.org/wiki/'+wikipediaUrl;
+			wikipediaUrl = `${wikipediaBaseUrl}/wiki/${wikipediaUrl}`;
 		}
+
 		const proxyUrl = `${serverUrl}/${proxyPathWikipedia}`;
 		const proxiedUrl = getProxiedUrl(proxyUrl, wikipediaUrl);
 
@@ -238,6 +264,7 @@ async function main() {
 			payload: { url: proxiedUrl }
 		};
 		socket.emit(messageTypes.URL_CHANGED, msg);
+		chatSendUrl(get(moduleState).matrixRoomId, proxiedUrl);
 
 		moduleState.update((prev) => ({ ...prev, url: proxiedUrl }));
 	};
@@ -338,16 +365,6 @@ async function main() {
 					...prev,
 					activeSectionHash: data.hash,
 				}));
-
-				// if (get(authToken)) {
-				// 	const current = get(moduleState).url;
-				// 	const encodedWikiUrl = R.last(current.split('/'));
-				// 	const url = new URL(
-				// 		decodeURIComponent(encodedWikiUrl)
-				// 	);
-				// 	url.hash = data.hash;
-				// 	setWikiUrl(url.toString());
-				// }
 			} else if (data.type === messageTypes.URL_CHANGED) {
 				if (!authToken) {
 					return;
@@ -364,6 +381,7 @@ async function main() {
 					payload: { url: data.url }
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
+				chatSendUrl(get(moduleState).matrixRoomId, data.url);
 			} else if (data.type === 'HYDROGEN_READY') {
 				const { userId, displayName } = data.payload;
 				userState.update((prev) => ({

@@ -26,16 +26,6 @@ function updateLinks() {
 	});
 }
 
-/*
-function removeNavigation() {
-	document.getElementById('mw-navigation').style.display='none';
-	document.getElementById('mw-page-base').style.display='none';
-	document.getElementById('mw-head-base').style.display='none';
-	document.getElementById('content').style.margin='0';
-}
-
-removeNavigation();
-*/
 
 function initSectionScrollHandler() {
 	// get section headlines
@@ -89,13 +79,16 @@ function initSectionScrollHandler() {
 }
 
 
-const init = () => {
+function init() {
 	updateLinks();
-	//removeNavigation();
 	initSectionScrollHandler();
-};
+}
 
-if (document.readyState === 'interactive' || document.readyState === 'complete') {
+
+if (
+	document.readyState === 'interactive' ||
+	document.readyState === 'complete'
+) {
 	init();
 } else {
 	document.addEventListener('DOMContentLoaded', init);

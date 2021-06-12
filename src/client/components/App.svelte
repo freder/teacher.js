@@ -3,6 +3,7 @@
 	import * as R from 'ramda';
 
 	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
+	import { urlFromProxiedUrl } from '../../shared/utils';
 
 	import AudioControls from './AudioControls.svelte';
 	import ParticipantsList from './ParticipantsList.svelte';
@@ -214,29 +215,23 @@
 
 			<!-- CONTEXTUAL OPTIONS -->
 			{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
-				<PresentationControls
-					kastaliaId={kastaliaId}
-					startPres={startPres}
-					stopPres={stopPres}
-				/>
+			<PresentationControls
+				kastaliaId={kastaliaId}
+				startPres={startPres}
+				stopPres={stopPres}
+			/>
 			{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
-				<WikipediaControls
-					setWikiUrl={setWikiUrl}
-					wikiJumpToSection={wikiJumpToSection}
-					activeSectionHash={$moduleState.activeSectionHash}
-					url={
-						decodeURIComponent(
-							R.last((
-								$moduleState.url || ''
-							).split('/'))
-						)
-					}
-				/>
+			<WikipediaControls
+				setWikiUrl={setWikiUrl}
+				wikiJumpToSection={wikiJumpToSection}
+				activeSectionHash={$moduleState.activeSectionHash}
+				url={urlFromProxiedUrl($moduleState.url)}
+			/>
 			{:else if $moduleState.activeModule === moduleTypes.CHAT}
-				<ChatControls
-					roomId={$moduleState.matrixRoomId}
-					setHydrogenRoom={setHydrogenRoom}
-				/>
+			<ChatControls
+				roomId={$moduleState.matrixRoomId}
+				setHydrogenRoom={setHydrogenRoom}
+			/>
 			{/if}
 		{/if}
 	</div>
@@ -277,12 +272,14 @@
 
 		<div id="content-container">
 			<div style="flex: 1;">
-				{#if (
-					!$isLoggedIn ||
-					$moduleState.activeModule === moduleTypes.CHAT
-				)}
-					<Chat login={!$isLoggedIn} />
-				{:else if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
+				<!-- we need the hydrogen iframe to always be there, which
+				means we need to hide it rather than unmount it -->
+				<Chat
+					login={!$isLoggedIn}
+					hidden={$moduleState.activeModule !== moduleTypes.CHAT}
+				/>
+
+				{#if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
 						url={$moduleState.url}
 						onPresentationLoaded={onPresentationLoaded}
