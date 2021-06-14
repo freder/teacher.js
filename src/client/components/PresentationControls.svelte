@@ -1,10 +1,11 @@
 <script>
 	export let kastaliaId;
 	export let startPres;
-	export let stopPres;
+	// export let stopPres;
 </script>
 
 <input
+	style="flex: 1; margin-right: var(--padding);"
 	type="text"
 	placeholder="Kastalia knot id"
 	bind:value={kastaliaId}
@@ -15,12 +16,14 @@
 		}
 	}}
 >
-<button on:click={() => startPres(kastaliaId)}>
-	→
+<button
+	on:click={() => startPres(kastaliaId)}
+>
+	go
 </button>
-<button on:click={() => {
+<!-- <button on:click={() => {
 	kastaliaId = undefined;
 	stopPres();
 }}>
-	end presentation
-</button>
+	end
+</button> -->

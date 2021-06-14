@@ -9,8 +9,7 @@
 
 	let wikipediaToc;
 
-	const handleUrl = (event) => {
-		const wikipediaUrl = event.target.value;
+	const handleUrl = (wikipediaUrl) => {
 		setWikiUrl(wikipediaUrl);
 		event.target.blur();
 		// const url = getWikipediaTocUrl(wikipediaUrl);
@@ -21,13 +20,13 @@
 </script>
 
 <input
-	style="min-width: 500px;"
+	style="flex: 1; margin-right: var(--padding);"
 	type="text"
 	placeholder="Wikipedia URL"
 	bind:value={url}
 	on:keydown={(event) => {
 		if (event.key === 'Enter') {
-			handleUrl(event);
+			handleUrl(event.target.value);
 		}
 	}}
 >
@@ -49,6 +48,12 @@
 		{/each}
 	</select>
 {/if}
+
+<button
+	on:click={() => handleUrl(url)}
+>
+	go
+</button>
 
 <button
 	on:click={() => wikiJumpToSection(activeSectionHash)}

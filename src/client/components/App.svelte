@@ -49,16 +49,6 @@
 		($userState) => Boolean($userState.matrixUserId)
 	);
 
-	const activatePresentation = R.partial(
-		setActiveModule, [moduleTypes.PRESENTATION]
-	);
-	const activateWikipedia = R.partial(
-		setActiveModule, [moduleTypes.WIKIPEDIA]
-	);
-	const activateChat = R.partial(
-		setActiveModule, [moduleTypes.CHAT]
-	);
-
 	const wikiJumpToSection = (hash) => {
 		const proxiedUrl = $moduleState.url;
 		const wikipediaUrl = decodeURIComponent(
@@ -95,6 +85,7 @@
 	#header {
 		background: var(--header-color);
 		border-bottom: solid 2px black;
+		display: flex;
 	}
 	#header.open {
 		padding: var(--padding);
@@ -207,25 +198,27 @@
 		`}
 	>
 		{#if $role === 'admin'}
-			<!-- TABS -->
-			<button
-				class:active={$moduleState.activeModule === moduleTypes.PRESENTATION}
-				on:click={activatePresentation}
+			<!-- "TABS" -->
+			<!-- svelte-ignore a11y-no-onchange -->
+			<select
+				style="flex: 0; margin-right: var(--padding);"
+				bind:value={$moduleState.activeModule}
+				on:change={(event) => {
+					setActiveModule(event.target.value);
+				}}
 			>
-				Presentation
-			</button>
-			<button
-				class:active={$moduleState.activeModule === moduleTypes.WIKIPEDIA}
-				on:click={activateWikipedia}
-			>
-				Wikipedia
-			</button>
-			<button
-				class:active={$moduleState.activeModule === moduleTypes.CHAT}
-				on:click={activateChat}
-			>
-				Chat
-			</button>
+				<optgroup label="Select module">
+					<option value={moduleTypes.PRESENTATION}>
+						Presentation
+					</option>
+					<option value={moduleTypes.WIKIPEDIA}>
+						Wikipedia
+					</option>
+					<option value={moduleTypes.CHAT}>
+						Chat
+					</option>
+				</optgroup>
+			</select>
 
 			<!-- CONTEXTUAL OPTIONS -->
 			{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
