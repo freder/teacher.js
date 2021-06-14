@@ -1,5 +1,5 @@
 <script>
-	import { matrixRoomId } from '../constants';
+	import { matrixRoomId } from '../../shared/constants';
 
 	export let roomId = matrixRoomId;
 	export let setHydrogenRoom;
