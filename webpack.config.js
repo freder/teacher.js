@@ -30,11 +30,11 @@ const plugins = [
 	}),
 
 	new HtmlWebpackPlugin({
-		filename: 'janus-rtp.html',
-		template: `${clientPath}/janus-rtp.html`,
+		filename: 'rtp.html',
+		template: `${clientPath}/rtp.html`,
 		minify: false,
 		inject: 'body',
-		chunks: ['janus-rtp'],
+		chunks: ['rtp'],
 	}),
 
 	new webpack.EnvironmentPlugin([
@@ -79,7 +79,7 @@ module.exports = {
 		'reveal-hooks': `${clientPath}/reveal-hooks.ts`,
 		// TODO: ↓ move to client directory
 		'wikipedia-snippet': `${serverPath}/snippets/wikipedia.ts`,
-		'janus-rtp': `${clientPath}/janus-rtp.ts`,
+		'rtp': `${clientPath}/rtp.ts`,
 	},
 	output: {
 		clean: true,
