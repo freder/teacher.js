@@ -30,7 +30,4 @@ export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
 
 export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
 
-// TODO: use env var
-export const matrixRoomId = '!MnnWYJyaHwOLoMoWZV:m3x.baumhaus.digital';
-
 export const presentationIframeId = 'presentation-iframe';

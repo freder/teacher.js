@@ -22,21 +22,24 @@ export const moduleTypes = {
 	CHAT: 'CHAT',
 };
 
+// TODO: use env var
+export const janusRoomId = 1234;
+
+export const proxyPathWikipedia = 'proxy/wikipedia';
+
+// TODO: use env var
+export const matrixRoomId = '!MnnWYJyaHwOLoMoWZV:m3x.baumhaus.digital';
+
 export const initialRoomState: RoomState = {
 	adminIds: [],
 	users: [],
 };
 
 export const initialModuleState: ModuleState = {
-	activeModule: null,
+	activeModule: moduleTypes.CHAT,
+	matrixRoomId,
 	url: null,
-	matrixRoomId: null,
 	presentationState: {
 		state: null
 	},
 };
-
-// TODO: use env var
-export const janusRoomId = 1234;
-
-export const proxyPathWikipedia = 'proxy/wikipedia';

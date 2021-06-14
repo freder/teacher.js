@@ -25,6 +25,7 @@ import {
 	janusRoomId,
 	messageTypes,
 	moduleTypes,
+	matrixRoomId,
 	proxyPathWikipedia
 } from '../shared/constants';
 import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
@@ -33,7 +34,6 @@ import {
 	serverUrl,
 	kastaliaBaseUrl,
 	presentationIframeId,
-	matrixRoomId,
 	wikipediaBaseUrl,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
