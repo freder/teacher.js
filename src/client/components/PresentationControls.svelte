@@ -16,7 +16,7 @@
 	}}
 >
 <button on:click={() => startPres(kastaliaId)}>
-	start presentation
+	→
 </button>
 <button on:click={() => {
 	kastaliaId = undefined;
