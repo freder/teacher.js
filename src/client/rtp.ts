@@ -13,7 +13,7 @@ const defaultMsg = {
 	room: janusRoomId,
 	display: 'Plain RTP participant',
 	rtp: {
-		ip: '192.168.1.10',
+		ip: '127.0.0.1',
 		port: 2468,
 		audiolevel_ext: 1,
 		payload_type: 111,
