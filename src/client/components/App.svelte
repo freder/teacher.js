@@ -150,6 +150,15 @@
 		position: fixed;
 		z-index: 999;
 	}
+
+	.toggle-button {
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: white;
+	}
 </style>
 
 <div
@@ -159,13 +168,14 @@
 	`}
 	style={`
 		right: var(--padding);
-		top: var(--padding);
+		top: ${headerIsOpen ? '34px' : 'var(--padding)'};
 		${($role === 'admin') ? '' : 'display: none'}
 	`}
 >
 	<button
+		class="toggle-button"
 		on:click={() => { headerIsOpen = !headerIsOpen; }}
-	>toggle</button>
+	>↕︎</button>
 </div>
 <div
 	class={`
@@ -173,13 +183,16 @@
 		${$isLoggedIn ? '' : 'hidden-during-login'}
 	`}
 	style={`
-		left: var(--padding);
-		bottom: var(--padding);
+		left: ${panelIsOpen
+			? 'calc(var(--panel-width) - 12px)'
+			: 'var(--padding)' };
+		top: ${headerIsOpen ? '56px' : 'var(--padding)'};
 	`}
 >
 	<button
+		class="toggle-button"
 		on:click={() => { panelIsOpen = !panelIsOpen; }}
-	>toggle</button>
+	>↔︎</button>
 </div>
 
 <div id="container">
