@@ -114,6 +114,7 @@
 		flex-grow: 0;
 		flex-shrink: 0;
 		border-right: solid 2px black;
+		overflow: hidden;
 	}
 	#panel.open {
 		width: var(--panel-width);
