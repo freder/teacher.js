@@ -7,6 +7,7 @@
 <input
 	style="flex: 1; margin-right: var(--padding);"
 	type="text"
+	inputmode="text"
 	placeholder="Kastalia knot id"
 	bind:value={kastaliaId}
 	on:keydown={(event) => {

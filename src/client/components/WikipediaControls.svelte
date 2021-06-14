@@ -22,6 +22,7 @@
 <input
 	style="flex: 1; margin-right: var(--padding);"
 	type="text"
+	inputmode="text"
 	placeholder="Wikipedia URL"
 	bind:value={url}
 	on:keydown={(event) => {

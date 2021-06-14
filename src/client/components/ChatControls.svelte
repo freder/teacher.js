@@ -8,6 +8,7 @@
 <input
 	style="flex: 1; margin-right: var(--padding);"
 	type="text"
+	inputmode="text"
 	placeholder="Matrix room id"
 	bind:value={roomId}
 	on:keydown={(event) => {
