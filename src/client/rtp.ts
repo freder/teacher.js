@@ -1,3 +1,8 @@
+import type {
+	Janus,
+	PluginHandle,
+	PluginMessage
+} from 'janus-gateway';
 import { janusRoomId } from '../shared/constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 

@@ -2,7 +2,12 @@ import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
-import type { Janus, JSEP, PluginHandle, PluginMessage } from 'janus-gateway';
+import type {
+	Janus,
+	JSEP,
+	PluginHandle,
+	PluginMessage
+} from 'janus-gateway';
 
 import type {
 	Message,
