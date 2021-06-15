@@ -2,7 +2,11 @@ import fetch from 'node-fetch';
 import type express from 'express';
 import LRU from 'lru-cache';
 
-import { proxyPathWikipedia } from '../shared/constants';
+import {
+	kastaliaBaseUrl,
+	proxyPathKastalia,
+	proxyPathWikipedia
+} from '../shared/constants';
 
 
 const {
@@ -69,5 +73,30 @@ export function initProxy(app: express.Application): void {
 			cache.set(urlStr, promise);
 		}
 		promise.then((output) => res.send(output));
+	});
+
+	// TODO: cache
+	app.get(`/${proxyPathKastalia}/:kastaliaId`, (req, res) => {
+		const url = new URL(kastaliaBaseUrl);
+		url.pathname += `/${req.params.kastaliaId}`;
+		const urlStr = url.toString();
+		fetch(urlStr)
+			.then((res) => res.text())
+			.then((htmlStr) => {
+				const output = htmlStr
+					.replace(
+						'</head>',
+						`<base href="${url.origin}"></head>`
+					)
+
+					.replace(/src="\/(\w)/ig, `src="${url.origin}/$1`)
+					.replace(/href="\/(\w)/ig, `href="${url.origin}/$1`)
+					.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
+					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
+
+					.replace('</body>', `<script src="${frontendUrl}reveal-snippet.js" defer></script></body>`);
+
+				res.send(output);
+			});
 	});
 }

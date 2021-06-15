@@ -34,6 +34,7 @@ import {
 	proxyPathWikipedia,
 	kastaliaBaseUrl,
 	wikipediaBaseUrl,
+	proxyPathKastalia,
 } from '../shared/constants';
 import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 
@@ -160,8 +161,9 @@ function setActiveModule(moduleName: string) {
 
 
 function startPresentation(kastaliaId: string) {
+	const proxiedUrl = `${serverUrl}/${proxyPathKastalia}/${kastaliaId}`;
 	const payload: PresentationStartPayload = {
-		url: `${kastaliaBaseUrl}/${kastaliaId}`
+		url: proxiedUrl
 	};
 	const msg: Message<PresentationStartPayload> = {
 		authToken: get(userState).authToken,
