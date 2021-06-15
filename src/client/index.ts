@@ -388,8 +388,7 @@ async function main() {
 				};
 				socket.emit(messageTypes.URL_CHANGED, msg);
 				chatSendUrl(get(moduleState).matrixRoomId, data.url);
-			} else if (data.type === 'HYDROGEN_READY') {
-				// TODO: ↑ use constant
+			} else if (data.type === messageTypes.HYDROGEN_READY) {
 				const { userId, displayName } = data.payload;
 				userState.update((prev) => ({
 					...prev,
