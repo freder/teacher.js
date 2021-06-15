@@ -46,6 +46,8 @@ function registerHook() {
 function init() {
 	// check if we're in an iframe
 	if (checkIframe()) {
+		// does this make a difference?
+		Reveal.configure({ embedded: true });
 		registerHook();
 	}
 }
