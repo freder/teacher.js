@@ -1,6 +1,5 @@
 <script>
 	import { derived } from 'svelte/store';
-	import * as R from 'ramda';
 
 	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
 	import { urlFromProxiedUrl } from '../../shared/utils';
