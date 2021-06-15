@@ -31,17 +31,17 @@
 	// export let setUserName;
 	export let setHydrogenRoom;
 
-	// TODO: needed?
-	let kastaliaId;
-	let headerIsOpen = true;
-	let panelIsOpen = true;
-
 	const role = derived(
 		roomState,
 		($roomState) => ($roomState.adminIds.includes($userState.socketId))
 			? 'admin'
 			: 'user'
 	);
+
+	// TODO: needed?
+	let kastaliaId;
+	let headerIsOpen = ($role === 'admin');
+	let panelIsOpen = true;
 
 	const isLoggedIn = derived(
 		userState,
