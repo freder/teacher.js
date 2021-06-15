@@ -48,6 +48,15 @@
 		($userState) => Boolean($userState.matrixUserId)
 	);
 
+	const activeModule = derived(
+		moduleState,
+		($moduleState) => {
+			return ($isLoggedIn)
+				? $moduleState.activeModule
+				: moduleTypes.CHAT;
+		}
+	)
+
 	const wikiJumpToSection = (hash) => {
 		const proxiedUrl = $moduleState.url;
 		const wikipediaUrl = decodeURIComponent(
@@ -207,7 +216,7 @@
 			<!-- svelte-ignore a11y-no-onchange -->
 			<select
 				style="flex: 0; margin-right: var(--padding);"
-				bind:value={$moduleState.activeModule}
+				value={$activeModule}
 				on:change={(event) => {
 					setActiveModule(event.target.value);
 				}}
@@ -226,20 +235,20 @@
 			</select>
 
 			<!-- CONTEXTUAL OPTIONS -->
-			{#if $moduleState.activeModule === moduleTypes.PRESENTATION}
+			{#if $activeModule === moduleTypes.PRESENTATION}
 			<PresentationControls
 				kastaliaId={kastaliaId}
 				startPres={startPres}
 				stopPres={stopPres}
 			/>
-			{:else if $moduleState.activeModule === moduleTypes.WIKIPEDIA}
+			{:else if $activeModule === moduleTypes.WIKIPEDIA}
 			<WikipediaControls
 				setWikiUrl={setWikiUrl}
 				wikiJumpToSection={wikiJumpToSection}
 				activeSectionHash={$moduleState.activeSectionHash}
 				url={urlFromProxiedUrl($moduleState.url)}
 			/>
-			{:else if $moduleState.activeModule === moduleTypes.CHAT}
+			{:else if $activeModule === moduleTypes.CHAT}
 			<ChatControls
 				roomId={$moduleState.matrixRoomId}
 				setHydrogenRoom={setHydrogenRoom}
@@ -288,15 +297,15 @@
 				means we need to hide it rather than unmount it -->
 				<Chat
 					login={!$isLoggedIn}
-					hidden={$moduleState.activeModule !== moduleTypes.CHAT}
+					hidden={$activeModule !== moduleTypes.CHAT}
 				/>
 
-				{#if ($moduleState.activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
+				{#if ($activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
 					<Presentation
 						url={$moduleState.url}
 						onPresentationLoaded={onPresentationLoaded}
 					/>
-				{:else if ($moduleState.activeModule === moduleTypes.WIKIPEDIA) && $moduleState.url}
+				{:else if ($activeModule === moduleTypes.WIKIPEDIA) && $moduleState.url}
 					<Wikipedia url={$moduleState.url} />
 				{/if}
 			</div>
