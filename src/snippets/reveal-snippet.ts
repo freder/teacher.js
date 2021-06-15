@@ -7,8 +7,12 @@ declare global {
 }
 
 
-// check if we're in an iframe
-if (window.location !== window.parent.location) {
+function checkIframe() {
+	return (window.location !== window.parent.location);
+}
+
+
+function registerHook() {
 	// register slideshow hooks
 	const eventTypes = [
 		'slidechanged',
@@ -36,4 +40,22 @@ if (window.location !== window.parent.location) {
 			Reveal.setState(data.state);
 		}
 	});
+}
+
+
+function init() {
+	// check if we're in an iframe
+	if (checkIframe()) {
+		registerHook();
+	}
+}
+
+
+if (
+	document.readyState === 'interactive' ||
+	document.readyState === 'complete'
+) {
+	init();
+} else {
+	document.addEventListener('DOMContentLoaded', init);
 }
