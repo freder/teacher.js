@@ -89,7 +89,9 @@ export function initProxy(app: express.Application): void {
 
 	app.get(`/${proxyPathKastalia}/:kastaliaId`, (req, res) => {
 		const url = new URL(kastaliaBaseUrl);
-		url.pathname += `/${req.params.kastaliaId}`;
+		url.pathname = (
+			`${url.pathname}/${req.params.kastaliaId}`
+		).replace(/\/+/g, '/');
 		fetchCached(
 			url.toString(),
 			(htmlStr) => {
