@@ -61,9 +61,8 @@ export function initProxy(app: express.Application): void {
 			decodeURIComponent(req.params.url)
 		);
 		url.hash = '';
-		const urlStr = url.toString();
 		fetchCached(
-			urlStr,
+			url.toString(),
 			(htmlStr) => {
 				return htmlStr
 					// this makes `srcset` attributes work...
@@ -88,15 +87,13 @@ export function initProxy(app: express.Application): void {
 		).then((output) => res.send(output));
 	});
 
-	// TODO: cache
 	app.get(`/${proxyPathKastalia}/:kastaliaId`, (req, res) => {
 		const url = new URL(kastaliaBaseUrl);
 		url.pathname += `/${req.params.kastaliaId}`;
-		const urlStr = url.toString();
-		fetch(urlStr)
-			.then((res) => res.text())
-			.then((htmlStr) => {
-				const output = htmlStr
+		fetchCached(
+			url.toString(),
+			(htmlStr) => {
+				return htmlStr
 					.replace(
 						'</head>',
 						`<base href="${url.origin}"></head>`
@@ -108,8 +105,7 @@ export function initProxy(app: express.Application): void {
 					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
 
 					.replace('</body>', `<script src="${frontendUrl}reveal-snippet.js" defer></script></body>`);
-
-				res.send(output);
-			});
+			}
+		).then((output) => res.send(output));
 	});
 }
