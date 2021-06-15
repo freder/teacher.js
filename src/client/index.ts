@@ -32,7 +32,6 @@ import {
 	moduleTypes,
 	matrixRoomId,
 	proxyPathWikipedia,
-	kastaliaBaseUrl,
 	wikipediaBaseUrl,
 	proxyPathKastalia,
 } from '../shared/constants';
@@ -355,7 +354,7 @@ async function main() {
 			handleExternalRevealStateChange(state);
 		});
 
-		// iframe messages
+		// messages from iframe(s)
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
 			const { authToken } = get(userState);
@@ -390,6 +389,7 @@ async function main() {
 				socket.emit(messageTypes.URL_CHANGED, msg);
 				chatSendUrl(get(moduleState).matrixRoomId, data.url);
 			} else if (data.type === 'HYDROGEN_READY') {
+				// TODO: ↑ use constant
 				const { userId, displayName } = data.payload;
 				userState.update((prev) => ({
 					...prev,
@@ -397,6 +397,13 @@ async function main() {
 				}));
 				setHydrogenRoom(matrixRoomId);
 				setUserName(displayName);
+			} else if (data.type === messageTypes.REVEAL_WIKIPEDIA_LINK) {
+				if (!authToken) {
+					return;
+				}
+				const { url } = data;
+				setActiveModule(moduleTypes.WIKIPEDIA);
+				setWikiUrl(url);
 			}
 		});
 	});

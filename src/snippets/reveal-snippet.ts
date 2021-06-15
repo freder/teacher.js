@@ -1,4 +1,4 @@
-import { messageTypes } from '../shared/constants';
+import { messageTypes, wikipediaBaseUrl } from '../shared/constants';
 
 
 declare global {
@@ -43,12 +43,36 @@ function registerHook() {
 }
 
 
+function initWikipediaLinks() {
+	const wikiHost = (new URL(wikipediaBaseUrl)).host;
+	const allLinks = document.querySelectorAll('a[href]');
+	allLinks.forEach((elem) => {
+		const href = elem.getAttribute('href');
+		console.log('href:', href);
+		const url = new URL(href);
+		if (url.host === wikiHost) {
+			elem.addEventListener('click', (event) => {
+				// don't actually go there
+				event.preventDefault();
+				// tell parent to open link in wikipedia module
+				const data = {
+					type: messageTypes.REVEAL_WIKIPEDIA_LINK,
+					url: href,
+				};
+				window.parent.postMessage(data, '*');
+			});
+		}
+	});
+}
+
+
 function init() {
 	// check if we're in an iframe
 	if (checkIframe()) {
 		// does this make a difference?
 		Reveal.configure({ embedded: true });
 		registerHook();
+		initWikipediaLinks();
 	}
 }
 
