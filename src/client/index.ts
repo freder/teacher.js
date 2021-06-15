@@ -26,15 +26,15 @@ import {
 	messageTypes,
 	moduleTypes,
 	matrixRoomId,
-	proxyPathWikipedia
+	proxyPathWikipedia,
+	kastaliaBaseUrl,
+	wikipediaBaseUrl,
 } from '../shared/constants';
 import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 
 import {
 	serverUrl,
-	kastaliaBaseUrl,
 	presentationIframeId,
-	wikipediaBaseUrl,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';

@@ -24,11 +24,16 @@ export const moduleTypes = {
 
 // TODO: use env var
 export const janusRoomId = 1234;
-
-export const proxyPathWikipedia = 'proxy/wikipedia';
-
 // TODO: use env var
 export const matrixRoomId = '!MnnWYJyaHwOLoMoWZV:m3x.baumhaus.digital';
+// TODO: use env var
+export const wikipediaBaseUrl = 'https://en.wikipedia.org';
+// TODO: use env var
+export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
+export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
+
+export const proxyPathWikipedia = 'proxy/wikipedia';
+export const proxyPathKastalia = 'proxy/kastalia';
 
 export const initialRoomState: RoomState = {
 	adminIds: [],

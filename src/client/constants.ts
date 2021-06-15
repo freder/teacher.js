@@ -22,12 +22,4 @@ export const janusServers = [
 	)
 ];
 
-// TODO: use env var
-export const wikipediaBaseUrl = 'https://en.wikipedia.org';
-
-// TODO: use env var
-export const kastaliaBaseUrl = 'https://kastalia.medienhaus.udk-berlin.de';
-
-export const hydrogenBaseUrl = process.env.HYDROGEN_URL;
-
 export const presentationIframeId = 'presentation-iframe';
