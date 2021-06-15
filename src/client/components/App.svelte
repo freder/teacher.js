@@ -40,7 +40,7 @@
 
 	// TODO: needed?
 	let kastaliaId;
-	let headerIsOpen = ($role === 'admin');
+	let headerIsOpen = true;
 	let panelIsOpen = true;
 
 	const isLoggedIn = derived(
@@ -177,7 +177,12 @@
 		left: ${panelIsOpen
 			? 'calc(var(--panel-width) - 12px)'
 			: 'var(--padding)' };
-		top: ${headerIsOpen ? '56px' : 'var(--padding)'};
+		top: ${headerIsOpen
+			? $role === 'admin'
+				? '56px'
+				: 'var(--padding)'
+			: 'var(--padding)'
+		};
 	`}
 >
 	<button
