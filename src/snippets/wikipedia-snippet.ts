@@ -1,5 +1,5 @@
-import { messageTypes, proxyPathWikipedia } from '../../shared/constants';
-import { getProxiedUrl } from '../../shared/utils';
+import { messageTypes, proxyPathWikipedia } from '../shared/constants';
+import { getProxiedUrl } from '../shared/utils';
 
 
 function updateLinks() {
