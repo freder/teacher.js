@@ -190,7 +190,7 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 }
 
 
-function handleExternalRevealStateChange(state: RevealState) {
+function handleExternalRevealStateChange(state: Partial<RevealState>) {
 	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
 	// inform iframe

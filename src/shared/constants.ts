@@ -1,4 +1,4 @@
-import type { ModuleState, RoomState } from './types';
+import type { ModuleState, RevealState, RoomState } from './types';
 
 export const messageTypes = {
 	CLAIM_ADMIN_ROLE: 'CLAIM_ADMIN_ROLE',
@@ -47,6 +47,6 @@ export const initialModuleState: ModuleState = {
 	matrixRoomId,
 	url: null,
 	presentationState: {
-		state: null
+		state: {}
 	},
 };
