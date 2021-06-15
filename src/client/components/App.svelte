@@ -58,7 +58,7 @@
 	)
 
 	const wikiJumpToSection = (hash) => {
-		const proxiedUrl = $moduleState.url;
+		const proxiedUrl = $moduleState.wikipediaState.url;
 		const wikipediaUrl = decodeURIComponent(
 			proxiedUrl.split(`/${proxyPathWikipedia}/`)[1]
 		);
@@ -245,12 +245,12 @@
 			<WikipediaControls
 				setWikiUrl={setWikiUrl}
 				wikiJumpToSection={wikiJumpToSection}
-				activeSectionHash={$moduleState.activeSectionHash}
-				url={urlFromProxiedUrl($moduleState.url)}
+				activeSectionHash={$moduleState.wikipediaState.activeSectionHash}
+				url={urlFromProxiedUrl($moduleState.wikipediaState.url)}
 			/>
 			{:else if $activeModule === moduleTypes.CHAT}
 			<ChatControls
-				roomId={$moduleState.matrixRoomId}
+				roomId={$moduleState.chatState.matrixRoomId}
 				setHydrogenRoom={setHydrogenRoom}
 			/>
 			{/if}
@@ -300,13 +300,13 @@
 					hidden={$activeModule !== moduleTypes.CHAT}
 				/>
 
-				{#if ($activeModule === moduleTypes.PRESENTATION) && $moduleState.url}
+				{#if ($activeModule === moduleTypes.PRESENTATION) && $moduleState.presentationState.url}
 					<Presentation
-						url={$moduleState.url}
+						url={$moduleState.presentationState.url}
 						onPresentationLoaded={onPresentationLoaded}
 					/>
-				{:else if ($activeModule === moduleTypes.WIKIPEDIA) && $moduleState.url}
-					<Wikipedia url={$moduleState.url} />
+				{:else if ($activeModule === moduleTypes.WIKIPEDIA) && $moduleState.wikipediaState.url}
+					<Wikipedia url={$moduleState.wikipediaState.url} />
 				{/if}
 			</div>
 

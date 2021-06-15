@@ -139,34 +139,31 @@ export function moduleReducer(
 	switch (action.type) {
 		case messageTypes.SET_ACTIVE_MODULE: {
 			const { activeModule } = action.payload as ActiveModulePayload;
-			newState = {
-				...state,
-				activeModule,
-				url: null,
-			};
+			newState = { ...state, activeModule };
 			break;
 		}
 
-		case messageTypes.URL_CHANGED: {
+		case messageTypes.REVEAL_URL_CHANGED: {
 			const { url } = action.payload as UrlPayload;
-			newState = { ...state, url };
+			newState = R.assocPath(['presentationState', 'url'], url, state);
+			break;
+		}
+
+		case messageTypes.WIKIPEDIA_URL_CHANGED: {
+			const { url } = action.payload as UrlPayload;
+			newState = R.assocPath(['wikipediaState', 'url'], url, state);
 			break;
 		}
 
 		case messageTypes.MATRIX_ROOM_CHANGE: {
-			const { roomId: matrixRoomId } = action.payload as MatrixRoomPayload;
-			newState = { ...state, matrixRoomId };
+			const { roomId } = action.payload as MatrixRoomPayload;
+			newState = R.assocPath(['chatState', 'matrixRoomId'], roomId, state);
 			break;
 		}
 
 		case messageTypes.REVEAL_STATE_CHANGED: {
 			const payload = action.payload as RevealStateChangePayload;
-			newState = {
-				...state,
-				presentationState: {
-					state: payload.state,
-				},
-			};
+			newState = R.assocPath(['presentationState', 'state'], payload.state, state);
 			const msg: Message<RevealStateChangePayload> = {
 				payload: newState.presentationState
 			};
@@ -180,10 +177,7 @@ export function moduleReducer(
 
 		case messageTypes.START_PRESENTATION: {
 			const payload = action.payload as PresentationStartPayload;
-			newState = {
-				...state,
-				url: payload.url
-			};
+			newState = R.assocPath(['presentationState', 'url'], payload.url, state);
 			break;
 		}
 
@@ -191,7 +185,6 @@ export function moduleReducer(
 			newState = {
 				...state,
 				presentationState: initialModuleState.presentationState,
-				url: null,
 			};
 			break;
 		}

@@ -166,7 +166,13 @@ const wsMessages = [
 		logFn: logPresentationEvent,
 	},
 	{
-		type: messageTypes.URL_CHANGED,
+		type: messageTypes.REVEAL_URL_CHANGED,
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logRoomEvent,
+	},
+	{
+		type: messageTypes.WIKIPEDIA_URL_CHANGED,
 		requiresAuthentication: true,
 		handler: defaultHandler(moduleStore),
 		logFn: logRoomEvent,

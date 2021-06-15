@@ -13,7 +13,8 @@ const whitelist = [
 	messageTypes.REVEAL_STATE_CHANGED,
 	messageTypes.START_PRESENTATION,
 	messageTypes.END_PRESENTATION,
-	messageTypes.URL_CHANGED,
+	messageTypes.REVEAL_URL_CHANGED,
+	messageTypes.WIKIPEDIA_URL_CHANGED,
 ];
 
 

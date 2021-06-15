@@ -48,7 +48,6 @@ function initWikipediaLinks() {
 	const allLinks = document.querySelectorAll('a[href]');
 	allLinks.forEach((elem) => {
 		const href = elem.getAttribute('href');
-		console.log('href:', href);
 		const url = new URL(href);
 		if (url.host === wikiHost) {
 			elem.addEventListener('click', (event) => {

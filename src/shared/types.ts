@@ -34,14 +34,6 @@ export type Message<PayloadType> = {
 	payload: PayloadType,
 };
 
-export type RevealState = {
-	indexh: number,
-	indexv: number,
-	indexf?: number,
-	paused: boolean,
-	overview: boolean,
-};
-
 export type UserInfo = {
 	name: string,
 	socketId: string,
@@ -55,12 +47,31 @@ export type RoomState = {
 	users: Array<UserInfo>,
 };
 
+export type RevealState = {
+	indexh: number,
+	indexv: number,
+	indexf: number,
+	paused: boolean,
+	overview: boolean,
+};
+
+export type WikipediaState = {
+	url: string,
+	activeSectionHash: string,
+};
+
+export type ChatState = {
+	matrixRoomId: string,
+};
+
+export type PresentationState = {
+	url: string,
+	state: Partial<RevealState>,
+};
+
 export type ModuleState = {
 	activeModule: string,
-	url?: string,
-	activeSectionHash?: string,
-	presentationState: {
-		state: Partial<RevealState>
-	},
-	matrixRoomId: string,
+	wikipediaState: WikipediaState,
+	presentationState: PresentationState,
+	chatState: ChatState,
 };

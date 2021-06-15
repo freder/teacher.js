@@ -18,7 +18,7 @@ function updateLinks() {
 
 			// let parent take care of it instead
 			const data = {
-				type: messageTypes.URL_CHANGED,
+				type: messageTypes.WIKIPEDIA_URL_CHANGED,
 				url: proxiedUrl,
 			};
 			window.parent.postMessage(data, '*');
