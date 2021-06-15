@@ -96,15 +96,16 @@
 	}
 
 	#main {
-		flex: 1;
 		display: flex;
+		flex: 1;
+		overflow: hidden;
 	}
 
 	#panel {
-		flex-grow: 0;
-		flex-shrink: 0;
 		border-right: solid 2px black;
-		overflow: hidden;
+		overflow-x: hidden;
+		display: flex;
+		flex-direction: column;
 	}
 	#panel.open {
 		width: var(--panel-width);
@@ -250,24 +251,24 @@
 				${$isLoggedIn ? '' : 'hidden-during-login'}
 			`}
 		>
-			<div class="padded">
-				{#if $role !== 'admin'}
-					<button on:click={claimAdmin}>
-						claim admin role
-					</button>
-				{/if}
-
-				<AudioControls
-					audioState={audioState}
-					startAudio={startAudio}
-					stopAudio={stopAudio}
-					toggleMute={toggleMute}
-				/>
+			<div style="flex-grow: 0; flex-shrink: 0;">
+				<div class="padded">
+					{#if $role !== 'admin'}
+						<button on:click={claimAdmin}>
+							claim admin role
+						</button>
+					{/if}
+					<AudioControls
+						audioState={audioState}
+						startAudio={startAudio}
+						stopAudio={stopAudio}
+						toggleMute={toggleMute}
+					/>
+				</div>
+				<hr>
 			</div>
 
-			<hr>
-
-			<div class="padded">
+			<div class="padded" style="flex-grow: 1; overflow-y: auto;">
 				<div class="section-title">Participants:</div>
 				<ParticipantsList
 					userState={$userState}
