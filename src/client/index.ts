@@ -34,6 +34,7 @@ import {
 	proxyPathWikipedia,
 	wikipediaBaseUrl,
 	proxyPathKastalia,
+	kastaliaBaseUrl,
 } from '../shared/constants';
 import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 
@@ -173,6 +174,11 @@ function startPresentation(kastaliaId: string) {
 		payload,
 	};
 	socket.emit(messageTypes.START_PRESENTATION, msg);
+
+	// send original url to chat
+	const origUrl = `${kastaliaBaseUrl}/${kastaliaId}`;
+	const { matrixRoomId } = get(moduleState).chatState;
+	chatSendUrl(matrixRoomId, origUrl);
 }
 
 
@@ -240,8 +246,7 @@ function getHydrogenIframe() {
 }
 
 
-function chatSendUrl(roomId: string, proxiedUrl: string) {
-	const url = urlFromProxiedUrl(proxiedUrl);
+function chatSendUrl(roomId: string, url: string) {
 	const iframe = getHydrogenIframe();
 	iframe.contentWindow.postMessage(
 		{
@@ -276,7 +281,10 @@ async function main() {
 		};
 		socket.emit(messageTypes.WIKIPEDIA_URL_CHANGED, msg);
 		const { matrixRoomId } = get(moduleState).chatState;
-		chatSendUrl(matrixRoomId, proxiedUrl);
+		chatSendUrl(
+			matrixRoomId,
+			urlFromProxiedUrl(proxiedUrl)
+		);
 
 		moduleState.update(
 			(prev) => R.assocPath(
