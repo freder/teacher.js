@@ -28,8 +28,6 @@ const send = () => {
 	const message = JSON.parse(input.innerText);
 	console.log(message);
 	audioBridge.send({ message });
-	// {audiobridge: "event", error_code: 489, error: "Plain RTP participants not allowed in this room"}
-	audioBridge.send({ message });
 };
 
 
