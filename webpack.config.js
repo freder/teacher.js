@@ -37,6 +37,14 @@ const plugins = [
 		chunks: ['rtp'],
 	}),
 
+	new HtmlWebpackPlugin({
+		filename: 'rtp2.html',
+		template: `${clientPath}/rtp2.html`,
+		minify: false,
+		inject: 'body',
+		chunks: ['rtp2'],
+	}),
+
 	new webpack.EnvironmentPlugin([
 		'NODE_ENV',
 		'SERVER_PORT',
@@ -80,6 +88,7 @@ module.exports = {
 		// TODO: ↓ move to client directory
 		'wikipedia-snippet': `${serverPath}/snippets/wikipedia.ts`,
 		'rtp': `${clientPath}/rtp.ts`,
+		'rtp2': `${clientPath}/rtp2.ts`,
 	},
 	output: {
 		clean: true,
