@@ -47,7 +47,7 @@ async function main() {
 		return new Promise((resolve) => {
 			console.log('sending:');
 			console.log(msg);
-			// audioBridge.send({ message: msg });
+			audioBridge.send({ message: msg });
 			setTimeout(resolve, delay);
 		});
 	};
