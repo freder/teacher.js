@@ -50,9 +50,7 @@ function initWikipediaLinks() {
 		const href = elem.getAttribute('href');
 		const url = new URL(href);
 		if (url.host === wikiHost) {
-			elem.addEventListener('click', (event) => {
-				// don't actually go there
-				event.preventDefault();
+			elem.addEventListener('click', () => {
 				// tell parent to open link in wikipedia module
 				const data = {
 					type: messageTypes.REVEAL_WIKIPEDIA_LINK,
