@@ -12,13 +12,6 @@
     "build:prod-baseline": "BUNDLE_STATS_BASELINE=true npm run build:prod",
     "server": "npx ts-node src/server/server.ts"
   },
-  "browserslist": [
-    "defaults",
-    "last 2 versions",
-    "> 1%",
-    "not dead",
-    "not IE > 0"
-  ],
   "devDependencies": {
     "@babel/core": "^7.14.0",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
