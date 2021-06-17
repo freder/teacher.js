@@ -2,7 +2,12 @@ import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
 import UAParser from 'ua-parser-js';
-import type { Janus, JSEP, PluginHandle, PluginMessage } from 'janus-gateway';
+import type {
+	Janus,
+	JSEP,
+	PluginHandle,
+	PluginMessage
+} from 'janus-gateway';
 
 import type {
 	Message,
@@ -26,15 +31,16 @@ import {
 	messageTypes,
 	moduleTypes,
 	matrixRoomId,
-	proxyPathWikipedia
+	proxyPathWikipedia,
+	wikipediaBaseUrl,
+	proxyPathKastalia,
+	kastaliaBaseUrl,
 } from '../shared/constants';
 import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 
 import {
 	serverUrl,
-	kastaliaBaseUrl,
 	presentationIframeId,
-	wikipediaBaseUrl,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
@@ -143,7 +149,11 @@ function claimAdmin() {
 function setActiveModule(moduleName: string) {
 	// TODO: find a better way to reset pieces of local state
 	if (moduleName !== moduleTypes.WIKIPEDIA) {
-		moduleState.update((prev) => ({ ...prev, activeSectionHash: '' }));
+		moduleState.update(
+			(prev) => R.assocPath(
+				['wikipediaState', 'activeSectionHash'], '', prev
+			)
+		);
 	}
 
 	const msg: Message<ActiveModulePayload> = {
@@ -155,14 +165,20 @@ function setActiveModule(moduleName: string) {
 
 
 function startPresentation(kastaliaId: string) {
+	const proxiedUrl = `${serverUrl}/${proxyPathKastalia}/${kastaliaId}`;
 	const payload: PresentationStartPayload = {
-		url: `${kastaliaBaseUrl}/${kastaliaId}`
+		url: proxiedUrl
 	};
 	const msg: Message<PresentationStartPayload> = {
 		authToken: get(userState).authToken,
 		payload,
 	};
 	socket.emit(messageTypes.START_PRESENTATION, msg);
+
+	// send original url to chat
+	const origUrl = `${kastaliaBaseUrl}/${kastaliaId}`;
+	const { matrixRoomId } = get(moduleState).chatState;
+	chatSendUrl(matrixRoomId, origUrl);
 }
 
 
@@ -184,7 +200,7 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 }
 
 
-function handleExternalRevealStateChange(state: RevealState) {
+function handleExternalRevealStateChange(state: Partial<RevealState>) {
 	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
 
 	// inform iframe
@@ -217,10 +233,11 @@ function setHydrogenRoom(roomId: string) {
 	};
 	socket.emit(messageTypes.MATRIX_ROOM_CHANGE, msg);
 
-	moduleState.update((prev) => ({
-		...prev,
-		matrixRoomId: roomId
-	}));
+	moduleState.update(
+		(prev) => R.assocPath(
+			['chatState', 'matrixRoomId'], roomId, prev
+		)
+	);
 }
 
 
@@ -229,8 +246,7 @@ function getHydrogenIframe() {
 }
 
 
-function chatSendUrl(roomId: string, proxiedUrl: string) {
-	const url = urlFromProxiedUrl(proxiedUrl);
+function chatSendUrl(roomId: string, url: string) {
 	const iframe = getHydrogenIframe();
 	iframe.contentWindow.postMessage(
 		{
@@ -263,10 +279,18 @@ async function main() {
 			authToken: get(userState).authToken,
 			payload: { url: proxiedUrl }
 		};
-		socket.emit(messageTypes.URL_CHANGED, msg);
-		chatSendUrl(get(moduleState).matrixRoomId, proxiedUrl);
+		socket.emit(messageTypes.WIKIPEDIA_URL_CHANGED, msg);
+		const { matrixRoomId } = get(moduleState).chatState;
+		chatSendUrl(
+			matrixRoomId,
+			urlFromProxiedUrl(proxiedUrl)
+		);
 
-		moduleState.update((prev) => ({ ...prev, url: proxiedUrl }));
+		moduleState.update(
+			(prev) => R.assocPath(
+				['wikipediaState', 'url'], proxiedUrl, prev
+			)
+		);
 	};
 
 	/* const app = */ new App({
@@ -335,9 +359,7 @@ async function main() {
 		socket.on(messageTypes.MODULE_UPDATE, (msg: Message<ModuleState>) => {
 			const newState = msg.payload;
 			moduleState.update((prev) => {
-				// if (!R.equals(newState.presentationState, prev.presentationState)) {
 				handleExternalRevealStateChange(newState.presentationState.state);
-				// }
 				return { ...prev, ...newState };
 			});
 			appendToLog(messageTypes.MODULE_UPDATE, newState);
@@ -348,7 +370,7 @@ async function main() {
 			handleExternalRevealStateChange(state);
 		});
 
-		// iframe messages
+		// messages from iframe(s)
 		window.addEventListener('message', (msg) => {
 			const { /* origin, */ data } = msg;
 			const { authToken } = get(userState);
@@ -360,29 +382,47 @@ async function main() {
 					payload: { state: data.state }
 				};
 				socket.emit(messageTypes.REVEAL_STATE_CHANGED, msg);
+			} else if (data.type === messageTypes.REVEAL_WIKIPEDIA_LINK) {
+				if (!authToken) { return; }
+				const { url } = data;
+				setActiveModule(moduleTypes.WIKIPEDIA);
+				setWikiUrl(url);
 			} else if (data.type === messageTypes.WIKIPEDIA_SECTION_CHANGED) {
-				moduleState.update((prev) => ({
-					...prev,
-					activeSectionHash: data.hash,
-				}));
-			} else if (data.type === messageTypes.URL_CHANGED) {
-				if (!authToken) {
+				const { hash } = data;
+				moduleState.update(
+					(prev) => R.assocPath(
+						['wikipediaState', 'activeSectionHash'], hash, prev
+					)
+				);
+			} else if (data.type === messageTypes.WIKIPEDIA_URL_CHANGED) {
+				if (!authToken) { return; }
+				const { url } = data;
+				if (url === get(moduleState).wikipediaState.url) {
 					return;
 				}
-				if (data.url === get(moduleState).url) {
+				moduleState.update(
+					(prev) => R.assocPath(
+						['wikipediaState', 'url'], url, prev
+					)
+				);
+				const msg: Message<UrlPayload> = { authToken, payload: { url } };
+				socket.emit(messageTypes.WIKIPEDIA_URL_CHANGED, msg);
+				const { matrixRoomId } = get(moduleState).chatState;
+				chatSendUrl(matrixRoomId, url);
+			} else if (data.type === messageTypes.REVEAL_URL_CHANGED) {
+				if (!authToken) { return; }
+				const { url } = data;
+				if (url === get(moduleState).presentationState.url) {
 					return;
 				}
-				moduleState.update((prev) => ({
-					...prev,
-					url: data.url
-				}));
-				const msg: Message<UrlPayload> = {
-					authToken,
-					payload: { url: data.url }
-				};
-				socket.emit(messageTypes.URL_CHANGED, msg);
-				chatSendUrl(get(moduleState).matrixRoomId, data.url);
-			} else if (data.type === 'HYDROGEN_READY') {
+				moduleState.update(
+					(prev) => R.assocPath(
+						['presentationState', 'url'], url, prev
+					)
+				);
+				const msg: Message<UrlPayload> = { authToken, payload: { url } };
+				socket.emit(messageTypes.REVEAL_URL_CHANGED, msg);
+			} else if (data.type === messageTypes.HYDROGEN_READY) {
 				const { userId, displayName } = data.payload;
 				userState.update((prev) => ({
 					...prev,

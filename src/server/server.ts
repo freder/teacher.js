@@ -13,7 +13,12 @@ import cors from 'cors';
 
 import type { Message, AnyPayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
-import { logInfo, logModuleEvent, logPresentationEvent, logRoomEvent } from './logging';
+import {
+	logInfo,
+	logModuleEvent,
+	logPresentationEvent,
+	logRoomEvent
+} from './logging';
 import { createIoServer } from './socket';
 import { initProxy } from './proxy';
 import { createToken, makeAdmin } from './utils';
@@ -161,7 +166,13 @@ const wsMessages = [
 		logFn: logPresentationEvent,
 	},
 	{
-		type: messageTypes.URL_CHANGED,
+		type: messageTypes.REVEAL_URL_CHANGED,
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logRoomEvent,
+	},
+	{
+		type: messageTypes.WIKIPEDIA_URL_CHANGED,
 		requiresAuthentication: true,
 		handler: defaultHandler(moduleStore),
 		logFn: logRoomEvent,

@@ -1,4 +1,4 @@
-import { wikipediaBaseUrl } from './constants';
+import { wikipediaBaseUrl } from '../shared/constants';
 
 
 export function getWikipediaTocUrl(wikiPageUrl: string): string {

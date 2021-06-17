@@ -1,5 +1,5 @@
 <script>
-	import { hydrogenBaseUrl } from '../constants';
+	import { hydrogenBaseUrl } from '../../shared/constants';
 
 	export let login;
 	export let hidden;

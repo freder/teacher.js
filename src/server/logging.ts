@@ -13,7 +13,8 @@ const whitelist = [
 	messageTypes.REVEAL_STATE_CHANGED,
 	messageTypes.START_PRESENTATION,
 	messageTypes.END_PRESENTATION,
-	messageTypes.URL_CHANGED,
+	messageTypes.REVEAL_URL_CHANGED,
+	messageTypes.WIKIPEDIA_URL_CHANGED,
 ];
 
 
@@ -44,8 +45,8 @@ export const logWikipediaEvent = wrap(debug(`${prfx}:wiki`));
 export const logConnectionEvent = wrap(debug(`${prfx}:net`));
 export const logModuleEvent = wrap(debug(`${prfx}:module`));
 export const logRoomEvent = wrap(debug(`${prfx}:room`));
-
 export const logBroadcast = wrap(debug(`${prfx}:broadcast`));
 
 export const logInfo = debug(`${prfx}:info`);
 export const logRedux = debug(`${prfx}:redux`);
+export const logCache = debug(`${prfx}:cache`);
