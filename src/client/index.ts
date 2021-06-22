@@ -91,7 +91,6 @@ const uiState = writable({
 	log: [],
 });
 const audioState = writable({
-	audioStarted: false, // TODO: needed?
 	connected: false,
 	muted: false,
 	janusParticipantId: undefined,
@@ -508,14 +507,14 @@ async function main() {
 	}
 
 	function toggleMute() {
-		const m = !get(audioState).muted;
+		const muted = !get(audioState).muted;
 		audioBridge.send({
 			message: {
 				request: 'configure',
-				muted: m
+				muted,
 			}
 		});
-		audioState.update((prev) => ({ ...prev, muted: m }));
+		audioState.update((prev) => ({ ...prev, muted }));
 		sendUserInfo();
 	}
 
@@ -580,8 +579,6 @@ async function main() {
 			display: get(userState).name,
 		};
 		audioBridge.send({ message: register });
-		audioState.update((prev) => ({ ...prev, audioStarted: true }));
-		// serverUpdateUser();
 	};
 
 	const stopAudio = () => {
@@ -590,7 +587,6 @@ async function main() {
 		audioBridge = null;
 		audioState.update((prev) => ({
 			...prev,
-			audioStarted: false,
 			connected: false,
 			muted: false,
 			janusParticipantId: null,
