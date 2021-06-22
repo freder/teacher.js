@@ -79,7 +79,6 @@ let socket: Socket;
 const roomState = writable(initialRoomState);
 const moduleState = writable({
 	...initialModuleState,
-	activeSectionHash: '',
 });
 const userState = writable({
 	socketId: undefined,
@@ -315,7 +314,7 @@ async function main() {
 			// uiState,
 			audioState,
 			claimAdmin,
-			// setUserName,
+			setUserName,
 			setActiveModule,
 			setHydrogenRoom,
 			setWikiUrl,

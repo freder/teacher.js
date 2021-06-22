@@ -28,7 +28,7 @@
 	export let startAudio;
 	export let stopAudio;
 	export let toggleMute;
-	// export let setUserName;
+	export let setUserName;
 	export let setHydrogenRoom;
 
 	const role = derived(
@@ -67,20 +67,20 @@
 		setWikiUrl(url.toString());
 	}
 
-	// const updateName = () => {
-	// 	const name = prompt();
-	// 	// can't be empty
-	// 	if (!name || name.trim() === '') {
-	// 		return;
-	// 	}
-	// 	// force unique
-	// 	const names = $roomState.users.map(({ name }) => name);
-	// 	if (names.includes(name)) {
-	// 		alert('name is already taken');
-	// 		return;
-	// 	}
-	// 	setUserName(name);
-	// };
+	const updateName = () => {
+		const name = prompt();
+		// can't be empty
+		if (!name || name.trim() === '') {
+			return;
+		}
+		// force unique
+		const names = $roomState.users.map(({ name }) => name);
+		if (names.includes(name)) {
+			alert('name is already taken');
+			return;
+		}
+		setUserName(name);
+	};
 </script>
 
 <style>
@@ -272,6 +272,7 @@
 							claim admin role
 						</button>
 					{/if}
+					<button on:click={updateName}>set user name</button>
 					<AudioControls
 						audioState={audioState}
 						startAudio={startAudio}
