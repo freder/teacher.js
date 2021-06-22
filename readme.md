@@ -1,8 +1,9 @@
-<center>
-<img src="assets/logo.svg" alt="logo" height="200" />
-
 # teacher.solar
-</center>
+
+## about
+
+https://teacher.solar/
+
 
 ## conventions
 
