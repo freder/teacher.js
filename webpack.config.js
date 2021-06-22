@@ -6,6 +6,7 @@ require('dotenv').config({ path: dotenvPath });
 
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin');
 const { StatsWriterPlugin } = require('webpack-stats-plugin');
 
@@ -56,6 +57,13 @@ const plugins = [
 		'JANUS_URL_HTTPS',
 		'HYDROGEN_URL',
 	]),
+
+	new CopyPlugin({
+		patterns: [
+			{ from: 'assets/favicon/favicon-16x16.png' },
+			{ from: 'assets/favicon/favicon-32x32.png' },
+		],
+	}),
 ];
 if (NODE_ENV === 'production') {
 	plugins.push(

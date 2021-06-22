@@ -35,6 +35,7 @@
     "@typescript-eslint/parser": "^4.22.0",
     "babel-loader": "^8.2.2",
     "bundle-stats-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^9.0.0",
     "eslint": "^7.25.0",
     "eslint-plugin-jest": "^24.3.6",
     "exports-loader": "^3.0.0",
