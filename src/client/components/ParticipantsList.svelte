@@ -23,9 +23,9 @@
 				{user.name}
 			</span>
 			<span
-				style={`opacity: ${user.connected ? 1 : 0.33};`}
+				style={`opacity: ${user.audioConnected ? 1 : 0.33};`}
 			>
-				{user.muted ? '🔇' : '🔈'}
+				{user.audioMuted ? '🔇' : '🔈'}
 			</span>
 			{#if roomState.adminIds.includes(user.socketId)}
 				{'✳️'}
