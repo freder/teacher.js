@@ -51,9 +51,11 @@
 	const activeModule = derived(
 		moduleState,
 		($moduleState) => {
-			return ($isLoggedIn)
-				? $moduleState.activeModule
-				: moduleTypes.CHAT;
+			// as long as user is not logged in, show chat module
+			// return ($isLoggedIn)
+			// 	? $moduleState.activeModule
+			// 	: moduleTypes.CHAT;
+			return $moduleState.activeModule;
 		}
 	)
 
