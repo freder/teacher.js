@@ -6,14 +6,14 @@
 </script>
 
 <button
-	on:click={$audioState.audioStarted ? stopAudio : startAudio}
+	on:click={$audioState.connected ? stopAudio : startAudio}
 >
-	{$audioState.audioStarted ? 'stop' : 'start'} audio
+	{$audioState.connected ? 'stop' : 'start'} audio
 </button>
 
 <button
 	on:click={toggleMute}
-	disabled={!$audioState.audioStarted}
+	disabled={!$audioState.connected}
 >
 	{$audioState.muted ? 'unmute' : 'mute'}
 </button>
