@@ -143,7 +143,7 @@
 	} */
 
 	.hidden-during-login {
-		visibility: hidden;
+		/* visibility: hidden; */
 	}
 
 	.toggle-button-container {
@@ -296,8 +296,8 @@
 			<div style="flex: 1;">
 				<!-- we need the hydrogen iframe to always be there, which
 				means we need to hide it rather than unmount it -->
+				<!-- login={!$isLoggedIn} -->
 				<Chat
-					login={!$isLoggedIn}
 					hidden={$activeModule !== moduleTypes.CHAT}
 				/>
 
