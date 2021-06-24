@@ -36,10 +36,16 @@ export type Message<PayloadType> = {
 
 export type UserInfo = {
 	name: string,
+
+	// socket.io socket id
 	socketId: string,
+
+	// matrix id
 	matrixUserId?: string,
-	connected?: boolean,
-	muted?: boolean,
+
+	// janus state
+	audioConnected?: boolean,
+	audioMuted?: boolean,
 };
 
 export type RoomState = {

@@ -91,7 +91,6 @@ const uiState = writable({
 	log: [],
 });
 const audioState = writable({
-	audioStarted: false, // TODO: needed?
 	connected: false,
 	muted: false,
 	janusParticipantId: undefined,
@@ -136,7 +135,8 @@ function sendUserInfo() {
 	const msg: Message<UserInfo> = {
 		payload: {
 			...R.omit(['authToken'], us),
-			muted: as.muted,
+			audioMuted: as.muted,
+			audioConnected: as.connected,
 		}
 	};
 	socket.emit(
@@ -455,24 +455,27 @@ async function main() {
 		// Successfully joined, negotiate WebRTC now
 		if (msg.id) {
 			console.info('Successfully joined room ' + msg.room + ' with ID ' + msg.id);
-			audioState.update((prev) => ({ ...prev, janusParticipantId: msg.id }));
+
+			audioState.update((prev) => ({
+				...prev,
+				janusParticipantId: msg.id,
+				connected: true,
+			}));
 			sendUserInfo();
-			if (!get(audioState).connected) {
-				audioState.update((prev) => ({ ...prev, connected: true }));
-				// Publish our stream
-				audioBridge.createOffer({
-					iceRestart: true,
-					media: { video: false }, // This is an audio only room
-					success: (jsep: JSEP) => {
-						// console.info('Got SDP!', jsep);
-						const publish = { request: 'configure', muted: false };
-						audioBridge.send({ message: publish, jsep: jsep });
-					},
-					error: (error: unknown) => {
-						console.error('WebRTC error:', error);
-					}
-				});
-			}
+
+			// Publish our stream
+			audioBridge.createOffer({
+				iceRestart: true,
+				media: { video: false }, // This is an audio only room
+				success: (jsep: JSEP) => {
+					// console.info('Got SDP!', jsep);
+					const publish = { request: 'configure', muted: false };
+					audioBridge.send({ message: publish, jsep: jsep });
+				},
+				error: (error: unknown) => {
+					console.error('WebRTC error:', error);
+				}
+			});
 		}
 
 		if (msg.participants) {
@@ -508,14 +511,14 @@ async function main() {
 	}
 
 	function toggleMute() {
-		const m = !get(audioState).muted;
+		const muted = !get(audioState).muted;
 		audioBridge.send({
 			message: {
 				request: 'configure',
-				muted: m
+				muted,
 			}
 		});
-		audioState.update((prev) => ({ ...prev, muted: m }));
+		audioState.update((prev) => ({ ...prev, muted }));
 		sendUserInfo();
 	}
 
@@ -580,8 +583,6 @@ async function main() {
 			display: get(userState).name,
 		};
 		audioBridge.send({ message: register });
-		audioState.update((prev) => ({ ...prev, audioStarted: true }));
-		// serverUpdateUser();
 	};
 
 	const stopAudio = () => {
@@ -590,7 +591,6 @@ async function main() {
 		audioBridge = null;
 		audioState.update((prev) => ({
 			...prev,
-			audioStarted: false,
 			connected: false,
 			muted: false,
 			janusParticipantId: null,
