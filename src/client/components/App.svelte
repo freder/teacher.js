@@ -12,10 +12,8 @@
 	import ChatControls from './ChatControls.svelte';
 	import Presentation from './Presentation.svelte';
 	import PresentationControls from './PresentationControls.svelte';
-	// import EventLog from './EventLog.svelte';
 
 	export let userState;
-	// export let uiState;
 	export let roomState;
 	export let moduleState;
 	export let audioState;
@@ -309,13 +307,6 @@
 					<Wikipedia url={$moduleState.wikipediaState.url} />
 				{/if}
 			</div>
-
-			<!-- <hr>
-
-			<div class="padded log">
-				<div class="section-title">Event log:</div>
-				<EventLog log={$uiState.log} />
-			</div> -->
 		</div>
 	</div>
 </div>

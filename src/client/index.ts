@@ -86,27 +86,12 @@ const userState = writable({
 	name: 'anonymous',
 	authToken: undefined,
 });
-// TODO: remove log, use console instead
-const uiState = writable({
-	log: [],
-});
 const audioState = writable({
 	audioStarted: false, // TODO: needed?
 	connected: false,
 	muted: false,
 	janusParticipantId: undefined,
 });
-
-
-function appendToLog(type: string, obj: Record<string, unknown>) {
-	const ts = Date.now();
-	const s = JSON.stringify(obj);
-	const entry = `${ts}: ${type}: ${s}`;
-	uiState.update((prev) => ({
-		...prev,
-		log: [entry, ...prev.log]
-	}));
-}
 
 
 function makeNameFromBrowser(): string {
@@ -214,8 +199,6 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 
 
 function handleExternalRevealStateChange(state: Partial<RevealState>) {
-	appendToLog(messageTypes.REVEAL_STATE_CHANGED, state);
-
 	// inform iframe
 	const iframe = document.querySelector(
 		`iframe#${presentationIframeId}`
@@ -312,7 +295,6 @@ async function main() {
 			userState,
 			roomState,
 			moduleState,
-			// uiState,
 			audioState,
 			claimAdmin,
 			// setUserName,
@@ -366,7 +348,6 @@ async function main() {
 		socket.on(messageTypes.ROOM_UPDATE, (msg: Message<RoomState>) => {
 			const newState = msg.payload;
 			roomState.update((prev) => ({ ...prev, ...newState }));
-			appendToLog(messageTypes.ROOM_UPDATE, newState);
 		});
 
 		socket.on(messageTypes.MODULE_UPDATE, (msg: Message<ModuleState>) => {
@@ -375,7 +356,6 @@ async function main() {
 				handleExternalRevealStateChange(newState.presentationState.state);
 				return { ...prev, ...newState };
 			});
-			appendToLog(messageTypes.MODULE_UPDATE, newState);
 		});
 
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<RevealStateChangePayload>) => {
