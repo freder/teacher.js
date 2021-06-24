@@ -19,6 +19,7 @@
 	export let audioState;
 	export let claimAdmin;
 	export let setWikiUrl;
+	export let wikiJumpToSection;
 	export let setActiveModule;
 	export let startPres;
 	export let stopPres;
@@ -54,16 +55,6 @@
 				: moduleTypes.CHAT;
 		}
 	)
-
-	const wikiJumpToSection = (hash) => {
-		const proxiedUrl = $moduleState.wikipediaState.url;
-		const wikipediaUrl = decodeURIComponent(
-			proxiedUrl.split(`/${proxyPathWikipedia}/`)[1]
-		);
-		const url = new URL(wikipediaUrl);
-		url.hash = hash;
-		setWikiUrl(url.toString());
-	}
 
 	// const updateName = () => {
 	// 	const name = prompt();

@@ -289,6 +289,16 @@ async function main() {
 		);
 	};
 
+	const wikiJumpToSection = (hash: string) => {
+		const proxiedUrl = get(moduleState).wikipediaState.url;
+		const wikipediaUrl = decodeURIComponent(
+			proxiedUrl.split(`/${proxyPathWikipedia}/`)[1]
+		);
+		const url = new URL(wikipediaUrl);
+		url.hash = hash;
+		setWikiUrl(url.toString());
+	};
+
 	/* const app = */ new App({
 		target: document.querySelector('#App'),
 		props: {
@@ -301,6 +311,7 @@ async function main() {
 			setActiveModule,
 			setHydrogenRoom,
 			setWikiUrl,
+			wikiJumpToSection,
 			startPres: startPresentation,
 			stopPres: stopPresentation,
 
