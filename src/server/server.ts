@@ -130,12 +130,6 @@ const wsMessages = [
 	// slices, which cases the respective updated pieces of state to
 	// be broadcast to all the clients.
 	{
-		type: messageTypes.CLAIM_ADMIN_ROLE,
-		requiresAuthentication: false,
-		handler: handleAdminRole,
-		logFn: () => {},
-	},
-	{
 		type: messageTypes.USER_INFO,
 		requiresAuthentication: false,
 		handler: defaultHandler(roomStore),
@@ -185,6 +179,12 @@ const wsMessages = [
 	},
 
 	// these ones are only between client and server
+	{
+		type: messageTypes.CLAIM_ADMIN_ROLE,
+		requiresAuthentication: false,
+		handler: handleAdminRole,
+		logFn: () => {},
+	},
 	{
 		type: messageTypes.GET_FULL_STATE,
 		requiresAuthentication: false,
