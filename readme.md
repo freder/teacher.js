@@ -29,6 +29,7 @@ the `teacher.solar` web application has the following features:
 
 ## setup
 
+install dependencies:
 ```shell
 git clone -recursive <this-repo> teacher.solar
 cd teacher.solar
@@ -47,7 +48,7 @@ rename `src/.env-example` to `src/.env` and edit according to your needs.
 ## run
 
 - run server: `DEBUG='T.S:*' npm run server`
-	- uses https://github.com/visionmedia/debug#readme for logging
+	- uses https://github.com/visionmedia/debug for logging
 - run webpack dev server (client): `npm run dev`
 - run hydrogen dev server: `cd src/hydrogen ; npm run start`
 	- runs on port 3001 by default
@@ -73,4 +74,4 @@ npm run build # output will be in src/hydrogen/target
 
 ## deploy
 
-`TODO`
+TODO
