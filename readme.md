@@ -5,6 +5,12 @@
 https://teacher.solar/
 
 
+### additional links
+
+- https://www.digital-future.berlin/en/news/news-in-detail/news/innovation-in-der-hochschullehre-prof-hromada-ausgezeichnet/?tx_news_pi1%5Bcontroller%5D=News&tx_news_pi1%5Baction%5D=detail&cHash=007fe214d60ba674b25ad731c14aa4c4
+- https://www.linkedin.com/feed/update/urn%3Ali%3Aactivity%3A6810842214646722560/
+
+
 ## description
 
 the `teacher.solar` web application has the following features:
