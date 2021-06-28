@@ -27,7 +27,7 @@
 	export let startAudio;
 	export let stopAudio;
 	export let toggleMute;
-	// export let setUserName;
+	export let setUserName;
 	export let setHydrogenRoom;
 
 	const role = derived(
@@ -50,26 +50,28 @@
 	const activeModule = derived(
 		moduleState,
 		($moduleState) => {
-			return ($isLoggedIn)
-				? $moduleState.activeModule
-				: moduleTypes.CHAT;
+			// as long as user is not logged in, show chat module
+			// return ($isLoggedIn)
+			// 	? $moduleState.activeModule
+			// 	: moduleTypes.CHAT;
+			return $moduleState.activeModule;
 		}
 	)
 
-	// const updateName = () => {
-	// 	const name = prompt();
-	// 	// can't be empty
-	// 	if (!name || name.trim() === '') {
-	// 		return;
-	// 	}
-	// 	// force unique
-	// 	const names = $roomState.users.map(({ name }) => name);
-	// 	if (names.includes(name)) {
-	// 		alert('name is already taken');
-	// 		return;
-	// 	}
-	// 	setUserName(name);
-	// };
+	const updateName = () => {
+		const name = prompt();
+		// can't be empty
+		if (!name || name.trim() === '') {
+			return;
+		}
+		// force unique
+		const names = $roomState.users.map(({ name }) => name);
+		if (names.includes(name)) {
+			alert('name is already taken');
+			return;
+		}
+		setUserName(name);
+	};
 </script>
 
 <style>
@@ -131,9 +133,9 @@
 		max-height: 100px;
 	} */
 
-	.hidden-during-login {
+	/* .hidden-during-login {
 		visibility: hidden;
-	}
+	} */
 
 	.toggle-button-container {
 		position: fixed;
@@ -261,6 +263,7 @@
 							claim admin role
 						</button>
 					{/if}
+					<button on:click={updateName}>set user name</button>
 					<AudioControls
 						audioState={audioState}
 						startAudio={startAudio}
@@ -284,8 +287,8 @@
 			<div style="flex: 1;">
 				<!-- we need the hydrogen iframe to always be there, which
 				means we need to hide it rather than unmount it -->
+				<!-- login={!$isLoggedIn} -->
 				<Chat
-					login={!$isLoggedIn}
 					hidden={$activeModule !== moduleTypes.CHAT}
 				/>
 

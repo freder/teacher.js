@@ -1,14 +1,14 @@
 <script>
 	import { hydrogenBaseUrl } from '../../shared/constants';
 
-	export let login;
+	export let login = false;
 	export let hidden;
 
 	const loginStyle = `
-		position: fixed;
+		/* position: fixed;
 		top: 0;
 		left: 0;
-		z-index: 9999;
+		z-index: 9999; */
 	`;
 </script>
 
