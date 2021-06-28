@@ -7,6 +7,9 @@ module.exports = {
 		commonjs: true,
 		es6: true
 	},
+	globals: {
+		Reveal: true,
+	},
 	plugins: [
 		'@typescript-eslint',
 		'jest',
@@ -17,11 +20,12 @@ module.exports = {
 		'plugin:jest/recommended',
 	],
 	rules: {
-		indent: ['error', 'tab'],
+		indent: ['error', 'tab', { SwitchCase: 1 }],
 		'linebreak-style': ['error', 'unix'],
 		quotes: ['error', 'single'],
 		semi: ['error', 'always'],
 
 		'@typescript-eslint/no-var-requires': 0,
+		'@typescript-eslint/no-empty-function': 0,
 	}
 };

@@ -1,1 +1,10 @@
+node_modules
 dist
+stats
+_notes
+
+*.swp
+.env
+settings.json
+eink_waveform.wbf
+log.txt
