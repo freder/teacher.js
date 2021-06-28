@@ -20,6 +20,12 @@ the `teacher.solar` web application has the following features:
 	- the audio conference is saved to a file
 	- relevant events (caused by the presentation / wikipedia module, etc.) are time-stamped and logged to a file on the server
 
+
+## architecture overview
+
+![architecture diagram](docs/architecture.png)
+
+
 ## conventions
 
 - this repo uses [git-flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
