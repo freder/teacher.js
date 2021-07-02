@@ -1,4 +1,4 @@
-# teacher.solar
+# teacher.js
 
 ## about
 
@@ -13,7 +13,7 @@ https://teacher.solar/
 
 ## description
 
-the `teacher.solar` web application has the following features:
+the `teacher.js` web application has the following features:
 - [matrix](https://matrix.org/) chat (via an embedded [hydrogen](https://github.com/vector-im/hydrogen-web) client)
 - webrtc audio conferencing (using [janus](https://janus.conf.meetecho.com/) + [audiobridge plugin](https://janus.conf.meetecho.com/docs/audiobridge.html))
 - synchronization between the client with the _instructor role_ and all other clients via websockets, so that students will always see what the teacher sees:
