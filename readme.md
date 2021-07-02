@@ -13,6 +13,8 @@ https://teacher.solar/
 
 ## description
 
+![screenshot](./assets/screenshot.png)
+
 the `teacher.js` web application has the following features:
 - [matrix](https://matrix.org/) chat (via an embedded [hydrogen](https://github.com/vector-im/hydrogen-web) client)
 - webrtc audio conferencing (using [janus](https://janus.conf.meetecho.com/) + [audiobridge plugin](https://janus.conf.meetecho.com/docs/audiobridge.html))
