@@ -45,8 +45,8 @@ the `teacher.js` web application has the following features:
 
 install dependencies:
 ```shell
-git clone -recursive <this-repo> teacher.solar
-cd teacher.solar
+git clone --recursive <this-repo> teacher.js
+cd teacher.js
 npm install
 
 cd src/hydrogen
