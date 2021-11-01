@@ -33,7 +33,8 @@ export const moduleTypes = {
 };
 
 // TODO: use env var
-export const etherpadBaseUrl = `https://${process.env.SERVER_NAME}/etherpad`;
+// https://github.com/ether/etherpad-lite/wiki/How-to-put-Etherpad-Lite-behind-a-reverse-Proxy#from-subdirectory-url
+export const etherpadBaseUrl = `https://${process.env.SERVER_NAME}/etherpad/p`;
 export const etherpadDocName = 'teacher-solar';
 // TODO: use env var
 export const janusRoomId = 1234;
