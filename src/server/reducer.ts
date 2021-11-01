@@ -8,6 +8,7 @@ import {
 } from '../shared/constants';
 import type {
 	ActiveModulePayload,
+	EtherpadPayload,
 	MatrixRoomPayload,
 	Message,
 	ModuleState,
@@ -158,6 +159,12 @@ export function moduleReducer(
 		case messageTypes.MATRIX_ROOM_CHANGE: {
 			const { roomId } = action.payload as MatrixRoomPayload;
 			newState = R.assocPath(['chatState', 'matrixRoomId'], roomId, state);
+			break;
+		}
+
+		case messageTypes.ETHERPAD_DOC_CHANGE: {
+			const { documentName } = action.payload as EtherpadPayload;
+			newState = R.assocPath(['etherpadState', 'documentName'], documentName, state);
 			break;
 		}
 

@@ -15,6 +15,7 @@ const whitelist = [
 	messageTypes.END_PRESENTATION,
 	messageTypes.REVEAL_URL_CHANGED,
 	messageTypes.WIKIPEDIA_URL_CHANGED,
+	messageTypes.ETHERPAD_DOC_CHANGE,
 ];
 
 
@@ -42,6 +43,8 @@ function appendToLogFile(entry: string) {
 
 export const logPresentationEvent = wrap(debug(`${prfx}:presentation`));
 export const logWikipediaEvent = wrap(debug(`${prfx}:wiki`));
+export const logEtherpadEvent = wrap(debug(`${prfx}:etherpad`));
+export const logMatrixEvent = wrap(debug(`${prfx}:matrix`));
 export const logConnectionEvent = wrap(debug(`${prfx}:net`));
 export const logModuleEvent = wrap(debug(`${prfx}:module`));
 export const logRoomEvent = wrap(debug(`${prfx}:room`));

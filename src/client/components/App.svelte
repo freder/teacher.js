@@ -1,8 +1,9 @@
 <script>
 	import { derived } from 'svelte/store';
 
-	import { moduleTypes, proxyPathWikipedia } from '../../shared/constants';
+	import { moduleTypes } from '../../shared/constants';
 	import { urlFromProxiedUrl } from '../../shared/utils';
+	import { makeEtherpadUrl } from '..//utils';
 
 	import AudioControls from './AudioControls.svelte';
 	import ParticipantsList from './ParticipantsList.svelte';
@@ -12,6 +13,8 @@
 	import ChatControls from './ChatControls.svelte';
 	import Presentation from './Presentation.svelte';
 	import PresentationControls from './PresentationControls.svelte';
+	import Etherpad from './Etherpad.svelte';
+	import EtherpadControls from './EtherpadControls.svelte';
 
 	export let userState;
 	export let roomState;
@@ -29,6 +32,7 @@
 	export let toggleMute;
 	export let setUserName;
 	export let setHydrogenRoom;
+	export let setEtherpadDocument;
 
 	const role = derived(
 		roomState,
@@ -222,6 +226,9 @@
 					<option value={moduleTypes.CHAT}>
 						Chat
 					</option>
+					<option value={moduleTypes.TEXTDOC}>
+						Text document
+					</option>
 				</optgroup>
 			</select>
 
@@ -238,6 +245,11 @@
 				wikiJumpToSection={wikiJumpToSection}
 				activeSectionHash={$moduleState.wikipediaState.activeSectionHash}
 				url={urlFromProxiedUrl($moduleState.wikipediaState.url)}
+			/>
+			{:else if $activeModule === moduleTypes.TEXTDOC}
+			<EtherpadControls
+				documentName={$moduleState.etherpadState.documentName}
+				setEtherpadDocument={setEtherpadDocument}
 			/>
 			{:else if $activeModule === moduleTypes.CHAT}
 			<ChatControls
@@ -299,6 +311,10 @@
 					/>
 				{:else if ($activeModule === moduleTypes.WIKIPEDIA) && $moduleState.wikipediaState.url}
 					<Wikipedia url={$moduleState.wikipediaState.url} />
+				{:else if ($activeModule === moduleTypes.TEXTDOC)}
+					<Etherpad
+						url={`${makeEtherpadUrl($moduleState.etherpadState.documentName)}&userName=${$userState.name}`}
+					/>
 				{/if}
 			</div>
 		</div>

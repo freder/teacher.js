@@ -14,10 +14,13 @@ import cors from 'cors';
 import type { Message, AnyPayload } from '../shared/types';
 import { messageTypes } from '../shared/constants';
 import {
+	logEtherpadEvent,
 	logInfo,
+	logMatrixEvent,
 	logModuleEvent,
 	logPresentationEvent,
-	logRoomEvent
+	logRoomEvent,
+	logWikipediaEvent
 } from './logging';
 import { createIoServer } from './socket';
 import { initProxy } from './proxy';
@@ -63,6 +66,7 @@ function wrapHandler(
 				!checkToken(socket.id, msg.authToken)
 			)
 		) {
+			logInfo('received', msgType, 'message without valid authentication!');
 			return;
 		}
 		if (msg) {
@@ -163,19 +167,25 @@ const wsMessages = [
 		type: messageTypes.REVEAL_URL_CHANGED,
 		requiresAuthentication: true,
 		handler: defaultHandler(moduleStore),
-		logFn: logRoomEvent,
+		logFn: logPresentationEvent,
 	},
 	{
 		type: messageTypes.WIKIPEDIA_URL_CHANGED,
 		requiresAuthentication: true,
 		handler: defaultHandler(moduleStore),
-		logFn: logRoomEvent,
+		logFn: logWikipediaEvent,
 	},
 	{
 		type: messageTypes.MATRIX_ROOM_CHANGE,
 		requiresAuthentication: true,
 		handler: defaultHandler(moduleStore),
-		logFn: logRoomEvent,
+		logFn: logMatrixEvent,
+	},
+	{
+		type: messageTypes.ETHERPAD_DOC_CHANGE,
+		requiresAuthentication: true,
+		handler: defaultHandler(moduleStore),
+		logFn: logEtherpadEvent,
 	},
 
 	// these ones are only between client and server
