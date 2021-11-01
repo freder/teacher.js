@@ -1,4 +1,4 @@
-import { wikipediaBaseUrl } from '../shared/constants';
+import { etherpadBaseUrl, wikipediaBaseUrl } from '../shared/constants';
 
 
 export function getWikipediaTocUrl(wikiPageUrl: string): string {
@@ -11,4 +11,15 @@ export function getWikipediaTocUrl(wikiPageUrl: string): string {
 
 export function getISOTimestamp(): string {
 	return (new Date()).toISOString();
+}
+
+
+export function makeEtherpadUrl(docName: string): string {
+	const params = [
+		'showChat=false',
+		'alwaysShowChat=false',
+		'showControls=false',
+		'showLineNumbers=true',
+	].join('&');
+	return `${etherpadBaseUrl}/${docName}?${params}`;
 }

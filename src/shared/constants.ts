@@ -21,14 +21,20 @@ export const messageTypes = {
 
 	HYDROGEN_READY: 'HYDROGEN_READY',
 	MATRIX_ROOM_CHANGE: 'MATRIX_ROOM_CHANGE',
+
+	ETHERPAD_DOC_CHANGE: 'ETHERPAD_DOC_CHANGE',
 };
 
 export const moduleTypes = {
 	PRESENTATION: 'PRESENTATION',
 	WIKIPEDIA: 'WIKIPEDIA',
 	CHAT: 'CHAT',
+	TEXTDOC: 'TEXTDOC',
 };
 
+// TODO: use env var
+export const etherpadBaseUrl = 'http://localhost:9001/p';
+export const etherpadDocName = 'teacher-solar';
 // TODO: use env var
 export const janusRoomId = 1234;
 // TODO: use env var
@@ -59,5 +65,8 @@ export const initialModuleState: ModuleState = {
 	wikipediaState: {
 		url: null,
 		activeSectionHash: '',
+	},
+	etherpadState: {
+		documentName: etherpadDocName,
 	}
 };

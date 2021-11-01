@@ -13,6 +13,10 @@ export interface UrlPayload extends AnyPayload {
 	url: string,
 }
 
+export interface EtherpadPayload extends AnyPayload {
+	documentName: string,
+}
+
 export interface MatrixRoomPayload extends AnyPayload {
 	roomId: string,
 }
@@ -70,6 +74,10 @@ export type ChatState = {
 	matrixRoomId: string,
 };
 
+export type EtherpadState = {
+	documentName: string,
+};
+
 export type PresentationState = {
 	url: string,
 	state: Partial<RevealState>,
@@ -80,4 +88,5 @@ export type ModuleState = {
 	wikipediaState: WikipediaState,
 	presentationState: PresentationState,
 	chatState: ChatState,
+	etherpadState: EtherpadState,
 };

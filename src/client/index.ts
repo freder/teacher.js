@@ -36,6 +36,7 @@ import type {
 	RevealStateChangePayload,
 	RevealState,
 	MatrixRoomPayload,
+	EtherpadPayload,
 } from '../shared/types';
 import {
 	initialModuleState,
@@ -57,6 +58,7 @@ import {
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
+import { makeEtherpadUrl } from './utils';
 require('./styles.css');
 
 
@@ -153,6 +155,13 @@ function setActiveModule(moduleName: string) {
 		);
 	}
 
+	if (moduleName === moduleTypes.TEXTDOC) {
+		const { documentName } = get(moduleState).etherpadState;
+		if (documentName) {
+			setEtherpadDocument(documentName);
+		}
+	}
+
 	const msg: Message<ActiveModulePayload> = {
 		authToken: get(userState).authToken,
 		payload: { activeModule: moduleName }
@@ -176,6 +185,21 @@ function startPresentation(kastaliaId: string) {
 	const origUrl = `${kastaliaBaseUrl}/${kastaliaId}`;
 	const { matrixRoomId } = get(moduleState).chatState;
 	chatSendUrl(matrixRoomId, origUrl);
+}
+
+
+function setEtherpadDocument(docName: string) {
+	const payload: EtherpadPayload = {
+		documentName: docName,
+	};
+	const msg: Message<EtherpadPayload> = {
+		authToken: get(userState).authToken,
+		payload,
+	};
+	socket.emit(messageTypes.ETHERPAD_DOC_CHANGE, msg);
+
+	// send url to chat
+	chatSendUrl(matrixRoomId, makeEtherpadUrl(docName));
 }
 
 
@@ -313,6 +337,7 @@ async function main() {
 			wikiJumpToSection,
 			startPres: startPresentation,
 			stopPres: stopPresentation,
+			setEtherpadDocument: setEtherpadDocument,
 
 			// TODO: needed?
 			onPresentationLoaded: () => {
