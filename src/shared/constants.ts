@@ -33,7 +33,7 @@ export const moduleTypes = {
 };
 
 // TODO: use env var
-export const etherpadBaseUrl = `http://${process.env.SERVER_NAME}:9001/p`;
+export const etherpadBaseUrl = `https://${process.env.SERVER_NAME}/etherpad`;
 export const etherpadDocName = 'teacher-solar';
 // TODO: use env var
 export const janusRoomId = 1234;
