@@ -1,16 +1,3 @@
-import * as Sentry from '@sentry/browser';
-import { Integrations } from '@sentry/tracing';
-if (process.env.NODE_ENV === 'production') {
-	Sentry.init({
-		dsn: 'https://90cef375d5004cbbab9560beee4750d1@o861816.ingest.sentry.io/5821578',
-		integrations: [new Integrations.BrowserTracing()],
-		// Set tracesSampleRate to 1.0 to capture 100%
-		// of transactions for performance monitoring.
-		// We recommend adjusting this value in production
-		tracesSampleRate: 1.0,
-	});
-}
-
 import * as R from 'ramda';
 import { io, Socket } from 'socket.io-client';
 import { writable, get } from 'svelte/store';
