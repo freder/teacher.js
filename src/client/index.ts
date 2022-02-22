@@ -376,6 +376,18 @@ async function main() {
 			const newState = msg.payload;
 			moduleState.update((prev) => {
 				handleExternalRevealStateChange(newState.presentationState.state);
+
+				if (prev.chatState.matrixRoomId !== newState.chatState.matrixRoomId) {
+					const iframe = getHydrogenIframe();
+					iframe.contentWindow.postMessage(
+						{
+							type: 'HYDROGEN_LOAD_ROOM',
+							payload: { roomId: newState.chatState.matrixRoomId }
+						},
+						'*'
+					);
+				}
+
 				return { ...prev, ...newState };
 			});
 		});
