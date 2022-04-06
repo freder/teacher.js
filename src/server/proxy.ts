@@ -77,9 +77,9 @@ export function initProxy(app: express.Application): void {
 					.replace(/href="#(\w)/ig, `href="${url.href}#$1`)
 					.replace(/href="\/\/(\w)/ig, `href="${url.protocol}//$1`)
 
-					// remove navigation
-					.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display:none;"')
-					.replace(/id="content"/,'id="content" style="margin:0;"')
+					// hide navigation
+					.replace(/mw-(navigation|page-base|head-base)"/g,'mw-$1" style="display: none;"')
+					.replace(/id="content"/,'id="content" style="margin: 0;"')
 
 					// inject custom code snippet
 					.replace('</body>', `<script src="${frontendUrl}wikipedia-snippet.js" defer></script></body>`);

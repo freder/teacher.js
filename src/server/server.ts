@@ -131,7 +131,7 @@ function main() {
 
 const wsMessages = [
 	// these ones (potentially) change one or multiple of the state
-	// slices, which cases the respective updated pieces of state to
+	// slices, which causes the respective updated pieces of state to
 	// be broadcast to all the clients.
 	{
 		type: messageTypes.USER_INFO,

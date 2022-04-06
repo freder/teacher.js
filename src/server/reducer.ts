@@ -46,6 +46,7 @@ function logUnhandled(action: AnyAction) {
 }
 
 
+// TODO: move to separate file
 export function roomReducer(
 	state=initialRoomState,
 	action: AnyAction

@@ -419,6 +419,7 @@ async function main() {
 				setActiveModule(moduleTypes.WIKIPEDIA);
 				setWikiUrl(url);
 			} else if (data.type === messageTypes.WIKIPEDIA_SECTION_CHANGED) {
+				// TODO: check auth token
 				const { hash } = data;
 				moduleState.update(
 					(prev) => R.assocPath(
@@ -454,6 +455,7 @@ async function main() {
 				const msg: Message<UrlPayload> = { authToken, payload: { url } };
 				socket.emit(messageTypes.REVEAL_URL_CHANGED, msg);
 			} else if (data.type === messageTypes.HYDROGEN_READY) {
+				// TODO: check auth token
 				const { userId, displayName } = data.payload;
 				userState.update((prev) => ({
 					...prev,
