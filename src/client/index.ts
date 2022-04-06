@@ -397,6 +397,14 @@ async function main() {
 		});
 
 		socket.on(messageTypes.REVEAL_STATE_CHANGED, (msg: Message<RevealStateChangePayload>) => {
+			const { authToken } = get(userState);
+			if (authToken) {
+				// the fact that we have the auth token means that we're currently
+				// the presenter. that also means we shouldn't react to events
+				// that we just sent out outselves.
+				return;
+				// TODO: fix this for other events as well
+			}
 			const { state } = msg.payload;
 			handleExternalRevealStateChange(state);
 		});
