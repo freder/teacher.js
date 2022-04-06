@@ -154,6 +154,10 @@
 		justify-content: center;
 		background: white;
 	}
+
+	button {
+		margin-bottom: 5px;
+	}
 </style>
 
 <div
