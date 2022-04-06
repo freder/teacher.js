@@ -23,3 +23,4 @@ export const janusServers = [
 ];
 
 export const presentationIframeId = 'presentation-iframe';
+export const hydrogenIframeId = 'hydrogen';

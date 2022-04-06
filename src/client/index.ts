@@ -42,6 +42,7 @@ import { getProxiedUrl, urlFromProxiedUrl } from '../shared/utils';
 import {
 	serverUrl,
 	presentationIframeId,
+	hydrogenIframeId,
 } from './constants';
 import { attachAudioBridgePlugin, initJanus } from './audio';
 import App from './components/App.svelte';
@@ -210,9 +211,7 @@ function logParticipants(participants: Array<Record<string, unknown>>) {
 
 function handleExternalRevealStateChange(state: Partial<RevealState>) {
 	// inform iframe
-	const iframe = document.querySelector(
-		`iframe#${presentationIframeId}`
-	) as HTMLIFrameElement;
+	const iframe = getPresentationIframe();
 	if (iframe) {
 		const data = {
 			type: messageTypes.REVEAL_STATE_CHANGED,
@@ -247,8 +246,13 @@ function setHydrogenRoom(roomId: string) {
 }
 
 
+function getPresentationIframe() {
+	return document.querySelector(`iframe#${presentationIframeId}`) as HTMLIFrameElement;
+}
+
+
 function getHydrogenIframe() {
-	return document.querySelector('iframe#hydrogen') as HTMLIFrameElement;
+	return document.querySelector(`iframe#${hydrogenIframeId}`) as HTMLIFrameElement;
 }
 
 
